@@ -13,15 +13,31 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#include "../include/public/Lattice.hpp"
-#include <iostream>
+#include "LatticeImpl.hpp"
 
-int main()
+LatticeImpl* LatticeImpl::mInstance = nullptr;
+
+LatticeImpl::LatticeImpl()
 {
-    std::cout << "Quantum Abysmal PoC." << std::endl;
+    mInstance = this;
+};
 
-    // Lattice::Uptr lattice = std::make_unique<Lattice>();
-    // lattice->SetDimension(3);
+LatticeImpl::~LatticeImpl()
+{
+    mInstance = nullptr;
+};
 
-    return 0;
+LatticeImpl* LatticeImpl::GetInstance()
+{
+    return mInstance;
 }
+
+void LatticeImpl::SetDimension(uint32_t dimension)
+{
+    mDimension = dimension;
+}
+
+uint32_t LatticeImpl::GetDimension()
+{
+    return mDimension;
+};

@@ -25,7 +25,7 @@ public:
 
     /// @brief Set the number of random vectors to use the Dos computation.
     /// @return
-    virtual void SetNumberOfRandomVectors() = 0;
+    virtual void SetNumberOfRandomVectors();
 };
 
 #endif

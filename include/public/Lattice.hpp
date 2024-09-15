@@ -25,7 +25,7 @@ public:
 
     /// @brief Set the dimension of the lattice.
     /// @return
-    virtual void SetDimension() = 0;
+    virtual void SetDimension(uint32_t dimension) = 0;
 };
 
 #endif
