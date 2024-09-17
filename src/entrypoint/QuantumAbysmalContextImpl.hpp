@@ -16,7 +16,7 @@
 #ifndef QUANTUM_ABYSMAL_SRC_CONTEXT_IMPL_HPP
 #define QUANTUM_ABYSMAL_SRC_CONTEXT_IMPL_HPP
 
-#include "include/public/QuantumAbysmalContext.hpp"
+#include "../include/public/QuantumAbysmalContext.hpp"
 
 #include <memory>
 

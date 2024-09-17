@@ -1,0 +1,39 @@
+BasedOnStyle: Google
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+BreakBeforeBraces: Attach
+
+AlignTrailingComments: true
+
+ColumnLimit: 100
+
+SpaceBeforeParens: <ControlStatements>
+
+AlignAfterOpenBracket: true
+
+AllowShortFunctionsOnASingleLine: Inline
+
+PointerAlignment: Right
+
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+
+BreakConstructorInitializersBeforeComma: false
+
+NamespaceIndentation: None
+
+KeepEmptyLinesAtTheStartOfBlocks: false
+KeepEmptyLinesAtTheEndOfBlocks: false
+
+ReflowComments: true
+
+SortIncludes: true
+
+LambdaBodyIndentation: Signature
+
+AccessModifierOffset: -2
+
+Cpp11BracedListStyle: true

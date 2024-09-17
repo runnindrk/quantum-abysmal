@@ -9,5 +9,5 @@ target_link_libraries(Quantum-Abysmal-PoC PRIVATE Quantum-Abysmal)
 target_include_directories(Quantum-Abysmal-PoC PRIVATE ${CMAKE_SOURCE_DIR}/include/public)
 
 install(TARGETS Quantum-Abysmal-PoC
-        DESTINATION ${CMAKE_SOURCE_DIR}/bin
+        DESTINATION ${CMAKE_SOURCE_DIR}/__bin
 )

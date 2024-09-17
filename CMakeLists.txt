@@ -9,16 +9,15 @@ enable_language(CUDA)
 
 add_library(Quantum-Abysmal STATIC
     src/lattice/LatticeImpl.cu
-    src/Entrypoint.cu 
-    src/QuantumAbysmalContextImpl.cu
+    src/entrypoint/Entrypoint.cu 
+    src/entrypoint/QuantumAbysmalContextImpl.cu
+    src/providers/KernelPolynomialMethodFactory.cu
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-install(TARGETS Quantum-Abysmal DESTINATION ${CMAKE_SOURCE_DIR}/bin/lib)
+install(TARGETS Quantum-Abysmal DESTINATION ${CMAKE_SOURCE_DIR}/__lib)
 
-# set_target_properties(Quantum-Abysmal PROPERTIES
-#     OUTPUT_NAME "Quantum-Abysmal" 
-# )
+set_target_properties(Quantum-Abysmal PROPERTIES PREFIX "" OUTPUT_NAME "Quantum-Abysmal")
 
 add_subdirectory(tests)

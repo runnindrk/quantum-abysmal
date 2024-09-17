@@ -13,12 +13,7 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#include "include/public/Entrypoint.hpp"
-#include "src/QuantumAbysmalContextImpl.hpp"
+#ifndef QUANTUM_ABYSMAL_PUBLIC_ERRORHANDLER_HPP
+#define QUANTUM_ABYSMAL_PUBLIC_ERRORHANDLER_HPP
 
-#include <memory>
-
-QuantumAbysmalContext::Uptr GetQuantumAbysmalContext()
-{
-    return std::make_unique<QuantumAbysmalContextImpl>();
-}
+#endif

@@ -13,24 +13,14 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#include "src/QuantumAbysmalContextImpl.hpp"
-#include "src/lattice/LatticeImpl.hpp"
-// #include "include/public/KernelPolynomialMethod.hpp"
-// #include "include/public/Storage.hpp"
+#include "KernelPolynomialMethodFactory.hpp"
 
-#include <memory>
-
-Lattice::Uptr QuantumAbysmalContextImpl::GetLatticeMethods()
-{
-    return std::make_unique<LatticeImpl>();
-}
-
-KernelPolynomialMethod::Uptr QuantumAbysmalContextImpl::GetKpmMethods()
+DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(ProviderArchitecture arch, ProviderImplementation impl)
 {
     return nullptr;
 }
 
-Storage::Uptr QuantumAbysmalContextImpl::GetStorageMethods()
+LocalDensityOfStates::Uptr KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderArchitecture arch = CPU, ProviderImplementation impl = STANDARD)
 {
     return nullptr;
 }
