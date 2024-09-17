@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Quantum-Abysmal-PoC)
 
 add_executable(Quantum-Abysmal-PoC
-    PoC.cu
+${CMAKE_CURRENT_SOURCE_DIR}/standard/PoC.cu
 )
 
 target_link_libraries(Quantum-Abysmal-PoC PRIVATE Quantum-Abysmal)

@@ -25,6 +25,9 @@ public:
     // Singleton to universal access from the same instance.
     static LatticeImpl* GetInstance();
 
+    LatticeImpl();
+    ~LatticeImpl();
+    
     // ------------------------------------------------------------------------
     // Override of the Public Interface
 
@@ -40,8 +43,6 @@ private:
     // ------------------------------------------------------------------------
     // Private methods.
 
-    LatticeImpl();
-    ~LatticeImpl();
 
     // ------------------------------------------------------------------------
     // Private member variables.

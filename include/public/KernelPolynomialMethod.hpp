@@ -28,11 +28,11 @@ public:
 
     /// @brief Get Density of States.
     /// @return A unique pointer to Density of States.
-    virtual DensityOfStates::Uptr GetDensityOfStates();
+    virtual DensityOfStates::Uptr GetDensityOfStates() = 0;
 
     /// @brief Get Local Density of States.
     /// @return A unique pointer to Local Density of States.
-    virtual DensityOfStates::Uptr GetDensityOfStates();
+    virtual DensityOfStates::Uptr GetLocalDensityOfStates() = 0;
 };
 
 #endif

@@ -9,6 +9,8 @@ enable_language(CUDA)
 
 add_library(Quantum-Abysmal STATIC
     src/lattice/LatticeImpl.cu
+    src/Entrypoint.cu 
+    src/QuantumAbysmalContextImpl.cu
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)

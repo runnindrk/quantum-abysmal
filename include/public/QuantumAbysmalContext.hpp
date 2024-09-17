@@ -29,15 +29,15 @@ public:
 
     /// @brief Get Lattice methods.
     /// @return A unique pointer to Lattice.
-    virtual Lattice::Uptr GetLatticeMethods();
+    virtual Lattice::Uptr GetLatticeMethods() = 0;
 
     /// @brief Get Kernel Polynomial Method methods.
     /// @return A unique pointer to KernalPolynomialMethod.
-    virtual KernelPolynomialMethod::Uptr GetKpmMethods();
+    virtual KernelPolynomialMethod::Uptr GetKpmMethods() = 0;
 
     /// @brief Get Storage methods.
     /// @return A unique pointer to Storage.
-    virtual Storage::Uptr GetStorageMethods();
+    virtual Storage::Uptr GetStorageMethods() = 0;
 
     virtual ~QuantumAbysmalContext() = default;
 

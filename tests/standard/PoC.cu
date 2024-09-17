@@ -13,15 +13,17 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#include "../include/public/Lattice.hpp"
+#include "../include/public/Entrypoint.hpp"
 #include <iostream>
 
 int main()
 {
     std::cout << "Quantum Abysmal PoC." << std::endl;
 
-    // Lattice::Uptr lattice = std::make_unique<Lattice>();
-    // lattice->SetDimension(3);
+    auto abysmalCtx = GetQuantumAbysmalContext();
+    auto latticeCtx = abysmalCtx->GetLatticeMethods();
+
+    latticeCtx->SetDimension(3);
 
     return 0;
 }
