@@ -16,6 +16,7 @@
 #include "LatticeImpl.hpp"
 
 LatticeImpl* LatticeImpl::mInstance = nullptr;
+uint32_t LatticeImpl::mDimension = 0; 
 
 LatticeImpl::LatticeImpl()
 {

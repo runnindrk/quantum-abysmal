@@ -29,11 +29,11 @@ public:
 
     /// @brief Get Density of States.
     /// @return A unique pointer to Density of States.
-    virtual DensityOfStates::Uptr GetDensityOfStates(ProviderArchitecture arch = CPU, ProviderImplementation impl = STANDARD) = 0;
+    virtual DensityOfStates::Uptr GetDensityOfStates(ProviderImplementation implementation = CPU_STANDARD_IMPL) = 0;
 
     /// @brief Get Local Density of States.
     /// @return A unique pointer to Local Density of States.
-    virtual LocalDensityOfStates::Uptr GetLocalDensityOfStates(ProviderArchitecture arch = CPU, ProviderImplementation impl = STANDARD) = 0;
+    virtual LocalDensityOfStates::Uptr GetLocalDensityOfStates(ProviderImplementation implementation = CPU_STANDARD_IMPL) = 0;
 };
 
 #endif

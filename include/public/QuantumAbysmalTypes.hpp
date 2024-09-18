@@ -18,16 +18,10 @@
 
 typedef enum 
 {
-    CPU,
-    GPU,
-    DUMMY
-
-} ProviderArchitecture;
-
-typedef enum 
-{
-    STANDARD,
-    DUMMY_IMPL
+    CPU_STANDARD_IMPL,
+    GPU_STANDARD_IMPL,
+    CPU_DUMMY_IMPL,
+    GPU_DUMMY_IMPL
 
 } ProviderImplementation;
 

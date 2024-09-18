@@ -13,20 +13,25 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_SRC_KERNEL_POLYNOMIAL_METHOD_FACTORY_HPP
-#define QUANTUM_ABYSMAL_SRC_KERNEL_POLYNOMIAL_METHOD_FACTORY_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_CPU_FACTORY_HPP
+#define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_CPU_FACTORY_HPP
 
-#include "include/public/KernelPolynomialMethod.hpp"
+#include "include/public/DensityOfStates.hpp"
+#include "include/public/QuantumAbysmalTypes.hpp"
 
-#include "src/providers/cpu/kpm/density_of_states/DensityOfStatesCpuFactory.hpp"
+#include "src/lattice/LatticeImpl.hpp"
+#include "standard/DensityOfStates1d.hpp"
+#include "standard/DensityOfStates2d.hpp"
+#include "standard/DensityOfStates3d.hpp"
 
-class KernelPolynomialMethodFactory : public KernelPolynomialMethod
+// #include "dummy/DensityOfStates1d.hpp"
+// #include "dummy/DensityOfStates2d.hpp"
+// #include "dummy/DensityOfStates3d.hpp"
+
+class DensityOfStatesCpuFactory
 {
 public:
-
-    DensityOfStates::Uptr GetDensityOfStates(ProviderImplementation implementation) override;
-
-    LocalDensityOfStates::Uptr GetLocalDensityOfStates(ProviderImplementation implementation) override;
+    static std::unique_ptr<DensityOfStates> GetInstance(ProviderImplementation implementation);
 };
 
 #endif

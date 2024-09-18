@@ -12,12 +12,17 @@ add_library(Quantum-Abysmal STATIC
     src/entrypoint/Entrypoint.cu 
     src/entrypoint/QuantumAbysmalContextImpl.cu
     src/providers/KernelPolynomialMethodFactory.cu
+
+    src/providers/cpu/kpm/density_of_states/DensityOfStatesCpuFactory.cu
+    src/providers/cpu/kpm/density_of_states/standard/DensityOfStates1d.cu
+    src/providers/cpu/kpm/density_of_states/standard/DensityOfStates2d.cu
+    src/providers/cpu/kpm/density_of_states/standard/DensityOfStates3d.cu
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 install(TARGETS Quantum-Abysmal DESTINATION ${CMAKE_SOURCE_DIR}/__lib)
 
-set_target_properties(Quantum-Abysmal PROPERTIES PREFIX "" OUTPUT_NAME "Quantum-Abysmal")
+set_target_properties(Quantum-Abysmal PROPERTIES PREFIX "" OUTPUT_NAME "libquantum-abysmal")
 
 add_subdirectory(tests)

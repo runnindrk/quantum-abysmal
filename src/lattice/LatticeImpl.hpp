@@ -27,7 +27,7 @@ public:
 
     LatticeImpl();
     ~LatticeImpl();
-    
+
     // ------------------------------------------------------------------------
     // Override of the Public Interface
 
@@ -48,7 +48,7 @@ private:
     // Private member variables.
 
     static LatticeImpl* mInstance;
-    uint32_t mDimension{0};
+    static uint32_t mDimension;
 };
 
 #endif

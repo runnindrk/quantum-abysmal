@@ -25,5 +25,10 @@ int main()
 
     latticeCtx->SetDimension(3);
 
+    auto kpmCtx = abysmalCtx->GetKpmMethods();
+    auto dosCtx = kpmCtx->GetDensityOfStates();
+    
+    dosCtx->SetNumberOfRandomVectors();
+
     return 0;
 }

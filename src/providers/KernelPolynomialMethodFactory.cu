@@ -15,12 +15,24 @@
 
 #include "KernelPolynomialMethodFactory.hpp"
 
-DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(ProviderArchitecture arch, ProviderImplementation impl)
+DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
 {
-    return nullptr;
+    switch(implementation)
+    {
+    
+    case CPU_STANDARD_IMPL:
+    case CPU_DUMMY_IMPL:
+        return DensityOfStatesCpuFactory::GetInstance(implementation);
+    case GPU_STANDARD_IMPL:
+    case GPU_DUMMY_IMPL:
+        return nullptr;
+    default:
+        return nullptr;
+    
+    }
 }
 
-LocalDensityOfStates::Uptr KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderArchitecture arch = CPU, ProviderImplementation impl = STANDARD)
+LocalDensityOfStates::Uptr KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderImplementation implementation)
 {
     return nullptr;
 }
