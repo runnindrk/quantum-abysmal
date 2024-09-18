@@ -20,15 +20,16 @@
 #include "include/public/QuantumAbysmalTypes.hpp"
 
 #include "src/lattice/LatticeImpl.hpp"
-#include "standard/DensityOfStates1d.hpp"
-#include "standard/DensityOfStates2d.hpp"
-#include "standard/DensityOfStates3d.hpp"
 
-// #include "dummy/DensityOfStates1d.hpp"
-// #include "dummy/DensityOfStates2d.hpp"
-// #include "dummy/DensityOfStates3d.hpp"
+#include "density_of_states/cpu/standard/DensityOfStates1d.hpp"
+#include "density_of_states/cpu/standard/DensityOfStates2d.hpp"
+#include "density_of_states/cpu/standard/DensityOfStates3d.hpp"
 
-class DensityOfStatesCpuFactory
+// #include "density_of_states/cpu/dummy/DensityOfStates1d.hpp"
+// #include "density_of_states/cpu/dummy/DensityOfStates2d.hpp"
+// #include "density_of_states/cpu/dummy/DensityOfStates3d.hpp"
+
+class DensityOfStatesFactory
 {
 public:
     static std::unique_ptr<DensityOfStates> GetInstance(ProviderImplementation implementation);

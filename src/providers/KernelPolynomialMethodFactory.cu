@@ -17,19 +17,7 @@
 
 DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
 {
-    switch(implementation)
-    {
-    
-    case CPU_STANDARD_IMPL:
-    case CPU_DUMMY_IMPL:
-        return DensityOfStatesCpuFactory::GetInstance(implementation);
-    case GPU_STANDARD_IMPL:
-    case GPU_DUMMY_IMPL:
-        return nullptr;
-    default:
-        return nullptr;
-    
-    }
+    return DensityOfStatesFactory::GetInstance(implementation);
 }
 
 LocalDensityOfStates::Uptr KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderImplementation implementation)

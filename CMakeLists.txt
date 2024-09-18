@@ -13,10 +13,10 @@ add_library(Quantum-Abysmal STATIC
     src/entrypoint/QuantumAbysmalContextImpl.cu
     src/providers/KernelPolynomialMethodFactory.cu
 
-    src/providers/cpu/kpm/density_of_states/DensityOfStatesCpuFactory.cu
-    src/providers/cpu/kpm/density_of_states/standard/DensityOfStates1d.cu
-    src/providers/cpu/kpm/density_of_states/standard/DensityOfStates2d.cu
-    src/providers/cpu/kpm/density_of_states/standard/DensityOfStates3d.cu
+    src/providers/kpm/DensityOfStatesFactory.cu
+    src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
+    src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu
+    src/providers/kpm/density_of_states/cpu/standard/DensityOfStates3d.cu
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)

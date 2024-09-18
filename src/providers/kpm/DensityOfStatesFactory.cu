@@ -13,9 +13,9 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#include "DensityOfStatesCpuFactory.hpp"
+#include "DensityOfStatesFactory.hpp"
 
-std::unique_ptr<DensityOfStates> DensityOfStatesCpuFactory::GetInstance(ProviderImplementation implementation)
+std::unique_ptr<DensityOfStates> DensityOfStatesFactory::GetInstance(ProviderImplementation implementation)
 {
     switch (LatticeImpl::GetInstance()->GetDimension())
     {
@@ -26,7 +26,11 @@ std::unique_ptr<DensityOfStates> DensityOfStatesCpuFactory::GetInstance(Provider
         {
         case CPU_STANDARD_IMPL:
             return std::make_unique<DensityOfStates1dCpuStandard>();
+        case GPU_STANDARD_IMPL:
+            return nullptr;
         case CPU_DUMMY_IMPL:
+            return nullptr;
+        case GPU_DUMMY_IMPL:
             return nullptr;
         default:
             return nullptr;
@@ -39,7 +43,11 @@ std::unique_ptr<DensityOfStates> DensityOfStatesCpuFactory::GetInstance(Provider
         {
         case CPU_STANDARD_IMPL:
             return std::make_unique<DensityOfStates2dCpuStandard>();
+        case GPU_STANDARD_IMPL:
+            return nullptr;
         case CPU_DUMMY_IMPL:
+            return nullptr;
+        case GPU_DUMMY_IMPL:
             return nullptr;
         default:
             return nullptr;
@@ -52,7 +60,11 @@ std::unique_ptr<DensityOfStates> DensityOfStatesCpuFactory::GetInstance(Provider
         {
         case CPU_STANDARD_IMPL:
             return std::make_unique<DensityOfStates3dCpuStandard>();
+        case GPU_STANDARD_IMPL:
+            return nullptr;
         case CPU_DUMMY_IMPL:
+            return nullptr;
+        case GPU_DUMMY_IMPL:
             return nullptr;
         default:
             return nullptr;

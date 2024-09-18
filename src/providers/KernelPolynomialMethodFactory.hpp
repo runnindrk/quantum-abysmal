@@ -18,7 +18,7 @@
 
 #include "include/public/KernelPolynomialMethod.hpp"
 
-#include "src/providers/cpu/kpm/density_of_states/DensityOfStatesCpuFactory.hpp"
+#include "src/providers/kpm/DensityOfStatesFactory.hpp"
 
 class KernelPolynomialMethodFactory : public KernelPolynomialMethod
 {
