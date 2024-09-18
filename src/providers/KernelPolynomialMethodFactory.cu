@@ -17,7 +17,66 @@
 
 DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
 {
-    return DensityOfStatesFactory::GetInstance(implementation);
+    switch (LatticeImpl::GetInstance()->GetDimension())
+    {
+
+    case 1:
+    {
+        switch (implementation)
+        {
+        case CPU_STANDARD_IMPL:
+            return std::make_unique<DensityOfStates1dCpuStandard>();
+        case GPU_STANDARD_IMPL:
+            return nullptr;
+        case CPU_DUMMY_IMPL:
+            return nullptr;
+        case GPU_DUMMY_IMPL:
+            return nullptr;
+        default:
+            return nullptr;
+        }
+    }
+
+    case 2:
+    {
+        switch (implementation)
+        {
+        case CPU_STANDARD_IMPL:
+            return std::make_unique<DensityOfStates2dCpuStandard>();
+        case GPU_STANDARD_IMPL:
+            return nullptr;
+        case CPU_DUMMY_IMPL:
+            return nullptr;
+        case GPU_DUMMY_IMPL:
+            return nullptr;
+        default:
+            return nullptr;
+        }
+    }
+
+    case 3:
+    {
+        switch (implementation)
+        {
+        case CPU_STANDARD_IMPL:
+            return std::make_unique<DensityOfStates3dCpuStandard>();
+        case GPU_STANDARD_IMPL:
+            return nullptr;
+        case CPU_DUMMY_IMPL:
+            return nullptr;
+        case GPU_DUMMY_IMPL:
+            return nullptr;
+        default:
+            return nullptr;
+        }
+    }
+
+    default:
+    {
+        return nullptr;
+    }
+
+    }
 }
 
 LocalDensityOfStates::Uptr KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderImplementation implementation)

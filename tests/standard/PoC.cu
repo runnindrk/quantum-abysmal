@@ -23,7 +23,7 @@ int main()
     auto abysmalCtx = GetQuantumAbysmalContext();
     auto latticeCtx = abysmalCtx->GetLatticeMethods();
 
-    latticeCtx->SetDimension(2);
+    latticeCtx->SetDimension(3);
 
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     auto dosCtx = kpmCtx->GetDensityOfStates();

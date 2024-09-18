@@ -16,8 +16,6 @@ add_library(Quantum-Abysmal STATIC
     src/entrypoint/Entrypoint.cu 
     src/entrypoint/QuantumAbysmalContextImpl.cu
     src/providers/KernelPolynomialMethodFactory.cu
-
-    src/providers/kpm/DensityOfStatesFactory.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates3d.cu
