@@ -21,7 +21,7 @@
 class DensityOfStates2dCpuStandard : public DensityOfStates
 {
 public:
-    void SetNumberOfRandomVectors() override;
+    void SetNumberOfRandomVectors(size_t numVectors) override;
 
 };
 

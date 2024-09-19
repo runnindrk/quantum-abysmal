@@ -12,9 +12,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 
 add_library(Quantum-Abysmal STATIC
-    src/lattice/LatticeImpl.cu
     src/entrypoint/Entrypoint.cu 
     src/entrypoint/QuantumAbysmalContextImpl.cu
+
+    src/lattice/LatticeImpl.cu
+
+    src/providers/LinearAlgebraFactory.cu
+
     src/providers/KernelPolynomialMethodFactory.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu

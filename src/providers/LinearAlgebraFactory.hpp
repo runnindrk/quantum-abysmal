@@ -16,4 +16,11 @@
 #ifndef QUANTUM_ABYSMAL_SRC_LINEAR_ALGEBRA_FACTORY_HPP
 #define QUANTUM_ABYSMAL_SRC_LINEAR_ALGEBRA_FACTORY_HPP
 
+#include "include/public/LinearAlgebra.hpp"
+
+class LinearAlgebraFactory : public LinearAlgebra
+{
+  public:
+};
+
 #endif

@@ -13,17 +13,21 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_ENTRYPOINT_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_ENTRYPOINT_HPP
+#ifndef QUANTUM_ABYSMAL_PUBLIC_STOCHASTIC_LOCAL_DENSITY_OF_STATES_HPP
+#define QUANTUM_ABYSMAL_PUBLIC_STOCHASTIC_LOCAL_DENSITY_OF_STATES_HPP
 
-#include "QuantumAbysmalContext.hpp"
+#include <memory>
 
-/// @brief Entrypoint for the initialization of a Quantum Abysmal Context.
-/// @param 
-/// @return A unique pointer to the created context.
-QuantumAbysmalContext::Uptr GetQuantumAbysmalContext();
+class StochasticLocalDensityOfStates
+{
+public:
+    using Uptr = std::unique_ptr<StochasticLocalDensityOfStates>;
+
+    /*
+    /// @brief Entrypoint for the initialization of a Quantum Abysmal Context.
+    /// @return A unique pointer to the created context.
+    virtual int
+    */
+};
 
 #endif
-
-
-

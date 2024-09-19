@@ -28,7 +28,7 @@ int main()
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     auto dosCtx = kpmCtx->GetDensityOfStates();
     
-    dosCtx->SetNumberOfRandomVectors();
+    dosCtx->SetNumberOfRandomVectors(1024);
 
     return 0;
 }

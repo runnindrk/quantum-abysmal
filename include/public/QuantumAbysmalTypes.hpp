@@ -25,4 +25,12 @@ typedef enum
 
 } ProviderImplementation;
 
+typedef enum 
+{
+    PERIODIC,
+    TWISTED,
+    OPEN
+
+} BoundaryType;
+
 #endif

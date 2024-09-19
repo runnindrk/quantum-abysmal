@@ -16,7 +16,7 @@
 #include "DensityOfStates2d.hpp"
 #include <iostream>
 
-void DensityOfStates2dCpuStandard::SetNumberOfRandomVectors()
+void DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     std::cout << "Hello from DoS 2D on CPU/STANDARD!" << std::endl;
 }

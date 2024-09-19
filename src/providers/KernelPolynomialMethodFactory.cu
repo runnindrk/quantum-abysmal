@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -15,7 +15,8 @@
 
 #include "KernelPolynomialMethodFactory.hpp"
 
-DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
+DensityOfStates::Uptr
+KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
 {
     switch (LatticeImpl::GetInstance()->GetDimension())
     {
@@ -75,11 +76,18 @@ DensityOfStates::Uptr KernelPolynomialMethodFactory::GetDensityOfStates(Provider
     {
         return nullptr;
     }
-
     }
 }
 
-LocalDensityOfStates::Uptr KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderImplementation implementation)
+LocalDensityOfStates::Uptr
+KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderImplementation implementation)
+{
+    return nullptr;
+}
+
+StochasticLocalDensityOfStates::Uptr
+KernelPolynomialMethodFactory::GetStochasticLocalDensityOfStates(
+    ProviderImplementation implementation)
 {
     return nullptr;
 }
