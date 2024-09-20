@@ -14,16 +14,18 @@
 //============================================================================
 
 #include "../include/public/Entrypoint.hpp"
+
 #include <iostream>
+#include <vector>
 
 int main()
 {
     std::cout << "Quantum Abysmal PoC." << std::endl;
-
+    
     auto abysmalCtx = GetQuantumAbysmalContext();
     auto latticeCtx = abysmalCtx->GetLatticeMethods();
 
-    latticeCtx->SetDimension(3);
+    latticeCtx->SetLatticeSize({1024, 1024});
 
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     auto dosCtx = kpmCtx->GetDensityOfStates();

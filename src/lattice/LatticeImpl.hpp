@@ -31,10 +31,11 @@ class LatticeImpl : public Lattice
     typedef struct
     {
         uint32_t dimension{};
-        std::vector<uint32_t> latticeSize{};
-        std::vector<Hopping> hoppings{};
+        uint32_t numberOfOrbitals{};
         uint64_t numberOfSites{};
         uint64_t hamiltonianSize{};
+        std::vector<uint32_t> latticeSize{};
+        std::vector<Hopping> hoppings{};
 
         double minEnergy{};
         double maxEnergy{};
@@ -46,10 +47,10 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Override of the Public Interface
 
-    void SetDimension(uint32_t dimension) override;
-    void SetSize(std::vector<uint32_t> lateralSizes) override;
-    void SetNumberOfOrbitals(uint32_t dimension) override;
+    void AddHopping(Hopping hopping) override;
+    void SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
     void SetEnergyRange(double minEnergy, double maxEnergy) override;
+    void SetBoundaryType(BoundaryType boundaryType) override;
 
     // ------------------------------------------------------------------------
     // Internal methods.

@@ -35,28 +35,30 @@ LatticeImpl& LatticeImpl::GetInstance()
     return instance;
 }
 
-void LatticeImpl::SetDimension(uint32_t dimension)
-{
-    lattice.dimension = dimension;
-}
-
-void LatticeImpl::SetSize(std::vector<uint32_t> lateralSizes)
-{
-    if (lateralSizes.size() != lattice.dimension)
-    {
-        LOG_ERROR << "Wrong dimensions!";
-        return;
-    }
-
-    lattice.latticeSize = lateralSizes;
-}
-
-void LatticeImpl::SetNumberOfOrbitals(uint32_t dimension)
+// Number of orbitals will be detected automatically.
+void LatticeImpl::AddHopping(Hopping hopping)
 {
     1;
 }
 
+void LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
+{
+    if (lateralSizes.size() == 0 || lateralSizes.size() > 3)
+    {
+        LOG_ERROR << "Unsupported dimensions.";
+        return;
+    }
+
+    lattice.dimension = lateralSizes.size();
+    lattice.latticeSize = lateralSizes;
+}
+
 void LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
+{
+    1;
+}
+
+void LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 {
     1;
 }

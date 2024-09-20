@@ -36,17 +36,13 @@ class Lattice
 public:
     using Uptr = std::unique_ptr<Lattice>;
 
-    /// @brief Set the dimension of the lattice.
-    /// @param dimension The dimension of the lattice (e.g., 1D, 2D, 3D).
-    virtual void SetDimension(uint32_t dimension) = 0;
-
-    /// @brief Set the dimension of the lattice.
-    /// @param dimension The dimension of the lattice (e.g., 1D, 2D, 3D).
-    virtual void SetNumberOfOrbitals(uint32_t dimension) = 0;
+    /// @brief Add a hopping to the lattice.
+    /// @param hopping hopping struct.
+    virtual void AddHopping(Hopping hopping) = 0;
 
     /// @brief Set the size of the lattice in each dimension.
     /// @param sizes A vector containing the size of the lattice in each dimension.
-    virtual void SetSize(std::vector<uint32_t> lateralSizes) = 0;
+    virtual void SetLatticeSize(std::vector<uint32_t> lateralSizes) = 0;
 
     /// @brief Set the range of the spectrum for resizing.
     /// @param minEnergy The minimum energy.
@@ -55,7 +51,7 @@ public:
 
     /// @brief Set the boundary type of the lattice.
     /// @param boundaryType The boundary type (PERIODIC, TWISTED, OPEN).
-    // virtual void SetBoundary(BoundaryType boundaryType) = 0;
+    virtual void SetBoundaryType(BoundaryType boundaryType) = 0;
 
     virtual ~Lattice() = default;
 };
