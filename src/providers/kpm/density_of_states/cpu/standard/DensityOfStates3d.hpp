@@ -16,6 +16,7 @@
 #ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_3D_CPU_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_3D_CPU_STANDARD_HPP
 
+#include "include/internal/Logger.hpp"
 #include "include/public/DensityOfStates.hpp"
 
 class DensityOfStates3dCpuStandard : public DensityOfStates

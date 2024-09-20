@@ -14,9 +14,8 @@
 //============================================================================
 
 #include "DensityOfStates3d.hpp"
-#include <iostream>
 
 void DensityOfStates3dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
-    std::cout << "Hello from DoS 3D on CPU/STANDARD!" << std::endl;
+    LOG_INFO << "Hello from DoS 3D on CPU/STANDARD!";
 }

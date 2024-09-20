@@ -7,30 +7,12 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_LOCAL_DENSITY_OF_STATES_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_LOCAL_DENSITY_OF_STATES_HPP
+#include "Logger.hpp"
 
-#include "ErrorHandler.hpp"
-#include "QuantumAbysmalTypes.hpp"
-
-#include <memory>
-
-class LocalDensityOfStates
-{
-public:
-    using Uptr = std::unique_ptr<LocalDensityOfStates>;
-
-    /*
-    /// @brief Entrypoint for the initialization of a Quantum Abysmal Context.
-    /// @return A unique pointer to the created context.
-    virtual int
-    */
-};
-
-#endif
+Logger LOGGER("log.txt");

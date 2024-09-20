@@ -16,4 +16,14 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_ERRORHANDLER_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_ERRORHANDLER_HPP
 
+typedef enum 
+{
+    GENERAL_ERROR,
+    UNKNOWN_ERROR
+
+} Error;
+
+// ----------------------------------------------------------------------------
+// String output of errors.
+
 #endif

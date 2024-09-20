@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -15,30 +15,64 @@
 
 #include "LatticeImpl.hpp"
 
-LatticeImpl* LatticeImpl::mInstance = nullptr;
-uint32_t LatticeImpl::mDimension = 0; 
+// This is internally read only. No need for locks and mutex (I think).
 
-LatticeImpl::LatticeImpl()
-{
-    mInstance = this;
-};
+LatticeImpl::Lattice LatticeImpl::lattice;
 
-LatticeImpl::~LatticeImpl()
-{
-    mInstance = nullptr;
-};
+// LatticeImpl::LatticeImpl()
+// {
+//
+// };
 
-LatticeImpl* LatticeImpl::GetInstance()
+// LatticeImpl::~LatticeImpl()
+// {
+//
+// };
+
+LatticeImpl& LatticeImpl::GetInstance()
 {
-    return mInstance;
+    static LatticeImpl instance;
+    return instance;
 }
 
 void LatticeImpl::SetDimension(uint32_t dimension)
 {
-    mDimension = dimension;
+    lattice.dimension = dimension;
 }
 
-uint32_t LatticeImpl::GetDimension()
+void LatticeImpl::SetSize(std::vector<uint32_t> lateralSizes)
 {
-    return mDimension;
-};
+    if (lateralSizes.size() != lattice.dimension)
+    {
+        LOG_ERROR << "Wrong dimensions!";
+        return;
+    }
+
+    lattice.latticeSize = lateralSizes;
+}
+
+void LatticeImpl::SetNumberOfOrbitals(uint32_t dimension)
+{
+    1;
+}
+
+void LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
+{
+    1;
+}
+
+// ----------------------------------------------------------------------------
+// Internal methods.
+
+LatticeImpl::Lattice LatticeImpl::GetLattice()
+{
+    return lattice;
+}
+
+// ------------------------------------------------------------------------
+// Private methods.
+
+void LatticeImpl::FinalizeLattice()
+{
+    1;
+}

@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -16,39 +16,56 @@
 #ifndef QUANTUM_ABYSMAL_SRC_LATTICE_IMPL_HPP
 #define QUANTUM_ABYSMAL_SRC_LATTICE_IMPL_HPP
 
+#include "include/internal/Logger.hpp"
 #include "include/public/Lattice.hpp"
 
 class LatticeImpl : public Lattice
 {
-public:
+  public:
+    // Singleton for thread safety access
+    static LatticeImpl& GetInstance();
 
-    // Singleton to universal access from the same instance.
-    static LatticeImpl* GetInstance();
+    // ------------------------------------------------------------------------
+    // Lattice Struct
 
-    LatticeImpl();
-    ~LatticeImpl();
+    typedef struct
+    {
+        uint32_t dimension{};
+        std::vector<uint32_t> latticeSize{};
+        std::vector<Hopping> hoppings{};
+        uint64_t numberOfSites{};
+        uint64_t hamiltonianSize{};
+
+        double minEnergy{};
+        double maxEnergy{};
+        double energyScaling{};
+        double energyShift{};
+
+    } Lattice;
 
     // ------------------------------------------------------------------------
     // Override of the Public Interface
 
     void SetDimension(uint32_t dimension) override;
+    void SetSize(std::vector<uint32_t> lateralSizes) override;
+    void SetNumberOfOrbitals(uint32_t dimension) override;
+    void SetEnergyRange(double minEnergy, double maxEnergy) override;
 
     // ------------------------------------------------------------------------
     // Internal methods.
 
-    uint32_t GetDimension();
+    Lattice GetLattice();
 
-private:
-
+  private:
     // ------------------------------------------------------------------------
     // Private methods.
 
+    void FinalizeLattice();
 
     // ------------------------------------------------------------------------
     // Private member variables.
 
-    static LatticeImpl* mInstance;
-    static uint32_t mDimension;
+    static Lattice lattice;
 };
 
 #endif

@@ -12,3 +12,5 @@ ColumnLimit: 100
 IndentWidth: 4
 AllowShortFunctionsOnASingleLine: false
 BreakBeforeBraces: Allman
+PointerAlignment: Left
+ReferenceAlignment: Left

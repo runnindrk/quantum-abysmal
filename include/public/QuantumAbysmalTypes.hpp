@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -16,7 +16,11 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 
-typedef enum 
+#include <array>
+#include <vector>
+#include <cstdint>
+
+typedef enum
 {
     CPU_STANDARD_IMPL,
     GPU_STANDARD_IMPL,
@@ -25,12 +29,21 @@ typedef enum
 
 } ProviderImplementation;
 
-typedef enum 
+typedef enum
 {
     PERIODIC,
     TWISTED,
     OPEN
 
 } BoundaryType;
+
+// The hoppingStrength will perhaps be the function pointer or an entirely new method.
+typedef struct
+{
+    std::vector<uint32_t> latticeHop;
+    std::array<uint32_t, 2> orbitalHop;
+    double hoppingStrength;
+
+} Hopping;
 
 #endif

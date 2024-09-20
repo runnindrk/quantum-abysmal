@@ -18,7 +18,7 @@
 DensityOfStates::Uptr
 KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
 {
-    switch (LatticeImpl::GetInstance()->GetDimension())
+    switch (LatticeImpl::GetInstance().GetLattice().dimension)
     {
 
     case 1:

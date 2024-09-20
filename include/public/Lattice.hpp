@@ -16,8 +16,10 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_LATTICE_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_LATTICE_HPP
 
+#include "ErrorHandler.hpp"
 #include "QuantumAbysmalTypes.hpp"
 
+#include <vector>
 #include <memory>
 
 // This can go deeper, having several methods for different type of lattices.
@@ -26,7 +28,7 @@
 
 // What the methods could be.
 // - Normal lattice with set hoppings.
-// - Control over hoppings & local energies with function pointers
+// - Control over hoppings & local energies with function pointers to the user side
 // - Sparse matrix control.
 
 class Lattice
@@ -38,14 +40,18 @@ public:
     /// @param dimension The dimension of the lattice (e.g., 1D, 2D, 3D).
     virtual void SetDimension(uint32_t dimension) = 0;
 
+    /// @brief Set the dimension of the lattice.
+    /// @param dimension The dimension of the lattice (e.g., 1D, 2D, 3D).
+    virtual void SetNumberOfOrbitals(uint32_t dimension) = 0;
+
     /// @brief Set the size of the lattice in each dimension.
     /// @param sizes A vector containing the size of the lattice in each dimension.
-    // virtual void SetSize(std::vector<uint32_t> sizes) = 0;
+    virtual void SetSize(std::vector<uint32_t> lateralSizes) = 0;
 
     /// @brief Set the range of the spectrum for resizing.
     /// @param minEnergy The minimum energy.
     /// @param maxEnergy The maximum energy.
-    // virtual void SetEnergyRange(double minEnergy, double maxEnergy) = 0;
+    virtual void SetEnergyRange(double minEnergy, double maxEnergy) = 0;
 
     /// @brief Set the boundary type of the lattice.
     /// @param boundaryType The boundary type (PERIODIC, TWISTED, OPEN).

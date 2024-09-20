@@ -16,6 +16,9 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_DENSITY_OF_STATES_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_DENSITY_OF_STATES_HPP
 
+#include "ErrorHandler.hpp"
+#include "QuantumAbysmalTypes.hpp"
+
 #include <memory>
 #include <vector>
 
