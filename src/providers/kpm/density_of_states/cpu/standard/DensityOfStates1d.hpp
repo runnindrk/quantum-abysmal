@@ -18,6 +18,7 @@
 
 #include "include/internal/Logger.hpp"
 #include "include/public/DensityOfStates.hpp"
+#include "src/lattice/LatticeImpl.hpp"
 
 class DensityOfStates1dCpuStandard : public DensityOfStates
 {

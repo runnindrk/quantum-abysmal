@@ -15,19 +15,10 @@
 
 #include "LatticeImpl.hpp"
 
-// This is internally read only. No need for locks and mutex (I think).
+// NOTE: This class is internally read only. No need for locks and mutex (I think).
+// TODO: Error Handling.
 
-LatticeImpl::Lattice LatticeImpl::lattice;
-
-// LatticeImpl::LatticeImpl()
-// {
-//
-// };
-
-// LatticeImpl::~LatticeImpl()
-// {
-//
-// };
+LatticeImpl::Lattice LatticeImpl::mLattice;
 
 LatticeImpl& LatticeImpl::GetInstance()
 {
@@ -35,10 +26,58 @@ LatticeImpl& LatticeImpl::GetInstance()
     return instance;
 }
 
-// Number of orbitals will be detected automatically.
-void LatticeImpl::AddHopping(Hopping hopping)
+void LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+                             double hoppingStrength)
 {
-    1;
+    for (const auto& orbital : orbitalHop)
+    {
+        if (mOrbitalsSet.find(orbital) == mOrbitalsSet.end())
+        {
+            mLattice.numberOfOrbitals += 1;
+            mOrbitalsSet.insert(orbital);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Convert hopping to internal representation.
+
+    auto firstOrbital = orbitalMapToInt.find(orbitalHop[0]);
+    if (firstOrbital == orbitalMapToInt.end())
+    {
+        LOG_ERROR << "Map to internal hopping not found!";
+        return;
+    }
+
+    auto secondOrbital = orbitalMapToInt.find(orbitalHop[1]);
+    if (secondOrbital == orbitalMapToInt.end())
+    {
+        LOG_ERROR << "Map to internal hopping not found!";
+        return;
+    }
+
+    Hopping hopping;
+    hopping.hoppingStrength = hoppingStrength;
+    hopping.latticeHop = latticeHop;
+    hopping.orbitalHop = std::array<uint32_t, 2>{firstOrbital->second, secondOrbital->second};
+
+    // ------------------------------------------------------------------------
+    // Conjugate the hopping.
+
+    std::vector<int32_t> positionConjugate;
+    for (const auto& value : latticeHop)
+    {
+        positionConjugate.push_back(-value);
+    }
+
+    Hopping conjugate;
+    conjugate.hoppingStrength = hoppingStrength;
+    conjugate.latticeHop = positionConjugate;
+    conjugate.orbitalHop = std::array<uint32_t, 2>{secondOrbital->second, firstOrbital->second};
+
+    // ------------------------------------------------------------------------
+
+    mLattice.hoppings.push_back(hopping);
+    mLattice.hoppings.push_back(conjugate);
 }
 
 void LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
@@ -49,18 +88,35 @@ void LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
         return;
     }
 
-    lattice.dimension = lateralSizes.size();
-    lattice.latticeSize = lateralSizes;
+    mLattice.dimension = lateralSizes.size();
+    mLattice.latticeSize = lateralSizes;
+
+    for (const auto& size : lateralSizes)
+    {
+        mLattice.numberOfSites *= size;
+    }
+
+    mLattice.hamiltonianSize = mLattice.numberOfOrbitals * mLattice.numberOfSites;
 }
 
 void LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
 {
-    1;
+    // I still need to check for shifts != 0.
+
+    mLattice.minEnergy = minEnergy;
+    mLattice.maxEnergy = maxEnergy;
+    mLattice.energyShift = (maxEnergy - minEnergy) / 2.0;
+    mLattice.energyScaling = (maxEnergy + minEnergy) / 2.0;
+
+    for (auto& hopping : mLattice.hoppings)
+    {
+        hopping.hoppingStrength /= mLattice.energyScaling;
+    }
 }
 
 void LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 {
-    1;
+    mLattice.boundaryType = boundaryType;
 }
 
 // ----------------------------------------------------------------------------
@@ -68,13 +124,8 @@ void LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 
 LatticeImpl::Lattice LatticeImpl::GetLattice()
 {
-    return lattice;
+    return mLattice;
 }
 
-// ------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Private methods.
-
-void LatticeImpl::FinalizeLattice()
-{
-    1;
-}

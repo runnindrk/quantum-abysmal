@@ -17,8 +17,8 @@
 #define QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 
 #include <array>
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 typedef enum
 {
@@ -36,14 +36,5 @@ typedef enum
     OPEN
 
 } BoundaryType;
-
-// The hoppingStrength will perhaps be the function pointer or an entirely new method.
-typedef struct
-{
-    std::vector<uint32_t> latticeHop;
-    std::array<uint32_t, 2> orbitalHop;
-    double hoppingStrength;
-
-} Hopping;
 
 #endif

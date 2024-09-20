@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -19,8 +19,8 @@
 #include "ErrorHandler.hpp"
 #include "QuantumAbysmalTypes.hpp"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 // This can go deeper, having several methods for different type of lattices.
 // (Like KPM has several methods and then a factory)
@@ -33,12 +33,15 @@
 
 class Lattice
 {
-public:
+  public:
     using Uptr = std::unique_ptr<Lattice>;
 
     /// @brief Add a hopping to the lattice.
-    /// @param hopping hopping struct.
-    virtual void AddHopping(Hopping hopping) = 0;
+    /// @param latticeHop hopping struct.
+    /// @param orbitalHop hopping struct.
+    /// @param hoppingStrength hopping struct.
+    virtual void AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+                            double hoppingStrength) = 0;
 
     /// @brief Set the size of the lattice in each dimension.
     /// @param sizes A vector containing the size of the lattice in each dimension.

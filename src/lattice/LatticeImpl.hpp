@@ -18,6 +18,9 @@
 
 #include "include/internal/Logger.hpp"
 #include "include/public/Lattice.hpp"
+#include "util/Conversions.hpp"
+
+#include <unordered_set>
 
 class LatticeImpl : public Lattice
 {
@@ -30,10 +33,18 @@ class LatticeImpl : public Lattice
 
     typedef struct
     {
+        std::vector<int32_t> latticeHop;
+        std::array<uint32_t, 2> orbitalHop;
+        double hoppingStrength;
+
+    } Hopping;
+
+    typedef struct
+    {
         uint32_t dimension{};
         uint32_t numberOfOrbitals{};
-        uint64_t numberOfSites{};
-        uint64_t hamiltonianSize{};
+        uint64_t numberOfSites{1};
+        uint64_t hamiltonianSize{1};
         std::vector<uint32_t> latticeSize{};
         std::vector<Hopping> hoppings{};
 
@@ -42,12 +53,15 @@ class LatticeImpl : public Lattice
         double energyScaling{};
         double energyShift{};
 
+        BoundaryType boundaryType;
+
     } Lattice;
 
     // ------------------------------------------------------------------------
     // Override of the Public Interface
 
-    void AddHopping(Hopping hopping) override;
+    void AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+                    double hoppingStrength) override;
     void SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
     void SetEnergyRange(double minEnergy, double maxEnergy) override;
     void SetBoundaryType(BoundaryType boundaryType) override;
@@ -61,12 +75,11 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Private methods.
 
-    void FinalizeLattice();
-
     // ------------------------------------------------------------------------
     // Private member variables.
 
-    static Lattice lattice;
+    std::unordered_set<char> mOrbitalsSet;
+    static Lattice mLattice;
 };
 
 #endif

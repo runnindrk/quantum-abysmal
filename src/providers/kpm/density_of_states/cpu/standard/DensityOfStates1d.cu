@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -18,4 +18,5 @@
 void DensityOfStates1dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     LOG_INFO << "Hello from DoS 1D on CPU/STANDARD!";
+    LOG_INFO << "Number of Orbitals : " << LatticeImpl::GetInstance().GetLattice().numberOfOrbitals;
 }

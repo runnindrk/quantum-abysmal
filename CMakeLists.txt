@@ -15,6 +15,7 @@ add_library(Quantum-Abysmal STATIC
     include/internal/Logger.cu
     src/entrypoint/Entrypoint.cu 
     src/entrypoint/QuantumAbysmalContextImpl.cu
+    src/lattice/util/Conversions.cu
     src/lattice/LatticeImpl.cu
     src/providers/LinearAlgebraFactory.cu
     src/providers/KernelPolynomialMethodFactory.cu

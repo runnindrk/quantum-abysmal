@@ -18,4 +18,5 @@
 void DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     LOG_INFO << "Hello from DoS 2D on CPU/STANDARD!";
+    LOG_INFO << "Number of Orbitals : " << LatticeImpl::GetInstance().GetLattice().numberOfOrbitals;
 }
