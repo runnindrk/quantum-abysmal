@@ -60,17 +60,17 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Override of the Public Interface
 
-    void AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+    Error AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
                     double hoppingStrength) override;
-    void SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
-    void SetEnergyRange(double minEnergy, double maxEnergy) override;
-    void SetBoundaryType(BoundaryType boundaryType) override;
+    Error SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
+    Error SetEnergyRange(double minEnergy, double maxEnergy) override;
+    Error SetBoundaryType(BoundaryType boundaryType) override;
 
     // ------------------------------------------------------------------------
     // Internal methods.
 
     Lattice GetLattice();
-    void PrintLatticeInformation();
+    Error PrintLatticeInformation();
 
   private:
     // ------------------------------------------------------------------------
@@ -79,6 +79,8 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Private member variables.
 
+    bool mIsAddHoppingCalled{false};
+    bool mIsAnyOtherFunctionCalled{false};
     std::unordered_set<char> mOrbitalsSet;
     static Lattice mLattice;
 };

@@ -26,9 +26,28 @@ LatticeImpl& LatticeImpl::GetInstance()
     return instance;
 }
 
-void LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
-                             double hoppingStrength)
+Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+                              double hoppingStrength)
 {
+    LOG_WARN << "Please be sure to call your AddHoppings in sequence!";
+
+    if (mIsAnyOtherFunctionCalled)
+    {
+        LOG_ERROR << "inserting AddHopping after calling other functions is not allowed.";
+        return FUNCTION_CALL_ORDER_ERROR;
+    }
+
+    if (latticeHop.size() == 0 || latticeHop.size() > 3)
+    {
+        LOG_ERROR << "Unsupported dimensions.";
+        return DIMENSION_ERROR;
+    }
+
+    mLattice.dimension = latticeHop.size();
+
+    // ------------------------------------------------------------------------
+    // Check orbitals.
+
     for (const auto& orbital : orbitalHop)
     {
         if (mOrbitalsSet.find(orbital) == mOrbitalsSet.end())
@@ -45,14 +64,14 @@ void LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2
     if (firstOrbital == orbitalMapToInt.end())
     {
         LOG_ERROR << "Map to internal hopping not found!";
-        return;
+        return RUNTIME_ERROR;
     }
 
     auto secondOrbital = orbitalMapToInt.find(orbitalHop[1]);
     if (secondOrbital == orbitalMapToInt.end())
     {
         LOG_ERROR << "Map to internal hopping not found!";
-        return;
+        return RUNTIME_ERROR;
     }
 
     Hopping hopping;
@@ -78,17 +97,26 @@ void LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2
 
     mLattice.hoppings.push_back(hopping);
     mLattice.hoppings.push_back(conjugate);
+
+    mIsAddHoppingCalled = true;
+
+    return SUCCESS;
 }
 
-void LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
+Error LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
 {
-    if (lateralSizes.size() == 0 || lateralSizes.size() > 3)
+    if (!mIsAddHoppingCalled)
     {
-        LOG_ERROR << "Unsupported dimensions.";
-        return;
+        LOG_ERROR << "AddHopping was not called. Cannot determine dimensions.";
+        return FUNCTION_CALL_ORDER_ERROR;
     }
 
-    mLattice.dimension = lateralSizes.size();
+    if (lateralSizes.size() != mLattice.dimension)
+    {
+        LOG_ERROR << "Wrong set of dimensions.";
+        return DIMENSION_ERROR;
+    }
+
     mLattice.latticeSize = lateralSizes;
 
     for (const auto& size : lateralSizes)
@@ -97,10 +125,19 @@ void LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
     }
 
     mLattice.hamiltonianSize = mLattice.numberOfOrbitals * mLattice.numberOfSites;
+    mIsAnyOtherFunctionCalled = true;
+
+    return SUCCESS;
 }
 
-void LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
+Error LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
 {
+    if (!mIsAddHoppingCalled)
+    {
+        LOG_ERROR << "AddHopping was not called. Cannot resize hoppings.";
+        return FUNCTION_CALL_ORDER_ERROR;
+    }
+
     // I still need to check for shifts != 0.
 
     mLattice.minEnergy = minEnergy;
@@ -112,11 +149,16 @@ void LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
     {
         hopping.hoppingStrength /= mLattice.energyScaling;
     }
+
+    mIsAnyOtherFunctionCalled = true;
+
+    return SUCCESS;
 }
 
-void LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
+Error LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 {
     mLattice.boundaryType = boundaryType;
+    return SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
@@ -127,9 +169,9 @@ LatticeImpl::Lattice LatticeImpl::GetLattice()
     return mLattice;
 }
 
-void LatticeImpl::PrintLatticeInformation()
+Error LatticeImpl::PrintLatticeInformation()
 {
-    return;
+    return SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
