@@ -16,7 +16,6 @@
 #ifndef QUANTUM_ABYSMAL_INTERNAL_LOGGER_HPP
 #define QUANTUM_ABYSMAL_INTERNAL_LOGGER_HPP
 
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -34,21 +33,11 @@ class Logger
 
   private:
     std::ostringstream stream;
-    std::ofstream logFile;
     LogLevel currentLevel;
 
   public:
-    Logger(const std::string& filename) : currentLevel(INFO)
+    Logger() : currentLevel(INFO)
     {
-        logFile.open(filename, std::ios::app);
-    }
-
-    ~Logger()
-    {
-        if (logFile.is_open())
-        {
-            logFile.close();
-        }
     }
 
     void setLogLevel(LogLevel level)
@@ -73,11 +62,6 @@ class Logger
         std::string logEntry = logPrefix + stream.str();
 
         std::cout << logEntry << std::endl;
-
-        if (logFile.is_open())
-        {
-            logFile << logEntry << std::endl;
-        }
 
         stream.str("");
         stream.clear();

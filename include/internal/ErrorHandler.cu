@@ -13,6 +13,24 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
+#include "public/ErrorHandler.hpp"
 #include "Logger.hpp"
 
-Logger LOGGER;
+void GetErrorString(Error err)
+{
+    switch (err)
+    {
+        case FUNCTION_CALL_ORDER_ERROR:
+            LOG_ERROR << "Function call order error.";
+            break;
+        case RUNTIME_ERROR:
+            LOG_ERROR << "Runtime error.";
+            break;
+        case SUCCESS:
+            LOG_INFO << "Success.";
+            break;
+        default:
+            LOG_ERROR << "Unknown error.";
+            break;
+    }
+}

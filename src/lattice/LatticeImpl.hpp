@@ -70,6 +70,7 @@ class LatticeImpl : public Lattice
     // Internal methods.
 
     Lattice GetLattice();
+    void PrintLatticeInformation();
 
   private:
     // ------------------------------------------------------------------------

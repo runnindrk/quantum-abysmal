@@ -127,5 +127,10 @@ LatticeImpl::Lattice LatticeImpl::GetLattice()
     return mLattice;
 }
 
+void LatticeImpl::PrintLatticeInformation()
+{
+    return;
+}
+
 // ----------------------------------------------------------------------------
 // Private methods.

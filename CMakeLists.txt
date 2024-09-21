@@ -13,6 +13,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 
 add_library(Quantum-Abysmal STATIC
     include/internal/Logger.cu
+    include/internal/ErrorHandler.cu
     src/entrypoint/Entrypoint.cu 
     src/entrypoint/QuantumAbysmalContextImpl.cu
     src/lattice/util/Conversions.cu
