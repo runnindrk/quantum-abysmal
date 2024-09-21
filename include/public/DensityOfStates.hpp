@@ -29,14 +29,14 @@ class DensityOfStates
 
     /// @brief Set the number of random vectors to use for the DoS computation.
     /// @param numVectors The number of random vectors.
-    virtual void SetNumberOfRandomVectors(size_t numVectors) = 0;
+    virtual Error SetNumberOfRandomVectors(size_t numVectors) = 0;
 
     /// @brief Set the number of polynomials for the KPM.
     /// @param order The polynomial order.
-    // virtual void SetNumberOfMoments(size_t order) = 0;
+    virtual Error SetNumberOfMoments(size_t order) = 0;
 
-    /// @brief Perform the DoS computation.
-    // virtual void Compute() = 0;
+    /// @brief Perform the DoS moments computation.
+    virtual Error Compute() = 0;
 
     /// @brief Retrieve the computed moments.
     /// @return A vector containing the moments values.
@@ -47,13 +47,13 @@ class DensityOfStates
     // virtual std::vector<double> GetDensityOfStates(size_t numPoints) const = 0;
 
     /// @brief Save the computed moments.
-    // virtual void SaveMoments() const = 0;
+    // virtual Error SaveMoments() const = 0;
 
     /// @brief Save the computed DoS.
-    // virtual void SaveDoS() const = 0;
+    // virtual Error SaveDoS() const = 0;
 
     /// @brief Plot the computed DoS.
-    // virtual void PlotDoS() const = 0;
+    // virtual Error PlotDoS() const = 0;
 
     virtual ~DensityOfStates() = default;
 };

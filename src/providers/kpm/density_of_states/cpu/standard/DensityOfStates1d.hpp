@@ -23,7 +23,11 @@
 class DensityOfStates1dCpuStandard : public DensityOfStates
 {
 public:
-    void SetNumberOfRandomVectors(size_t numVectors) override;
+    Error SetNumberOfRandomVectors(size_t numVectors) override;
+    Error SetNumberOfMoments(size_t order) override;
+    Error Compute() override;
+
+  private:
 
 };
 

@@ -15,8 +15,19 @@
 
 #include "DensityOfStates1d.hpp"
 
-void DensityOfStates1dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Error DensityOfStates1dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     LOG_INFO << "Hello from DoS 1D on CPU/STANDARD!";
     LOG_INFO << "Number of Orbitals : " << LatticeImpl::GetInstance().GetLattice().numberOfOrbitals;
+    return SUCCESS;
+}
+
+Error DensityOfStates1dCpuStandard::SetNumberOfMoments(size_t order)
+{
+    return SUCCESS;
+}
+
+Error DensityOfStates1dCpuStandard::Compute()
+{
+    return SUCCESS;
 }

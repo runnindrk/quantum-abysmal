@@ -15,8 +15,19 @@
 
 #include "DensityOfStates3d.hpp"
 
-void DensityOfStates3dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Error DensityOfStates3dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     LOG_INFO << "Hello from DoS 3D on CPU/STANDARD!";
     LOG_INFO << "Number of Orbitals : " << LatticeImpl::GetInstance().GetLattice().numberOfOrbitals;
+    return SUCCESS;
+}
+
+Error DensityOfStates3dCpuStandard::SetNumberOfMoments(size_t order)
+{
+    return SUCCESS;
+}
+
+Error DensityOfStates3dCpuStandard::Compute()
+{
+    return SUCCESS;
 }
