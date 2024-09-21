@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -22,13 +22,19 @@
 
 class DensityOfStates2dCpuStandard : public DensityOfStates
 {
-public:
+  public:
     Error SetNumberOfRandomVectors(size_t numVectors) override;
     Error SetNumberOfMoments(size_t order) override;
     Error Compute() override;
 
   private:
+    LatticeImpl::Lattice lattice = LatticeImpl::GetInstance().GetLattice();
+    double* a = (double*)malloc(lattice.hamiltonianSize * sizeof(double));
+    double* b = (double*)malloc(lattice.hamiltonianSize * sizeof(double));
 
+    // Have to think how to handle disorder. (maybe a flag on LatticeMethods)
+    // Domain decomposition is needed for better perfomance.
+    // Always max out threads internaly.
 };
 
 #endif
