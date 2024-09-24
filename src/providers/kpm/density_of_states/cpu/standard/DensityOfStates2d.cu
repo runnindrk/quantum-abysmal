@@ -30,35 +30,27 @@ Error DensityOfStates2dCpuStandard::SetNumberOfMoments(size_t order)
     return SUCCESS;
 }
 
-Error DensityOfStates2dCpuStandard::Compute()
+std::vector<double> DensityOfStates2dCpuStandard::Compute()
 {
     InitializeKpmVectors();
+    ComputeMoments(a, b);
 
-    for (int i = 0; i < mNumOfMoments / 4; i++)
+    for (int i = 1; i < mNumOfMoments / 2; i++)
     {
-        ExecuteFirstKpmVectorUpdate();
-        ExecuteSecondKpmVectorUpdate();
+        if (i % 2 == 0)
+        {
+            ExecuteKpmVectorUpdate(b, a);
+            ComputeMoments(b, a);
+        }
+
+        else
+        {
+            ExecuteKpmVectorUpdate(a, b);
+            ComputeMoments(a, b);
+        }
     }
 
-    // PrintVector();
-    return SUCCESS;
-}
-
-// This will be moved out of here.
-__host__ __device__ inline int mod(int a, int b)
-{
-    int r = a % b;
-    return r < 0 ? r + b : r;
-}
-
-void DensityOfStates2dCpuStandard::PrintVector()
-{
-    for (int i = 0; i < lattice.hamiltonianSize; i++)
-    {
-        LOG_INFO << b[i];
-    }
-
-    return;
+    return moments;
 }
 
 void DensityOfStates2dCpuStandard::InitializeKpmVectors()
@@ -68,104 +60,152 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
     // This will be substituted by the RNG_ENGINE of the library.
     // For now, it is for tests purpouses.
 
+    LatticeImpl::Hopping currentHop;
+
     std::random_device rd;
     std::mt19937 gen(rd());
     std::normal_distribution<> dist(0.0, 1.0);
 
-    for (uint64_t i = 0; i < lattice.hamiltonianSize; i++)
+    double randomVectorNorm{};
+    
+    for (uint64_t y = 1; y < yGhostedSize - 1; y++)
     {
-        a[i] = dist(gen);
-        b[i] = 0;
+        for (uint64_t x = 1; x < xGhostedSize - 1; x++)
+        {
+            uint64_t i = x + y * xGhostedSize;
+
+            for (int j = 0; j < numOrbitals; j++)
+            {
+                uint64_t trueIndex = numOrbitals * i + j;
+                double randomNumber = dist(gen);
+
+                randomVectorNorm += randomNumber * randomNumber;
+                a[trueIndex] = randomNumber;
+            }
+        }
     }
 
-#pragma unroll 4
-    for (uint64_t i = 0; i < lattice.numberOfSites; i++)
+    for (uint64_t y = 1; y < yGhostedSize - 1; y++)
     {
-        for (int j = 0; j < lattice.hoppings.size(); j++)
+        for (uint64_t x = 1; x < xGhostedSize - 1; x++)
         {
-            uint64_t bIndex = numOrbitals * i + hoppings[j].orbitalHop[0];
-            uint64_t aIndex = GetMatrixElement(i, hoppings[j].latticeHop, numOrbitals,
-                                               hoppings[j].orbitalHop[1], xSize, ySize);
+            uint64_t i = x + y * xGhostedSize;
 
-            b[bIndex] += hoppings[j].hoppingStrength * a[aIndex];
+            for (int j = 0; j < numOrbitals; j++)
+            {
+                uint64_t trueIndex = numOrbitals * i + j;
+            
+                a[trueIndex] /= sqrt(randomVectorNorm);
+                b[trueIndex] = 0;
+            }
+        }
+    }
+
+    UpdateGhosts(a);
+    UpdateGhosts(b);
+
+    for (uint64_t y = 1; y < yGhostedSize - 1; y++)
+    {
+        for (uint64_t x = 1; x < xGhostedSize - 1; x++)
+        {
+            uint64_t i = x + y * xGhostedSize;
+            
+            #pragma unroll 4
+            for (int j = 0; j < lattice.hoppings.size(); j++)
+            {
+                currentHop = hoppings[j];
+                int64_t newX = x + currentHop.latticeHop[0];
+                int64_t newY = y + currentHop.latticeHop[1];
+
+                uint64_t bIndex = numOrbitals * i + currentHop.orbitalHop[0];
+                uint64_t aIndex = numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
+
+                b[bIndex] += currentHop.hoppingStrength * a[aIndex];
+            }
+        }
+    }
+
+    UpdateGhosts(b);
+    return;
+}
+
+void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
+{
+    LatticeImpl::Hopping currentHop;
+    std::vector<double> accumulation(numOrbitals, 0);
+
+    for (uint64_t y = 1; y < yGhostedSize - 1; y++)
+    {
+        for (uint64_t x = 1; x < xGhostedSize - 1; x++)
+        {
+            #pragma unroll 4
+            for (int j = 0; j < lattice.hoppings.size(); j++)
+            {
+                currentHop = hoppings[j];
+                int64_t newX = x + currentHop.latticeHop[0];
+                int64_t newY = y + currentHop.latticeHop[1];
+                uint64_t aIndex = numOrbitals * (newX  + newY * xGhostedSize) + currentHop.orbitalHop[1];
+
+                accumulation[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * a[aIndex];
+            }
+
+            #pragma omp simd
+            for (int j = 0; j < numOrbitals; j++)
+            {
+                uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
+                b[trueIndex] = 2 * accumulation[j] - b[trueIndex];
+                accumulation[j] = 0;
+            }
+        }
+    }
+
+    UpdateGhosts(b);
+}
+
+void DensityOfStates2dCpuStandard::UpdateGhosts(double* a)
+{   
+    for (int x = 1; x < xGhostedSize - 1; x++)
+    {
+        for (int j = 0; j < numOrbitals; j++)
+        {
+            a[numOrbitals * x + j] = a[numOrbitals * (x + ySize * xGhostedSize) + j];
+            a[numOrbitals * (x + (ySize + 1) * xGhostedSize) + j] = a[numOrbitals * (x + xGhostedSize) + j];
+        }
+    }
+
+    for (int y = 1; y < yGhostedSize; y++)
+    {
+        for (int j = 0; j < numOrbitals; j++)
+        {
+            a[numOrbitals * (y * xGhostedSize) + j] = a[numOrbitals * (xSize + y * xGhostedSize) + j];
+            a[numOrbitals * (xSize + 1 + y * xGhostedSize) + j] = a[numOrbitals * (1 + y * xGhostedSize) + j];
         }
     }
 
     return;
 }
 
-void DensityOfStates2dCpuStandard::ExecuteFirstKpmVectorUpdate()
+void DensityOfStates2dCpuStandard::ComputeMoments(double *a, double *b)
 {
-    std::vector<double> result(numOrbitals * lattice.hoppings.size(), 0);
+    double firstMoment{0};
+    double secondMoment{0};
 
-#pragma unroll 4
-    for (uint64_t i = 0; i < lattice.numberOfSites; i++)
+    for (uint64_t y = 1; y < yGhostedSize - 1; y++)
     {
-        std::fill(result.begin(), result.end(), 0.0);
-
-        for (int j = 0; j < lattice.hoppings.size(); j++)
+        for (uint64_t x = 1; x < xGhostedSize - 1; x++)
         {
-            uint64_t aIndex = numOrbitals * i + hoppings[j].orbitalHop[0];
-            uint64_t bIndex = GetMatrixElement(i, hoppings[j].latticeHop, numOrbitals,
-                                               hoppings[j].orbitalHop[1], xSize, ySize);
+            uint64_t i = x + y * xGhostedSize;
 
-            result[numOrbitals * j + hoppings[j].orbitalHop[0]] +=
-                2 * hoppings[j].hoppingStrength * b[bIndex] - a[aIndex];
-        }
-
-        for (int j = 0; j < lattice.hoppings.size(); j++)
-        {
-            a[numOrbitals * i + hoppings[j].orbitalHop[0]] =
-                result[numOrbitals * j + hoppings[j].orbitalHop[0]];
+            for (int j = 0; j < numOrbitals; j++)
+            {
+                firstMoment += a[numOrbitals*i + j]*a[numOrbitals*i + j];
+                secondMoment += a[numOrbitals*i + j]*b[numOrbitals*i + j];
+            }
         }
     }
 
-    return;
-}
-
-void DensityOfStates2dCpuStandard::ExecuteSecondKpmVectorUpdate()
-{
-    std::vector<double> result(numOrbitals * lattice.hoppings.size(), 0);
-
-    #pragma unroll 4
-    for (uint64_t i = 0; i < lattice.numberOfSites; i++)
-    {
-        std::fill(result.begin(), result.end(), 0.0);
-
-        for (int j = 0; j < lattice.hoppings.size(); j++)
-        {
-            uint64_t bIndex = numOrbitals * i + hoppings[j].orbitalHop[0];
-            uint64_t aIndex = GetMatrixElement(i, hoppings[j].latticeHop, numOrbitals,
-                                               hoppings[j].orbitalHop[1], xSize, ySize);
-
-            result[numOrbitals * j + hoppings[j].orbitalHop[0]] +=
-                2 * hoppings[j].hoppingStrength * a[aIndex] - b[bIndex];
-        }
-
-        for (int j = 0; j < lattice.hoppings.size(); j++)
-        {
-            b[numOrbitals * i + hoppings[j].orbitalHop[0]] =
-                result[numOrbitals * j + hoppings[j].orbitalHop[0]];
-        }
-    }
+    moments.push_back(firstMoment);
+    moments.push_back(secondMoment);
 
     return;
-}
-
-inline int DensityOfStates2dCpuStandard::GetMatrixElement(uint64_t& currentLatticePos,
-                                                          std::vector<int32_t>& latticeHop,
-                                                          uint32_t& numOfOrbitals,
-                                                          uint32_t orbitalHop, uint32_t xSize,
-                                                          uint32_t ySize)
-{
-    int elementShift = currentLatticePos;
-    int y = currentLatticePos / xSize;
-    int x = currentLatticePos % xSize;
-
-    elementShift -= (x - mod(x + latticeHop[0], xSize));
-    elementShift -= (y - mod(y + latticeHop[1], ySize)) * xSize;
-    elementShift *= numOfOrbitals;
-    elementShift += orbitalHop;
-
-    return elementShift;
 }

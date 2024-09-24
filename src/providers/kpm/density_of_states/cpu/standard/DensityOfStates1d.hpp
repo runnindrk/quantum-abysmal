@@ -25,7 +25,7 @@ class DensityOfStates1dCpuStandard : public DensityOfStates
 public:
     Error SetNumberOfRandomVectors(size_t numVectors) override;
     Error SetNumberOfMoments(size_t order) override;
-    Error Compute() override;
+    std::vector<double> Compute() override;
 
   private:
 

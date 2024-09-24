@@ -32,7 +32,7 @@ public:
     /// @brief Get Kernel Polynomial Method methods.
     /// @return A unique pointer to KernalPolynomialMethod.
     KernelPolynomialMethod::Uptr GetKpmMethods() override;
-
+    
     /// @brief Get Storage methods.
     /// @return A unique pointer to Storage.
     Storage::Uptr GetStorageMethods() override;

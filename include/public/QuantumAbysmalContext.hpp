@@ -35,6 +35,10 @@ public:
     /// @return A unique pointer to KernalPolynomialMethod.
     virtual KernelPolynomialMethod::Uptr GetKpmMethods() = 0;
 
+    // /// @brief Get Plots methods.
+    // /// @return A unique pointer to Plotting.
+    // virtual Storage::Uptr GetPlotMethods() = 0;
+
     /// @brief Get Storage methods.
     /// @return A unique pointer to Storage.
     virtual Storage::Uptr GetStorageMethods() = 0;

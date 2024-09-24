@@ -36,7 +36,7 @@ class DensityOfStates
     virtual Error SetNumberOfMoments(size_t order) = 0;
 
     /// @brief Perform the DoS moments computation.
-    virtual Error Compute() = 0;
+    virtual std::vector<double> Compute() = 0;
 
     /// @brief Retrieve the computed moments.
     /// @return A vector containing the moments values.

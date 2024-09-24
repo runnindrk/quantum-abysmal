@@ -36,7 +36,7 @@ int main()
     latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
     latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
-    latticeCtx->SetLatticeSize({1024, 1024});
+    latticeCtx->SetLatticeSize({2048, 2048});
     latticeCtx->SetEnergyRange(-3.1, 3.1);
     latticeCtx->SetBoundaryType(PERIODIC);
 
@@ -46,11 +46,24 @@ int main()
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     auto dosCtx = kpmCtx->GetDensityOfStates();
 
-    dosCtx->SetNumberOfRandomVectors(1024);
-    dosCtx->SetNumberOfMoments(256);
-    dosCtx->Compute();
+    dosCtx->SetNumberOfRandomVectors(1);
+    dosCtx->SetNumberOfMoments(512);
+    std::vector<double> moments = dosCtx->Compute();
 
     // ------------------------------------------------------------------------
+    // Print moments
+
+    std::cout << "Number of moments = " << moments.size() << std::endl;
     
+    for (int i = 0; i < moments.size(); i++)
+    {
+        std::cout << moments[i] << std::endl;
+    }
+
+    // ------------------------------------------------------------------------
+    // Plot DoS
+
+    // ------------------------------------------------------------------------
+
     return 0;
 }

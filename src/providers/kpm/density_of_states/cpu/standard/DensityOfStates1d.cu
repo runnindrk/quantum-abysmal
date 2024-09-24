@@ -27,7 +27,7 @@ Error DensityOfStates1dCpuStandard::SetNumberOfMoments(size_t order)
     return SUCCESS;
 }
 
-Error DensityOfStates1dCpuStandard::Compute()
+std::vector<double> DensityOfStates1dCpuStandard::Compute()
 {
-    return SUCCESS;
+    return {};
 }
