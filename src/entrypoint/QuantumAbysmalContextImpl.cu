@@ -16,6 +16,7 @@
 #include "../src/entrypoint/QuantumAbysmalContextImpl.hpp"
 #include "../src/lattice/LatticeImpl.hpp"
 #include "../src/providers/KernelPolynomialMethodFactory.hpp"
+#include "../src/plotting/PlotFactory.hpp"
 // #include "include/public/Storage.hpp"
 
 #include <memory>
@@ -28,6 +29,11 @@ Lattice::Uptr QuantumAbysmalContextImpl::GetLatticeMethods()
 KernelPolynomialMethod::Uptr QuantumAbysmalContextImpl::GetKpmMethods()
 {
     return std::make_unique<KernelPolynomialMethodFactory>();
+}
+
+Plotting::Uptr QuantumAbysmalContextImpl::GetPlotMethods()
+{
+    return std::make_unique<PlottingFactory>();
 }
 
 Storage::Uptr QuantumAbysmalContextImpl::GetStorageMethods()

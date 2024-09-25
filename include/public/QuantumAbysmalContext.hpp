@@ -18,6 +18,7 @@
 
 #include "Lattice.hpp"
 #include "KernelPolynomialMethod.hpp"
+#include "Plotting.hpp"
 #include "Storage.hpp"
 
 #include <memory>
@@ -35,9 +36,9 @@ public:
     /// @return A unique pointer to KernalPolynomialMethod.
     virtual KernelPolynomialMethod::Uptr GetKpmMethods() = 0;
 
-    // /// @brief Get Plots methods.
-    // /// @return A unique pointer to Plotting.
-    // virtual Storage::Uptr GetPlotMethods() = 0;
+    /// @brief Get Plots methods.
+    /// @return A unique pointer to Plotting.
+    virtual Plotting::Uptr GetPlotMethods() = 0;
 
     /// @brief Get Storage methods.
     /// @return A unique pointer to Storage.

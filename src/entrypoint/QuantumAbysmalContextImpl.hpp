@@ -33,6 +33,10 @@ public:
     /// @return A unique pointer to KernalPolynomialMethod.
     KernelPolynomialMethod::Uptr GetKpmMethods() override;
     
+    /// @brief Get Plots methods.
+    /// @return A unique pointer to Plotting.
+    Plotting::Uptr GetPlotMethods() override;
+
     /// @brief Get Storage methods.
     /// @return A unique pointer to Storage.
     Storage::Uptr GetStorageMethods() override;

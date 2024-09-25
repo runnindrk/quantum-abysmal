@@ -20,6 +20,7 @@ add_library(Quantum-Abysmal STATIC
     src/lattice/LatticeImpl.cu
     src/providers/LinearAlgebraFactory.cu
     src/providers/KernelPolynomialMethodFactory.cu
+    src/plotting/PlotFactory.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates3d.cu

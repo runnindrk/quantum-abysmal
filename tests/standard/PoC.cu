@@ -63,6 +63,10 @@ int main()
     // ------------------------------------------------------------------------
     // Plot DoS
 
+    auto plottingCtx = abysmalCtx->GetPlotMethods();
+
+    plottingCtx->PlotDensityOfStates(moments);
+    
     // ------------------------------------------------------------------------
 
     return 0;
