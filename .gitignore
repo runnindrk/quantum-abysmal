@@ -1,5 +1,7 @@
+.vscode/
 .VSCodeCounter/
 out/
+build/
 __build/
 __bin/
 __lib/
