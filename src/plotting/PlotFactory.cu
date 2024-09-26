@@ -14,10 +14,12 @@
 //============================================================================
 
 #include "PlotFactory.hpp"
+#include "PlotDensityOfStatesImpl.hpp"
+
 #include "include/internal/Logger.hpp"
 
 Error PlottingFactory::PlotDensityOfStates(std::vector<double> moments)
 {
-    LOG_INFO << "Hello from Plotting";
-    return SUCCESS;
+    PlotDensityOfStatesImpl instance;
+    return instance.Plot(moments);
 }

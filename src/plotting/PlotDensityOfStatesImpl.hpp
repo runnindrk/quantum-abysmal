@@ -13,15 +13,18 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_SRC_PLOTTING_FACTORY_HPP
-#define QUANTUM_ABYSMAL_SRC_PLOTTING_FACTORY_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_PLOT_DOS_HPP
+#define QUANTUM_ABYSMAL_SRC_PLOT_DOS_HPP
 
-// #include "include/public/Plotting.hpp"
+#include "include/public/ErrorHandler.hpp"
+#include "include/internal/Logger.hpp"
 
-// class PlotDensityOfStates
-// {
-//   public:
-//     Error Plot(std::vector<double> moments);
-// };
+#include <vector>
+
+class PlotDensityOfStatesImpl
+{
+  public:
+    Error Plot(std::vector<double> moments);
+};
 
 #endif

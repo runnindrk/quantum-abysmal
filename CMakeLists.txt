@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Quantum-Abysmal VERSION 1.0)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+list(APPEND CMAKE_PREFIX_PATH "/snap/root-framework/936/usr/local/cmake")
+find_package(ROOT REQUIRED COMPONENTS Graf Graf3d Gpad Hist Core)
+
+include_directories(${ROOT_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR})
 
 set(CMAKE_CUDA_ARCHITECTURES 86)
@@ -21,6 +31,7 @@ add_library(Quantum-Abysmal STATIC
     src/providers/LinearAlgebraFactory.cu
     src/providers/KernelPolynomialMethodFactory.cu
     src/plotting/PlotFactory.cu
+    src/plotting/PlotDensityOfStatesImpl.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates3d.cu
