@@ -15,6 +15,7 @@
 
 #include "PlotDensityOfStatesImpl.hpp"
 
+#include <TROOT.h>
 #include "TApplication.h"
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -27,6 +28,7 @@ Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
 
     int fakeArgc = 0;
     char* fakeArgv[] = {(char*)""};
+
     TApplication theApp("App", &fakeArgc, fakeArgv);
 
     double x[100], y[100];
@@ -43,6 +45,8 @@ Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
 
     TCanvas *c = new TCanvas("c", "Canvas", 800, 600);
     g->Draw("AC*");
+
+    theApp.Run();
 
     return SUCCESS;
 }

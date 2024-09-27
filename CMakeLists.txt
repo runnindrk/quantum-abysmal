@@ -2,12 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Quantum-Abysmal VERSION 1.0)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_CUDA_STANDARD 17)
-set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
 list(APPEND CMAKE_PREFIX_PATH "/snap/root-framework/936/usr/local/cmake")
 find_package(ROOT REQUIRED COMPONENTS Graf Graf3d Gpad Hist Core)
 
@@ -38,6 +32,7 @@ add_library(Quantum-Abysmal STATIC
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(Quantum-Abysmal ${ROOT_LIBRARIES})
 
 install(TARGETS Quantum-Abysmal DESTINATION ${CMAKE_SOURCE_DIR}/__lib)
 

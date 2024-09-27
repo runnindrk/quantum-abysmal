@@ -36,7 +36,7 @@ int main()
     latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
     latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
-    latticeCtx->SetLatticeSize({2048, 2048});
+    latticeCtx->SetLatticeSize({1024, 1024});
     latticeCtx->SetEnergyRange(-3.1, 3.1);
     latticeCtx->SetBoundaryType(PERIODIC);
 
@@ -47,7 +47,7 @@ int main()
     auto dosCtx = kpmCtx->GetDensityOfStates();
 
     dosCtx->SetNumberOfRandomVectors(1);
-    dosCtx->SetNumberOfMoments(512);
+    dosCtx->SetNumberOfMoments(256);
     std::vector<double> moments = dosCtx->Compute();
 
     // ------------------------------------------------------------------------
