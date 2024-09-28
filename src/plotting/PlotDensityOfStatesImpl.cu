@@ -14,13 +14,27 @@
 //============================================================================
 
 #include "PlotDensityOfStatesImpl.hpp"
+#include "src/lattice/LatticeImpl.hpp"
 
-#include <TROOT.h>
 #include "TApplication.h"
 #include "TCanvas.h"
 #include "TGraph.h"
 
 #include <cmath>
+
+// NOTE: All of this is privisionary. Only to have the first plots.
+
+double chebyshevPolynomial(int n, double x)
+{
+    return cos(n * acos(x));
+}
+
+double jacksonKernel(int n, int N)
+{
+    double factor1 = (N - n + 1) * cos(M_PI * n / (N + 1));
+    double factor2 = sin(M_PI * n / (N + 1)) * cos(M_PI / (N + 1)) / sin(M_PI / (N + 1));
+    return (factor1 + factor2) / (N + 1);
+}
 
 Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
 {
@@ -31,19 +45,44 @@ Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
 
     TApplication theApp("App", &fakeArgc, fakeArgv);
 
-    double x[100], y[100];
-    int n = 20;
+    LatticeImpl::Lattice lattice = LatticeImpl::GetInstance().GetLattice();
 
-    for (int i = 0; i < n; i++)
+    double dos[2000];
+    double energy[2000];
+
+    for (int i = 0; i < 2000; i++)
     {
-        x[i] = i * 0.1;
-        y[i] = 10 * sin(x[i] + 0.2);
+        double E = -0.999 + i * (2 * 0.999) / (2000 - 1);
+
+        for (int j = 0; j < moments.size(); j++)
+        {
+            if (j == 0)
+            {
+                dos[i] += moments[j];
+            }
+
+            else
+            {
+                dos[i] +=
+                    2 * moments[j] * jacksonKernel(j, moments.size()) * chebyshevPolynomial(j, E);
+            }
+        }
+
+        dos[i] *= 1 / (3.141592 * (sqrt(1 - E * E)));
+
+        energy[i] = E * lattice.energyScaling + lattice.energyShift;
+        dos[i] = dos[i] / lattice.energyScaling + lattice.energyShift;
     }
 
-    auto g = new TGraph(n, x, y);
+    // for (int i = 0; i < 2000; i++)
+    // {
+    //     std::cout << "E = " << energy[i] << " dos = " << dos[i] << "\n";
+    // }
+
+    auto g = new TGraph(2000, energy, dos);
     g->SetTitle("Graph title;X title;Y title");
 
-    TCanvas *c = new TCanvas("c", "Canvas", 800, 600);
+    TCanvas* c = new TCanvas("c", "Canvas", 800, 600);
     g->Draw("AC*");
 
     theApp.Run();
