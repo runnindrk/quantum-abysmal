@@ -33,8 +33,7 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
 
     void InitializeKpmVectors();
     void ExecuteKpmVectorUpdate(double* a, double* b);
-    void ComputeMoments(double* a, double* b);
-    void UpdateGhosts(double* a);
+    inline void UpdateGhosts(double* a);
 
     // ------------------------------------------------------------------------
     // Member variables.

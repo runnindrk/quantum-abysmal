@@ -22,7 +22,7 @@
 
 #include <cmath>
 
-// NOTE: All of this is privisionary. Only to have the first plots.
+// NOTE: All of this is provisionary. Only to have the first plots.
 
 double chebyshevPolynomial(int n, double x)
 {
@@ -47,12 +47,12 @@ Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
 
     LatticeImpl::Lattice lattice = LatticeImpl::GetInstance().GetLattice();
 
-    double dos[2000];
-    double energy[2000];
+    double dos[200000];
+    double energy[200000];
 
-    for (int i = 0; i < 2000; i++)
+    for (int i = 0; i < 200000; i++)
     {
-        double E = -0.999 + i * (2 * 0.999) / (2000 - 1);
+        double E = -0.999 + i * (2 * 0.999) / (200000 - 1);
 
         for (int j = 0; j < moments.size(); j++)
         {
@@ -74,16 +74,11 @@ Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
         dos[i] = dos[i] / lattice.energyScaling + lattice.energyShift;
     }
 
-    // for (int i = 0; i < 2000; i++)
-    // {
-    //     std::cout << "E = " << energy[i] << " dos = " << dos[i] << "\n";
-    // }
-
-    auto g = new TGraph(2000, energy, dos);
+    auto g = new TGraph(200000, energy, dos);
     g->SetTitle("Graph title;X title;Y title");
 
     TCanvas* c = new TCanvas("c", "Canvas", 800, 600);
-    g->Draw("AC*");
+    g->Draw("AL");
 
     theApp.Run();
 
