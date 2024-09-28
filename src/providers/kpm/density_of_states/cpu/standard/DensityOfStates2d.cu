@@ -14,7 +14,9 @@
 //============================================================================
 
 #include "DensityOfStates2d.hpp"
+
 #include <random>
+#include <iomanip>
 
 Error DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
@@ -34,7 +36,7 @@ std::vector<double> DensityOfStates2dCpuStandard::Compute()
 {
     InitializeKpmVectors();
 
-    for (int i = 1; i < mNumOfMoments / 2; i++)
+    for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
     {
         if (i % 2 == 0)
         {
@@ -66,7 +68,7 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
     std::normal_distribution<> dist(0.0, 1.0);
 
     double randomVectorNorm{};
-    
+
     for (uint64_t y = 1; y < yGhostedSize - 1; y++)
     {
         for (uint64_t x = 1; x < xGhostedSize - 1; x++)
@@ -93,7 +95,7 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
             for (int j = 0; j < numOrbitals; j++)
             {
                 uint64_t trueIndex = numOrbitals * i + j;
-            
+
                 a[trueIndex] /= sqrt(randomVectorNorm);
                 b[trueIndex] = 0;
             }
@@ -108,7 +110,7 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
         for (uint64_t x = 1; x < xGhostedSize - 1; x++)
         {
             uint64_t i = x + y * xGhostedSize;
-            
+
             #pragma unroll 4
             for (int j = 0; j < lattice.hoppings.size(); j++)
             {
@@ -117,7 +119,8 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
                 int64_t newY = y + currentHop.latticeHop[1];
 
                 uint64_t bIndex = numOrbitals * i + currentHop.orbitalHop[0];
-                uint64_t aIndex = numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
+                uint64_t aIndex =
+                    numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
 
                 b[bIndex] += currentHop.hoppingStrength * a[aIndex];
             }
@@ -137,8 +140,8 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
 
             for (int j = 0; j < numOrbitals; j++)
             {
-                firstMoment += a[numOrbitals*i + j]*a[numOrbitals*i + j];
-                secondMoment += a[numOrbitals*i + j]*b[numOrbitals*i + j];
+                firstMoment += a[numOrbitals * i + j] * a[numOrbitals * i + j];
+                secondMoment += a[numOrbitals * i + j] * b[numOrbitals * i + j];
             }
         }
     }
@@ -162,7 +165,8 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
                 currentHop = hoppings[j];
                 int64_t newX = x + currentHop.latticeHop[0];
                 int64_t newY = y + currentHop.latticeHop[1];
-                uint64_t aIndex = numOrbitals * (newX  + newY * xGhostedSize) + currentHop.orbitalHop[1];
+                uint64_t aIndex =
+                    numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
 
                 accumulation[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[aIndex];
             }
@@ -181,7 +185,7 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
 }
 
 void DensityOfStates2dCpuStandard::UpdateGhosts(double* a)
-{   
+{
     for (int x = 1; x < xGhostedSize - 1; x++)
     {
         for (int j = 0; j < numOrbitals; j++)
@@ -201,7 +205,7 @@ void DensityOfStates2dCpuStandard::UpdateGhosts(double* a)
     }
 }
 
-void DensityOfStates2dCpuStandard::ComputeMoments(double *b, double *c)
+void DensityOfStates2dCpuStandard::ComputeMoments(double* a, double* b)
 {
     double firstMoment{0};
     double secondMoment{0};
@@ -214,12 +218,12 @@ void DensityOfStates2dCpuStandard::ComputeMoments(double *b, double *c)
 
             for (int j = 0; j < numOrbitals; j++)
             {
-                firstMoment += b[numOrbitals*i + j]*b[numOrbitals*i + j];
-                secondMoment += c[numOrbitals*i + j]*b[numOrbitals*i + j];
+                firstMoment += a[numOrbitals * i + j] * a[numOrbitals * i + j];
+                secondMoment += b[numOrbitals * i + j] * a[numOrbitals * i + j];
             }
         }
     }
 
-    moments.push_back(2*firstMoment - moments[0]);
-    moments.push_back(2*secondMoment - moments[1]);
+    moments.push_back(2 * firstMoment - moments[0]);
+    moments.push_back(2 * secondMoment - moments[1]);
 }

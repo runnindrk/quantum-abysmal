@@ -50,7 +50,7 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
     uint32_t xGhostedSize = xSize + 2;
     uint32_t yGhostedSize = ySize + 2;
 
-    int numberOfGhosts = numOrbitals * (2 * xSize + 2 * ySize) + 4 * numOrbitals * numOrbitals;
+    int numberOfGhosts = numOrbitals * (2 * xSize + 2 * ySize + 4);
 
     double* a = (double*)malloc((lattice.hamiltonianSize + numberOfGhosts) * sizeof(double));
     double* b = (double*)malloc((lattice.hamiltonianSize + numberOfGhosts) * sizeof(double));
