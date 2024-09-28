@@ -37,7 +37,7 @@ int main()
     latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
     latticeCtx->SetLatticeSize({2048, 2048});
-    latticeCtx->SetEnergyRange(-3.1, 3.1);
+    latticeCtx->SetEnergyRange(-3, 3);
     latticeCtx->SetBoundaryType(PERIODIC);
 
     // ------------------------------------------------------------------------

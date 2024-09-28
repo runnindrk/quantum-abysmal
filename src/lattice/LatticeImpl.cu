@@ -142,7 +142,7 @@ Error LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
 
     mLattice.minEnergy = minEnergy;
     mLattice.maxEnergy = maxEnergy;
-    mLattice.energyScaling = (maxEnergy - minEnergy) / 2.0;
+    mLattice.energyScaling = (maxEnergy - minEnergy) / (2.0 - 0.01);
     mLattice.energyShift = (maxEnergy + minEnergy) / 2.0;
 
     for (auto& hopping : mLattice.hoppings)
