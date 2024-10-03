@@ -36,7 +36,7 @@ int main()
     latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
     latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
-    latticeCtx->SetLatticeSize({2048, 2048});
+    latticeCtx->SetLatticeSize({4096, 4096});
     latticeCtx->SetEnergyRange(-3, 3);
     latticeCtx->SetBoundaryType(PERIODIC);
 
@@ -47,18 +47,8 @@ int main()
     auto dosCtx = kpmCtx->GetDensityOfStates();
 
     dosCtx->SetNumberOfRandomVectors(1);
-    dosCtx->SetNumberOfMoments(512);
+    dosCtx->SetNumberOfMoments(1024);
     std::vector<double> moments = dosCtx->Compute();
-
-    // ------------------------------------------------------------------------
-    // Print moments
-
-    // std::cout << "Number of moments = " << moments.size() << std::endl;
-    
-    // for (int i = 0; i < moments.size(); i++)
-    // {
-    //     std::cout << moments[i] << std::endl;
-    // }
 
     // ------------------------------------------------------------------------
     // Plot DoS

@@ -29,10 +29,16 @@ add_library(Quantum-Abysmal STATIC
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates3d.cu
+
+    src/providers/kpm/density_of_states/cpu/standard/util/Util.cu
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(Quantum-Abysmal ${ROOT_LIBRARIES})
+
+find_package(OpenMP REQUIRED)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(Quantum-Abysmal OpenMP::OpenMP_CXX ${ROOT_LIBRARIES})
+endif()
 
 install(TARGETS Quantum-Abysmal DESTINATION ${CMAKE_SOURCE_DIR}/__lib)
 

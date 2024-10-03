@@ -14,9 +14,11 @@
 //============================================================================
 
 #include "DensityOfStates2d.hpp"
+#include "util/Util.hpp"
 
 #include <chrono>
 #include <random>
+#include <omp.h>
 
 Error DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
@@ -153,45 +155,68 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
 
 void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
 {
-    std::vector<double> accumulation(numOrbitals, 0);
-    LatticeImpl::Hopping currentHop;
     double firstMoment{0};
     double secondMoment{0};
 
-    for (uint64_t y = 1; y < yGhostedSize - 1; y++)
+    int numThreads = maxOutNumThreads(omp_get_num_procs());
+    int numBlockPerDim = static_cast<int>(sqrt(numThreads));
+    
+    omp_set_num_threads(numThreads);
+
+    // clang-format off
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    // clang-format on
     {
-        for (uint64_t x = 1; x < xGhostedSize - 1; x++)
+        int threadId = omp_get_thread_num();
+
+        int xBlock = threadId / numBlockPerDim;
+        int yBlock = threadId % numBlockPerDim;
+
+        uint64_t xInitIdx = xBlock*(xSize / numBlockPerDim) + 1;
+        uint64_t xEndIdx = xInitIdx + (xSize / numBlockPerDim);
+        uint64_t yInitIdx = yBlock*(ySize / numBlockPerDim) + 1;
+        uint64_t yEndIdx = yInitIdx + (ySize / numBlockPerDim);
+         
+        // printf("Thread %d\n", thread_id, " xBlock ", xBlock, " yBlock", yBlock);
+
+        std::vector<double> accumulation(numOrbitals, 0);
+        LatticeImpl::Hopping currentHop;
+
+        for (uint64_t y = yInitIdx; y < yEndIdx; y++)
         {
-            // clang-format off
-            #pragma unroll 4
-            // clang-format on
-            for (int j = 0; j < lattice.hoppings.size(); j++)
+            for (uint64_t x = xInitIdx; x < xEndIdx; x++)
             {
-                currentHop = hoppings[j];
-                int64_t newX = x + currentHop.latticeHop[0];
-                int64_t newY = y + currentHop.latticeHop[1];
-                uint64_t aIndex =
-                    numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
+                // clang-format off
+                #pragma unroll 4
+                // clang-format on
+                for (int j = 0; j < lattice.hoppings.size(); j++)
+                {
+                    currentHop = hoppings[j];
+                    int64_t newX = x + currentHop.latticeHop[0];
+                    int64_t newY = y + currentHop.latticeHop[1];
+                    uint64_t aIndex =
+                        numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
 
-                accumulation[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[aIndex];
-            }
+                    accumulation[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[aIndex];
+                }
 
-            // clang-format off
-            #pragma omp simd
-            // clang-format on
-            for (int j = 0; j < numOrbitals; j++)
-            {
-                uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
+                // clang-format off
+                #pragma omp simd
+                // clang-format on
+                for (int j = 0; j < numOrbitals; j++)
+                {
+                    uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
 
-                // KPM Update Step
-                a[trueIndex] = 2 * accumulation[j] - a[trueIndex];
+                    // KPM Update Step
+                    a[trueIndex] = 2 * accumulation[j] - a[trueIndex];
 
-                // Compute partial moment accumulation
-                firstMoment += b[trueIndex] * b[trueIndex];
-                secondMoment += a[trueIndex] * b[trueIndex];
+                    // Compute partial moment accumulation
+                    firstMoment += b[trueIndex] * b[trueIndex];
+                    secondMoment += a[trueIndex] * b[trueIndex];
 
-                // Restart orbital sparse matric accumulation
-                accumulation[j] = 0;
+                    // Restart orbital sparse matric accumulation
+                    accumulation[j] = 0;
+                }
             }
         }
     }
