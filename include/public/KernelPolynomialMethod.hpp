@@ -31,17 +31,17 @@ class KernelPolynomialMethod
     /// @brief Get Density of States.
     /// @return A unique pointer to Density of States.
     virtual DensityOfStates::Uptr
-    GetDensityOfStates(ProviderImplementation implementation = CPU_STANDARD_IMPL) = 0;
+    GetDensityOfStates(ProviderImplementation implementation) = 0;
 
     /// @brief Get Local Density of States.
     /// @return A unique pointer to Local Density of States.
     virtual LocalDensityOfStates::Uptr
-    GetLocalDensityOfStates(ProviderImplementation implementation = CPU_STANDARD_IMPL) = 0;
+    GetLocalDensityOfStates(ProviderImplementation implementation) = 0;
 
     /// @brief Get Local Density of States.
     /// @return A unique pointer to Local Density of States.
     virtual StochasticLocalDensityOfStates::Uptr GetStochasticLocalDensityOfStates(
-        ProviderImplementation implementation = CPU_STANDARD_IMPL) = 0;
+        ProviderImplementation implementation) = 0;
 };
 
 #endif

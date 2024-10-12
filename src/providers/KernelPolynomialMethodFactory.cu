@@ -45,7 +45,7 @@ KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation impleme
         case CPU_STANDARD_IMPL:
             return std::make_unique<DensityOfStates2dCpuStandard>();
         case GPU_STANDARD_IMPL:
-            return nullptr;
+            return std::make_unique<DensityOfStates2dGpuStandard>();
         case CPU_DUMMY_IMPL:
             return nullptr;
         case GPU_DUMMY_IMPL:

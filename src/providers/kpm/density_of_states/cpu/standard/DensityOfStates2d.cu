@@ -63,6 +63,9 @@ std::vector<double> DensityOfStates2dCpuStandard::Compute()
     return moments;
 }
 
+// ----------------------------------------------------------------------------
+// Private 
+
 void DensityOfStates2dCpuStandard::InitializeKpmVectors()
 {
     // In development. Trying out ideas, this is perhaps all wrong.
@@ -201,22 +204,38 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
                 }
 
                 // clang-format off
-                #pragma omp simd
+                // #pragma omp simd
                 // clang-format on
-                for (int j = 0; j < numOrbitals; j++)
-                {
-                    uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
+                // for (int j = 0; j < numOrbitals; j++)
+                // {
+                //     uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
 
-                    // KPM Update Step
-                    a[trueIndex] = 2 * accumulation[j] - a[trueIndex];
+                //     // KPM Update Step
+                //     a[trueIndex] = 2 * accumulation[j] - a[trueIndex];
 
-                    // Compute partial moment accumulation
-                    firstMoment += b[trueIndex] * b[trueIndex];
-                    secondMoment += a[trueIndex] * b[trueIndex];
+                //     // Compute partial moment accumulation
+                //     firstMoment += b[trueIndex] * b[trueIndex];
+                //     secondMoment += a[trueIndex] * b[trueIndex];
 
-                    // Restart orbital sparse matric accumulation
-                    accumulation[j] = 0;
-                }
+                //     // Restart orbital sparse matric accumulation
+                //     accumulation[j] = 0;
+                // }
+
+                uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize);
+                a[trueIndex] = 2 * accumulation[0] - a[trueIndex];
+
+                firstMoment += b[trueIndex] * b[trueIndex];
+                secondMoment += a[trueIndex] * b[trueIndex];
+
+                accumulation[0] = 0;
+
+                trueIndex = numOrbitals * (x + y * xGhostedSize) + 1;
+                a[trueIndex] = 2 * accumulation[1] - a[trueIndex];
+
+                firstMoment += b[trueIndex] * b[trueIndex];
+                secondMoment += a[trueIndex] * b[trueIndex];
+
+                accumulation[1] = 0;
             }
         }
     }

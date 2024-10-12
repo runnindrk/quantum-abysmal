@@ -44,7 +44,7 @@ int main()
     // Density of States.
 
     auto kpmCtx = abysmalCtx->GetKpmMethods();
-    auto dosCtx = kpmCtx->GetDensityOfStates();
+    auto dosCtx = kpmCtx->GetDensityOfStates(CPU_STANDARD_IMPL);
 
     dosCtx->SetNumberOfRandomVectors(1);
     dosCtx->SetNumberOfMoments(1024);
