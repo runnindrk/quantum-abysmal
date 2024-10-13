@@ -33,9 +33,15 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 {
     LOG_INFO << "Computing from GPU KPM 2D";
 
-    unsigned int numBlocks = 256;
-    unsigned int numThreads = 256;
-    unsigned int numRandomNumbers = 1 << 20;
+    const unsigned int numBlocks = 256;
+    const unsigned int numThreads = 256;
+    unsigned int numRandomNumbers = 1 << 22;
+
+    double* devFinalReduction;
+    cudaMalloc((void**)&devFinalReduction, sizeof(double));
+
+    double* devReduction;
+    cudaMalloc((void**)&devReduction, numThreads * sizeof(double));
 
     double* devRandomNumbers;
     cudaMalloc((void**)&devRandomNumbers, numRandomNumbers * sizeof(double));
@@ -45,15 +51,29 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 
     InitCurandXorwow<<<numBlocks, numThreads>>>(devStates);
     InitRandomVector<<<numBlocks, numThreads>>>(devStates, devRandomNumbers, numRandomNumbers);
+    Reduce<numThreads><<<numBlocks, numThreads>>>(devRandomNumbers, devReduction, numRandomNumbers);
+    FinalReduce<numThreads><<<1, numThreads>>>(devReduction, devFinalReduction, numThreads);
 
-    double* randomNumbers = (double*)malloc(numRandomNumbers * sizeof(double));
-    cudaMemcpy(randomNumbers, devRandomNumbers, numRandomNumbers * sizeof(double),
-               cudaMemcpyDeviceToHost);
+    // double* randomNumbers = (double*)malloc(numRandomNumbers * sizeof(double));
+    // cudaMemcpy(randomNumbers, devRandomNumbers, numRandomNumbers * sizeof(double), cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < numRandomNumbers; i++)
+    // for (int i = 0; i < numRandomNumbers; i++)
+    // {
+    //     LOG_INFO << randomNumbers[i];
+    // }
+
+    double* firstReduction = (double*)malloc(numThreads * sizeof(double));
+    cudaMemcpy(firstReduction, devReduction, numThreads * sizeof(double), cudaMemcpyDeviceToHost);
+
+    for (int i = 0; i < numThreads; i++)
     {
-        LOG_INFO << randomNumbers[i];
+        LOG_INFO << firstReduction[i];
     }
+
+    double reduction;
+    cudaMemcpy(&reduction, devFinalReduction, sizeof(double), cudaMemcpyDeviceToHost);
+
+    LOG_INFO << "Final reduction is : " << reduction;
 
     return {};
 }
@@ -75,83 +95,9 @@ __global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsig
 
     while (tid < bufferSize)
     {
-        buffer[tid] = curand_normal_double(&localState);
+        buffer[tid] = 1;
 
         state[localTid] = localState;
         tid += blockDim.x * gridDim.x;
     }
-}
-
-// ----------------------------------------------------------------------------
-// Optimized reduction routine
-
-template <unsigned int blockSize> 
-__device__ void WarpReduce(volatile int* sdata, unsigned int tid)
-{
-    if (blockSize >= 64)
-        sdata[tid] += sdata[tid + 32];
-    if (blockSize >= 32)
-        sdata[tid] += sdata[tid + 16];
-    if (blockSize >= 16)
-        sdata[tid] += sdata[tid + 8];
-    if (blockSize >= 8)
-        sdata[tid] += sdata[tid + 4];
-    if (blockSize >= 4)
-        sdata[tid] += sdata[tid + 2];
-    if (blockSize >= 2)
-        sdata[tid] += sdata[tid + 1];
-}
-
-template <unsigned int blockSize> 
-__global__ void Reduce(int* g_idata, int* g_odata, unsigned int n)
-{
-    extern __shared__ int sdata[];
-    unsigned int tid = threadIdx.x;
-    unsigned int i = tid + blockIdx.x * (blockSize * 2);
-    unsigned int gridSize = blockSize * 2 * gridDim.x;
-    sdata[tid] = 0;
-
-    while (i < n)
-    {
-        sdata[tid] += g_idata[i] + g_idata[i + blockSize];
-        i += gridSize;
-    }
-
-    __syncthreads();
-
-    if (blockSize >= 512)
-    {
-        if (tid < 256)
-        {
-            sdata[tid] += sdata[tid + 256];
-        }
-
-        __syncthreads();
-    }
-
-    if (blockSize >= 256)
-    {
-        if (tid < 128)
-        {
-            sdata[tid] += sdata[tid + 128];
-        }
-
-        __syncthreads();
-    }
-
-    if (blockSize >= 128)
-    {
-        if (tid < 64)
-        {
-            sdata[tid] += sdata[tid + 64];
-        }
-
-        __syncthreads();
-    }
-
-    if (tid < 32)
-        WarpReduce(sdata, tid);
-        
-    if (tid == 0)
-        g_odata[blockIdx.x] = sdata[0];
 }

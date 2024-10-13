@@ -15,10 +15,3 @@ BreakBeforeBraces: Allman
 PointerAlignment: Left
 ReferenceAlignment: Left
 IndentPPDirectives: BeforeHash
-
-# Added settings for template formatting
-BinPackParameters: false
-AlwaysBreakAfterDefinitionReturnType: true
-AlwaysBreakAfterReturnType: true
-SpaceBeforeTemplateKeyword: false
-SpaceAfterTemplateKeyword: true

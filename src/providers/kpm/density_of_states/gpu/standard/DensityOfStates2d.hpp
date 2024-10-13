@@ -37,10 +37,141 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
     // Member variables.
 };
 
+// ----------------------------------------------------------------------------
+// CUDA Routines 
+
 // Random number will be substituted for an RNG ENGINE in the future.
 // This is just to kickstart the development.
 __global__ void InitCurandXorwow(curandStateXORWOW *state);
 
 __global__ void InitRandomVector(curandStateXORWOW *state, double *buffer, unsigned int bufferSize);
+
+// ----------------------------------------------------------------------------
+// Optimized reduction routine
+
+template <unsigned int blockSize> 
+__device__ void WarpReduce(volatile double* sdata, unsigned int tid)
+{
+    if (blockSize >= 64)
+        sdata[tid] += sdata[tid + 32];
+    if (blockSize >= 32)
+        sdata[tid] += sdata[tid + 16];
+    if (blockSize >= 16)
+        sdata[tid] += sdata[tid + 8];
+    if (blockSize >= 8)
+        sdata[tid] += sdata[tid + 4];
+    if (blockSize >= 4)
+        sdata[tid] += sdata[tid + 2];
+    if (blockSize >= 2)
+        sdata[tid] += sdata[tid + 1];
+}
+
+template <unsigned int blockSize> 
+__global__ void Reduce(double* g_idata, double* g_odata, unsigned int n)
+{
+    __shared__ double sdata[blockSize];
+    unsigned int tid = threadIdx.x;
+    unsigned int i = tid + blockIdx.x * (blockSize * 2);
+    unsigned int gridSize = blockSize * 2 * gridDim.x;
+    sdata[tid] = 0;
+
+    while (i < n)
+    {
+        sdata[tid] += g_idata[i] + g_idata[i + blockSize];
+        i += gridSize;
+    }
+
+    __syncthreads();
+
+    if (blockSize >= 512)
+    {
+        if (tid < 256)
+        {
+            sdata[tid] += sdata[tid + 256];
+        }
+
+        __syncthreads();
+    }
+
+    if (blockSize >= 256)
+    {
+        if (tid < 128)
+        {
+            sdata[tid] += sdata[tid + 128];
+        }
+
+        __syncthreads();
+    }
+
+    if (blockSize >= 128)
+    {
+        if (tid < 64)
+        {
+            sdata[tid] += sdata[tid + 64];
+        }
+
+        __syncthreads();
+    }
+
+    if (tid < 32)
+        WarpReduce<blockSize>(sdata, tid);
+        
+    if (tid == 0)
+        g_odata[blockIdx.x] = sdata[0];
+}
+
+template <unsigned int blockSize> 
+__global__ void FinalReduce(double* g_idata, double* g_odata, unsigned int n)
+{
+    __shared__ double sdata[blockSize];
+    unsigned int tid = threadIdx.x;
+    unsigned int i = tid + blockIdx.x * (blockSize * 2);
+    unsigned int gridSize = blockSize * 2 * gridDim.x;
+    sdata[tid] = 0;
+
+    while (i < n)
+    {
+        sdata[tid] += g_idata[i] + g_idata[i + blockSize];
+        i += gridSize;
+    }
+
+    __syncthreads();
+
+    if (blockSize >= 512)
+    {
+        if (tid < 256)
+        {
+            sdata[tid] += sdata[tid + 256];
+        }
+
+        __syncthreads();
+    }
+
+    if (blockSize >= 256)
+    {
+        if (tid < 128)
+        {
+            sdata[tid] += sdata[tid + 128];
+        }
+
+        __syncthreads();
+    }
+
+    if (blockSize >= 128)
+    {
+        if (tid < 64)
+        {
+            sdata[tid] += sdata[tid + 64];
+        }
+
+        __syncthreads();
+    }
+
+    if (tid < 32)
+        WarpReduce<blockSize>(sdata, tid);
+        
+    if (tid == 0)
+        g_odata[blockIdx.x] = sdata[0];
+}
 
 #endif
