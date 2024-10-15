@@ -51,8 +51,8 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 
     InitCurandXorwow<<<numBlocks, numThreads>>>(devStates);
     InitRandomVector<<<numBlocks, numThreads>>>(devStates, devRandomNumbers, numRandomNumbers);
-    Reduce<numThreads><<<numBlocks, numThreads>>>(devRandomNumbers, devReduction, numRandomNumbers);
-    FinalReduce<numThreads><<<1, numThreads>>>(devReduction, devFinalReduction, numThreads);
+    // Reduce<numThreads><<<numBlocks, numThreads>>>(devRandomNumbers, devReduction, numRandomNumbers);
+    // FinalReduce<numThreads><<<1, numThreads>>>(devReduction, devFinalReduction, numThreads);
 
     // double* randomNumbers = (double*)malloc(numRandomNumbers * sizeof(double));
     // cudaMemcpy(randomNumbers, devRandomNumbers, numRandomNumbers * sizeof(double), cudaMemcpyDeviceToHost);
@@ -78,7 +78,7 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     return {};
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Private
 
 __global__ void InitCurandXorwow(curandStateXORWOW* state)

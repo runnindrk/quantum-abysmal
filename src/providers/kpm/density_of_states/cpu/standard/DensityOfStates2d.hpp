@@ -41,8 +41,8 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
     size_t mNumRandomVectors{};
     size_t mNumOfMoments{};
 
-    LatticeImpl::Lattice lattice = LatticeImpl::GetInstance().GetLattice();
-    std::vector<LatticeImpl::Hopping> hoppings = lattice.hoppings;
+    HostLattice lattice = LatticeImpl::GetInstance().GetLattice();
+    std::vector<HostHopping> hoppings = lattice.hoppings;
     uint32_t numOrbitals = lattice.numberOfOrbitals;
     uint32_t xSize = lattice.latticeSize[0];
     uint32_t ySize = lattice.latticeSize[1];

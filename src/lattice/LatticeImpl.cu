@@ -18,7 +18,7 @@
 // NOTE: This class is internally read only. No need for locks and mutex (I think).
 // TODO: Error Handling.
 
-LatticeImpl::Lattice LatticeImpl::mLattice;
+HostLattice LatticeImpl::mLattice;
 
 LatticeImpl& LatticeImpl::GetInstance()
 {
@@ -74,7 +74,7 @@ Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 
         return RUNTIME_ERROR;
     }
 
-    Hopping hopping;
+    HostHopping hopping;
     hopping.hoppingStrength = hoppingStrength;
     hopping.latticeHop = latticeHop;
     hopping.orbitalHop = std::array<uint32_t, 2>{firstOrbital->second, secondOrbital->second};
@@ -88,7 +88,7 @@ Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 
         positionConjugate.push_back(-value);
     }
 
-    Hopping conjugate;
+    HostHopping conjugate;
     conjugate.hoppingStrength = hoppingStrength;
     conjugate.latticeHop = positionConjugate;
     conjugate.orbitalHop = std::array<uint32_t, 2>{secondOrbital->second, firstOrbital->second};
@@ -164,7 +164,7 @@ Error LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 // ----------------------------------------------------------------------------
 // Internal methods.
 
-LatticeImpl::Lattice LatticeImpl::GetLattice()
+HostLattice LatticeImpl::GetLattice()
 {
     return mLattice;
 }

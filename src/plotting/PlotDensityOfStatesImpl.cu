@@ -45,7 +45,7 @@ Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
 
     TApplication theApp("App", &fakeArgc, fakeArgv);
 
-    LatticeImpl::Lattice lattice = LatticeImpl::GetInstance().GetLattice();
+    HostLattice lattice = LatticeImpl::GetInstance().GetLattice();
 
     double dos[200000];
     double energy[200000];

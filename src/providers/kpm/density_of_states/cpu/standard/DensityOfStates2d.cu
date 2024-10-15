@@ -115,7 +115,7 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
         }
     }
 
-    LatticeImpl::Hopping currentHop;
+    HostHopping currentHop;
     double firstMoment{0};
     double secondMoment{0};
     UpdateGhosts(a);
@@ -183,7 +183,7 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
         // printf("Thread %d\n", thread_id, " xBlock ", xBlock, " yBlock", yBlock);
 
         std::vector<double> accumulation(numOrbitals, 0);
-        LatticeImpl::Hopping currentHop;
+        HostHopping currentHop;
 
         for (uint64_t y = yInitIdx; y < yEndIdx; y++)
         {
