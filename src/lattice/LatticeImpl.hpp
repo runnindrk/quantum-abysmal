@@ -51,6 +51,7 @@ class LatticeImpl : public Lattice
     bool mIsAddHoppingCalled{false};
     bool mIsAnyOtherFunctionCalled{false};
     std::unordered_set<char> mOrbitalsSet;
+    
     static HostLattice mLattice;
 };
 

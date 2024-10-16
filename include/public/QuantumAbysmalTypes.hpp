@@ -16,9 +16,9 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 
-#include <array>
 #include <cstdint>
-#include <vector>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 
 typedef enum
 {

@@ -18,51 +18,50 @@
 // -------------------------------------------------------------------------------------------------
 // Host Structures
 
-typedef struct
+struct HostHopping
 {
-    std::vector<int32_t> latticeHop;
-    std::array<uint32_t, 2> orbitalHop;
-    double hoppingStrength;
+    int8_t latticeHop[3];
+    uint8_t orbitalHop[2];
+    double hoppingStrength{};
+};
 
-} HostHopping;
-
-typedef struct
+struct HostLattice
 {
     uint32_t dimension{};
     uint32_t numberOfOrbitals{};
+    uint32_t latticeSize[3] = {};
     uint64_t numberOfSites{1};
     uint64_t hamiltonianSize{1};
-    std::vector<uint32_t> latticeSize{};
-    std::vector<HostHopping> hoppings{};
+    
+    HostHopping hoppings[128] = {};
+    uint8_t numberOfHoppings{};
 
     double minEnergy{};
     double maxEnergy{};
     double energyScaling{};
     double energyShift{};
 
-    BoundaryType boundaryType;
-
-} HostLattice;
+    BoundaryType boundaryType{};
+};
 
 // -------------------------------------------------------------------------------------------------
 // Device Structures
 
-typedef struct
+struct DeviceHopping
 {
-    int32_t* latticeHop;
-    uint32_t orbitalHop[2];
+    thrust::device_vector<int32_t> latticeHop{};
+    thrust::device_vector<uint32_t> orbitalHop{2};
     double hoppingStrength;
+};
 
-} DeviceHopping;
-
-typedef struct
+struct DeviceLattice
 {
     uint32_t dimension{};
     uint32_t numberOfOrbitals{};
     uint64_t numberOfSites{1};
     uint64_t hamiltonianSize{1};
-    uint32_t* latticeSize{};
-    DeviceHopping* hoppings;
+    thrust::device_vector<uint32_t> latticeSize{};
+    thrust::device_vector<HostHopping> hoppings{};
 
     double minEnergy{};
     double maxEnergy{};
@@ -70,5 +69,4 @@ typedef struct
     double energyShift{};
 
     BoundaryType boundaryType;
-
-} DeviceLattice;
+};

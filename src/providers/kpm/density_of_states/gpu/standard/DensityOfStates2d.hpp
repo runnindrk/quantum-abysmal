@@ -62,8 +62,7 @@ __global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsig
 //     a += 1;
 // }
 
-template <unsigned int blockSize>
-__device__ void WarpReduce(volatile double* sdata, unsigned int tid)
+template <uint32_t blockSize> __device__ void WarpReduce(volatile double* sdata, unsigned int tid)
 {
     if (blockSize >= 64)
         sdata[tid] += sdata[tid + 32];
@@ -79,18 +78,21 @@ __device__ void WarpReduce(volatile double* sdata, unsigned int tid)
         sdata[tid] += sdata[tid + 1];
 }
 
-template <unsigned int blockSize>
-__global__ void Reduce(double* a, double* b, DeviceLattice lattice, double* firstReduction,
-                       double* secondReduction)
+template <uint32_t blockSize>
+__global__ void Reduce(double* a, double* b, DeviceLattice& lattice,
+                       double* firstReduction, double* secondReduction)
 {
+    __shared__ DeviceLattice sLattice;
     __shared__ double sFirstReduceData[blockSize];
     __shared__ double sSecondReduceData[blockSize];
+
+    sLattice = lattice;
     sFirstReduceData[threadIdx.x] = 0;
     sSecondReduceData[threadIdx.x] = 0;
 
     unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-    while (tid < lattice.numberOfSites)
+    while (tid < sLattice.numberOfSites)
     {
         sFirstReduceData[threadIdx.x] += a[tid];
         tid += blockDim.x * gridDim.x;

@@ -36,7 +36,7 @@ int main()
     latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
     latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
-    latticeCtx->SetLatticeSize({4096, 4096});
+    latticeCtx->SetLatticeSize({8192, 8192});
     latticeCtx->SetEnergyRange(-3, 3);
     latticeCtx->SetBoundaryType(PERIODIC);
 
@@ -44,7 +44,7 @@ int main()
     // Density of States.
 
     auto kpmCtx = abysmalCtx->GetKpmMethods();
-    auto dosCtx = kpmCtx->GetDensityOfStates(GPU_STANDARD_IMPL);
+    auto dosCtx = kpmCtx->GetDensityOfStates(CPU_STANDARD_IMPL);
 
     dosCtx->SetNumberOfRandomVectors(1);
     dosCtx->SetNumberOfMoments(1024);

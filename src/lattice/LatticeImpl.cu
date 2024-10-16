@@ -74,29 +74,38 @@ Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 
         return RUNTIME_ERROR;
     }
 
-    HostHopping hopping;
-    hopping.hoppingStrength = hoppingStrength;
-    hopping.latticeHop = latticeHop;
-    hopping.orbitalHop = std::array<uint32_t, 2>{firstOrbital->second, secondOrbital->second};
+    // ------------------------------------------------------------------------
 
+    HostHopping hopping;
+
+    hopping.hoppingStrength = hoppingStrength;    
+    hopping.orbitalHop[0] = firstOrbital->second;
+    hopping.orbitalHop[1] = secondOrbital->second;
+
+    for (int i = 0; i < latticeHop.size(); i++)
+    {
+        hopping.latticeHop[i] = latticeHop[i];
+    }
+    
     // ------------------------------------------------------------------------
     // Conjugate the hopping.
 
-    std::vector<int32_t> positionConjugate;
-    for (const auto& value : latticeHop)
+    HostHopping conjugate;
+
+    conjugate.hoppingStrength = hoppingStrength;    
+    conjugate.orbitalHop[0] = secondOrbital->second;
+    conjugate.orbitalHop[1] = firstOrbital->second;
+
+    for (int i = 0; i < latticeHop.size(); i++)
     {
-        positionConjugate.push_back(-value);
+        conjugate.latticeHop[i] = - latticeHop[i];
     }
 
-    HostHopping conjugate;
-    conjugate.hoppingStrength = hoppingStrength;
-    conjugate.latticeHop = positionConjugate;
-    conjugate.orbitalHop = std::array<uint32_t, 2>{secondOrbital->second, firstOrbital->second};
-
     // ------------------------------------------------------------------------
-
-    mLattice.hoppings.push_back(hopping);
-    mLattice.hoppings.push_back(conjugate);
+    
+    mLattice.hoppings[mLattice.numberOfHoppings] = hopping;
+    mLattice.hoppings[mLattice.numberOfHoppings + 1] = conjugate;
+    mLattice.numberOfHoppings += 2;
 
     mIsAddHoppingCalled = true;
 
@@ -117,7 +126,10 @@ Error LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
         return DIMENSION_ERROR;
     }
 
-    mLattice.latticeSize = lateralSizes;
+    for (int i = 0; i < lateralSizes.size(); i++)
+    {   
+        mLattice.latticeSize[i] = lateralSizes[i];
+    }
 
     for (const auto& size : lateralSizes)
     {

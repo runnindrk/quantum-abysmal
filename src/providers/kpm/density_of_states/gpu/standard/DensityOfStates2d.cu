@@ -33,9 +33,13 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 {
     LOG_INFO << "Computing from GPU KPM 2D";
 
+    HostLattice lattice = LatticeImpl::GetInstance().GetLattice();
+
     const unsigned int numBlocks = 256;
     const unsigned int numThreads = 256;
     unsigned int numRandomNumbers = 1 << 22;
+
+    DeviceLattice* devLattice;
 
     double* devFinalReduction;
     cudaMalloc((void**)&devFinalReduction, sizeof(double));

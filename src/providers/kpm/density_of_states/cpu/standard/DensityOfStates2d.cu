@@ -17,8 +17,8 @@
 #include "util/Util.hpp"
 
 #include <chrono>
-#include <random>
 #include <omp.h>
+#include <random>
 
 Error DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
@@ -41,7 +41,8 @@ std::vector<double> DensityOfStates2dCpuStandard::Compute()
     LOG_INFO << "Number of lattice points : " << lattice.latticeSize[0] << "x"
              << lattice.latticeSize[1] << " = " << lattice.numberOfSites;
     LOG_INFO << "Number of Orbitals : " << lattice.numberOfOrbitals;
-    LOG_INFO << "Number of Moments : " << mNumOfMoments;
+    LOG_INFO << "Number of Hoppings : " << (uint32_t)lattice.numberOfHoppings;
+    LOG_INFO << "Number of Moments  : " << mNumOfMoments;
 
     // ------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ std::vector<double> DensityOfStates2dCpuStandard::Compute()
 }
 
 // ----------------------------------------------------------------------------
-// Private 
+// Private
 
 void DensityOfStates2dCpuStandard::InitializeKpmVectors()
 {
@@ -130,9 +131,9 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
             // clang-format off
             #pragma unroll 4
             // clang-format on
-            for (int j = 0; j < lattice.hoppings.size(); j++)
+            for (int j = 0; j < lattice.numberOfHoppings; j++)
             {
-                currentHop = hoppings[j];
+                currentHop = lattice.hoppings[j];
                 int64_t newX = x + currentHop.latticeHop[0];
                 int64_t newY = y + currentHop.latticeHop[1];
 
@@ -163,7 +164,7 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
 
     int numThreads = maxOutNumThreads(omp_get_num_procs());
     int numBlockPerDim = static_cast<int>(sqrt(numThreads));
-    
+
     omp_set_num_threads(numThreads);
 
     // clang-format off
@@ -175,15 +176,15 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
         int xBlock = threadId / numBlockPerDim;
         int yBlock = threadId % numBlockPerDim;
 
-        uint64_t xInitIdx = xBlock*(xSize / numBlockPerDim) + 1;
+        uint64_t xInitIdx = xBlock * (xSize / numBlockPerDim) + 1;
         uint64_t xEndIdx = xInitIdx + (xSize / numBlockPerDim);
-        uint64_t yInitIdx = yBlock*(ySize / numBlockPerDim) + 1;
+        uint64_t yInitIdx = yBlock * (ySize / numBlockPerDim) + 1;
         uint64_t yEndIdx = yInitIdx + (ySize / numBlockPerDim);
-         
+
         // printf("Thread %d\n", thread_id, " xBlock ", xBlock, " yBlock", yBlock);
 
-        std::vector<double> accumulation(numOrbitals, 0);
         HostHopping currentHop;
+        double temp[2] = {};
 
         for (uint64_t y = yInitIdx; y < yEndIdx; y++)
         {
@@ -192,15 +193,16 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
                 // clang-format off
                 #pragma unroll 4
                 // clang-format on
-                for (int j = 0; j < lattice.hoppings.size(); j++)
+                for (int j = 0; j < lattice.numberOfHoppings; j++)
                 {
-                    currentHop = hoppings[j];
+                    currentHop = lattice.hoppings[j];
+                    
                     int64_t newX = x + currentHop.latticeHop[0];
                     int64_t newY = y + currentHop.latticeHop[1];
-                    uint64_t aIndex =
-                        numOrbitals * (newX + newY * xGhostedSize) + currentHop.orbitalHop[1];
+                    int64_t newPos = newX + newY * xGhostedSize;
+                    int64_t newIndex = numOrbitals * newPos + currentHop.orbitalHop[1];
 
-                    accumulation[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[aIndex];
+                    temp[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[newIndex];
                 }
 
                 // clang-format off
@@ -222,20 +224,20 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
                 // }
 
                 uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize);
-                a[trueIndex] = 2 * accumulation[0] - a[trueIndex];
+                a[trueIndex] = 2 * temp[0] - a[trueIndex];
 
                 firstMoment += b[trueIndex] * b[trueIndex];
                 secondMoment += a[trueIndex] * b[trueIndex];
 
-                accumulation[0] = 0;
+                temp[0] = 0;
 
                 trueIndex = numOrbitals * (x + y * xGhostedSize) + 1;
-                a[trueIndex] = 2 * accumulation[1] - a[trueIndex];
+                a[trueIndex] = 2 * temp[1] - a[trueIndex];
 
                 firstMoment += b[trueIndex] * b[trueIndex];
                 secondMoment += a[trueIndex] * b[trueIndex];
 
-                accumulation[1] = 0;
+                temp[1] = 0;
             }
         }
     }
