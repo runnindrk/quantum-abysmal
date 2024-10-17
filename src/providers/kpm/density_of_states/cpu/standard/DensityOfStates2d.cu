@@ -206,38 +206,19 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
                 }
 
                 // clang-format off
-                // #pragma omp simd
+                #pragma unroll 2
                 // clang-format on
-                // for (int j = 0; j < numOrbitals; j++)
-                // {
-                //     uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
+                for (int j = 0; j < numOrbitals; j++)
+                {
+                    uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize) + j;
 
-                //     // KPM Update Step
-                //     a[trueIndex] = 2 * accumulation[j] - a[trueIndex];
+                    a[trueIndex] = 2 * temp[j] - a[trueIndex];
 
-                //     // Compute partial moment accumulation
-                //     firstMoment += b[trueIndex] * b[trueIndex];
-                //     secondMoment += a[trueIndex] * b[trueIndex];
+                    firstMoment += b[trueIndex] * b[trueIndex];
+                    secondMoment += a[trueIndex] * b[trueIndex];
 
-                //     // Restart orbital sparse matric accumulation
-                //     accumulation[j] = 0;
-                // }
-
-                uint64_t trueIndex = numOrbitals * (x + y * xGhostedSize);
-                a[trueIndex] = 2 * temp[0] - a[trueIndex];
-
-                firstMoment += b[trueIndex] * b[trueIndex];
-                secondMoment += a[trueIndex] * b[trueIndex];
-
-                temp[0] = 0;
-
-                trueIndex = numOrbitals * (x + y * xGhostedSize) + 1;
-                a[trueIndex] = 2 * temp[1] - a[trueIndex];
-
-                firstMoment += b[trueIndex] * b[trueIndex];
-                secondMoment += a[trueIndex] * b[trueIndex];
-
-                temp[1] = 0;
+                    temp[j] = 0;
+                }
             }
         }
     }
