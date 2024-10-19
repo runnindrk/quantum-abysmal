@@ -116,7 +116,7 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
         }
     }
 
-    HostHopping currentHop;
+    Hopping currentHop;
     double firstMoment{0};
     double secondMoment{0};
     UpdateGhosts(a);
@@ -183,7 +183,7 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
 
         // printf("Thread %d\n", thread_id, " xBlock ", xBlock, " yBlock", yBlock);
 
-        HostHopping currentHop;
+        Hopping currentHop;
         double temp[2] = {};
 
         for (uint64_t y = yInitIdx; y < yEndIdx; y++)

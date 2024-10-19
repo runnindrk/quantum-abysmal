@@ -38,7 +38,7 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Internal methods.
 
-    HostLattice GetLattice();
+    LatticeStructure GetLattice();
     Error PrintLatticeInformation();
 
   private:
@@ -52,7 +52,7 @@ class LatticeImpl : public Lattice
     bool mIsAnyOtherFunctionCalled{false};
     std::unordered_set<char> mOrbitalsSet;
     
-    static HostLattice mLattice;
+    static LatticeStructure mLattice;
 };
 
 #endif

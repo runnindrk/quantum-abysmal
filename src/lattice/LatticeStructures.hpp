@@ -15,17 +15,14 @@
 
 #include "include/public/QuantumAbysmalTypes.hpp"
 
-// -------------------------------------------------------------------------------------------------
-// Host Structures
-
-struct HostHopping
+struct Hopping
 {
     int8_t latticeHop[3];
     uint8_t orbitalHop[2];
     double hoppingStrength{};
 };
 
-struct HostLattice
+struct LatticeStructure
 {
     uint32_t dimension{};
     uint32_t numberOfOrbitals{};
@@ -33,7 +30,7 @@ struct HostLattice
     uint64_t numberOfSites{1};
     uint64_t hamiltonianSize{1};
     
-    HostHopping hoppings[128] = {};
+    Hopping hoppings[128] = {};
     uint8_t numberOfHoppings{};
 
     double minEnergy{};
@@ -42,31 +39,4 @@ struct HostLattice
     double energyShift{};
 
     BoundaryType boundaryType{};
-};
-
-// -------------------------------------------------------------------------------------------------
-// Device Structures
-
-struct DeviceHopping
-{
-    thrust::device_vector<int32_t> latticeHop{};
-    thrust::device_vector<uint32_t> orbitalHop{2};
-    double hoppingStrength;
-};
-
-struct DeviceLattice
-{
-    uint32_t dimension{};
-    uint32_t numberOfOrbitals{};
-    uint64_t numberOfSites{1};
-    uint64_t hamiltonianSize{1};
-    thrust::device_vector<uint32_t> latticeSize{};
-    thrust::device_vector<HostHopping> hoppings{};
-
-    double minEnergy{};
-    double maxEnergy{};
-    double energyScaling{};
-    double energyShift{};
-
-    BoundaryType boundaryType;
 };
