@@ -37,4 +37,11 @@ typedef enum
 
 } BoundaryType;
 
+typedef enum
+{
+    UNIFORM,
+    GAUSSIAN
+
+} Distribution;
+
 #endif

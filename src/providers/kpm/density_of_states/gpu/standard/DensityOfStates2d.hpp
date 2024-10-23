@@ -110,7 +110,7 @@ __forceinline__ __device__ void KpmSparseMatrixOperation(uint64_t tid, double* a
     int ySize = lattice.latticeSize[1];
     int y = tid / xSize;
     int x = tid % xSize;
-    double temp[2] = {};
+    double temp[4] = {};
 
     // clang-format off
     #pragma unroll 4

@@ -29,14 +29,34 @@ int main()
 
     // ------------------------------------------------------------------------
     // Lattice construction.
-    
+
     auto latticeCtx = abysmalCtx->GetLatticeMethods();
 
-    latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
-    latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
-    latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
+    // Graphene Model
+    // latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
+    // latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
+    // latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
-    latticeCtx->SetLatticeSize({8192, 8192});
+    // BBH Model
+    double delta = 0;
+    double gamma = -0.5;
+
+    latticeCtx->AddHopping({0, 0}, {'A', 'A'}, delta);
+    latticeCtx->AddHopping({0, 0}, {'B', 'B'}, delta);
+    latticeCtx->AddHopping({0, 0}, {'C', 'D'}, -delta);
+    latticeCtx->AddHopping({0, 0}, {'D', 'D'}, -delta);
+
+    latticeCtx->AddHopping({1, 0}, {'C', 'A'}, 1);
+    latticeCtx->AddHopping({1, 0}, {'B', 'D'}, 1);
+    latticeCtx->AddHopping({0, 1}, {'D', 'A'}, 1);
+    latticeCtx->AddHopping({0, 1}, {'B', 'C'}, -1);
+
+    latticeCtx->AddHopping({0, 0}, {'C', 'A'}, gamma);
+    latticeCtx->AddHopping({0, 0}, {'B', 'D'}, gamma);
+    latticeCtx->AddHopping({0, 0}, {'D', 'A'}, gamma);
+    latticeCtx->AddHopping({0, 0}, {'B', 'C'}, -gamma);
+
+    latticeCtx->SetLatticeSize({1024, 1024});
     latticeCtx->SetEnergyRange(-3, 3);
     latticeCtx->SetBoundaryType(PERIODIC);
 
@@ -44,7 +64,7 @@ int main()
     // Density of States.
 
     auto kpmCtx = abysmalCtx->GetKpmMethods();
-    auto dosCtx = kpmCtx->GetDensityOfStates(GPU_STANDARD_IMPL);
+    auto dosCtx = kpmCtx->GetDensityOfStates(CPU_STANDARD_IMPL);
 
     dosCtx->SetNumberOfRandomVectors(1);
     dosCtx->SetNumberOfMoments(1024);
@@ -56,7 +76,7 @@ int main()
     auto plottingCtx = abysmalCtx->GetPlotMethods();
 
     plottingCtx->PlotDensityOfStates(moments);
-    
+
     // ------------------------------------------------------------------------
 
     return 0;
