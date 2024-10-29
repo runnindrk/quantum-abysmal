@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -16,10 +16,10 @@
 #include "../src/entrypoint/QuantumAbysmalContextImpl.hpp"
 #include "../src/lattice/LatticeImpl.hpp"
 #include "../src/providers/KernelPolynomialMethodFactory.hpp"
+#include "../src/providers/LinearAlgebraFactory.hpp"
+#include "../src/providers/RngFactory.hpp"
 #include "../src/plotting/PlotFactory.hpp"
-// #include "include/public/Storage.hpp"
-
-#include <memory>
+// #include "../src/storage/StorageImpl.hpp"
 
 Lattice::Uptr QuantumAbysmalContextImpl::GetLatticeMethods()
 {
@@ -29,6 +29,16 @@ Lattice::Uptr QuantumAbysmalContextImpl::GetLatticeMethods()
 KernelPolynomialMethod::Uptr QuantumAbysmalContextImpl::GetKpmMethods()
 {
     return std::make_unique<KernelPolynomialMethodFactory>();
+}
+
+LinearAlgebra::Uptr QuantumAbysmalContextImpl::GetLinearAlgebraMethods()
+{
+    return std::make_unique<LinearAlgebraFactory>();
+}
+
+RandomNumberGenerator::Uptr QuantumAbysmalContextImpl::GetRngMethods()
+{
+    return std::make_unique<RngFactory>();
 }
 
 Plotting::Uptr QuantumAbysmalContextImpl::GetPlotMethods()

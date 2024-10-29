@@ -12,20 +12,3 @@
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
-
-#ifndef QUANTUM_ABYSMAL_PUBLIC_ENTRYPOINT_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_ENTRYPOINT_HPP
-
-#include "QuantumAbysmalContext.hpp"
-
-// Could have a parameter for CPU/GPU ...
-
-/// @brief Entrypoint for the initialization of a Quantum Abysmal Context.
-/// @param 
-/// @return A unique pointer to the created context.
-QuantumAbysmalContext::Uptr GetQuantumAbysmalContext();
-
-#endif
-
-
-

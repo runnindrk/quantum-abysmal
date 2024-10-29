@@ -12,15 +12,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -funroll-loops -fopenmp -march=nativ
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -funroll-loops -fopenmp -march=native")
 
 add_library(Quantum-Abysmal STATIC
+    
     include/internal/Logger.cu
     include/internal/ErrorHandler.cu
+    
     src/entrypoint/Entrypoint.cu 
     src/entrypoint/QuantumAbysmalContextImpl.cu
+    
     src/lattice/util/Conversions.cu
     src/lattice/LatticeImpl.cu
-    src/providers/LinearAlgebraFactory.cu
+    
     src/providers/KernelPolynomialMethodFactory.cu
+    src/providers/LinearAlgebraFactory.cu
+    src/providers/RngFactory.cu
     src/plotting/PlotFactory.cu
+    
     src/plotting/PlotDensityOfStatesImpl.cu
     
     src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu

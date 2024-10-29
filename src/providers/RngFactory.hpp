@@ -13,19 +13,14 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_ENTRYPOINT_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_ENTRYPOINT_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_RNG_FACTORY_HPP
+#define QUANTUM_ABYSMAL_SRC_RNG_FACTORY_HPP
 
-#include "QuantumAbysmalContext.hpp"
+#include "include/public/RandomNumberGenerator.hpp"
 
-// Could have a parameter for CPU/GPU ...
-
-/// @brief Entrypoint for the initialization of a Quantum Abysmal Context.
-/// @param 
-/// @return A unique pointer to the created context.
-QuantumAbysmalContext::Uptr GetQuantumAbysmalContext();
+class RngFactory : public RandomNumberGenerator
+{
+  public:
+};
 
 #endif
-
-
-

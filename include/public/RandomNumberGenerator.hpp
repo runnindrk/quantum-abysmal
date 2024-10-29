@@ -22,18 +22,17 @@
 class RandomNumberGenerator
 {
   public:
-    using Uptr = std::unique_ptr<Lattice>;
+    using Uptr = std::unique_ptr<RandomNumberGenerator>;
 
-    /// @brief Add a hopping to the lattice.
-    /// @param distribution Distribution to draw the random number.
+    /// @brief Get a random number.
+    /// @param implementation Implementation to draw the random number.
     /// @return A random number.
-    virtual double GetRandomNumber(Distribution distribution) = 0;
+    // virtual void GetRandomNumber(ProviderImplementation implementation) = 0;
 
-    /// @brief Add a hopping to the lattice.
-    /// @param distribution Distribution to draw the random number.
-    /// @param size Number of random numbers.
+    /// @brief Get a random vector.
+    /// @param implementation Implementation to draw the random number.
     /// @return A random number.
-    virtual std::vector<double> GetRandomVector(Distribution distribution, uint64_t size) = 0;
+    // virtual void GetRandomVector(ProviderImplementation implementation) = 0;
 
     virtual ~RandomNumberGenerator() = default;
 };

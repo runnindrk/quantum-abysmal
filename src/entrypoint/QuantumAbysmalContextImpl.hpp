@@ -18,8 +18,6 @@
 
 #include "../include/public/QuantumAbysmalContext.hpp"
 
-#include <memory>
-
 class QuantumAbysmalContextImpl : public QuantumAbysmalContext
 {
 public:
@@ -33,6 +31,14 @@ public:
     /// @return A unique pointer to KernalPolynomialMethod.
     KernelPolynomialMethod::Uptr GetKpmMethods() override;
     
+    /// @brief Get Linear Algebra methods.
+    /// @return A unique pointer to LinearAlgebra.
+    LinearAlgebra::Uptr GetLinearAlgebraMethods() override;
+
+    /// @brief Get Random Number Generator methods.
+    /// @return A unique pointer to RandomNumberGenerator.
+    RandomNumberGenerator::Uptr GetRngMethods() override;
+
     /// @brief Get Plots methods.
     /// @return A unique pointer to Plotting.
     Plotting::Uptr GetPlotMethods() override;

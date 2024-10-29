@@ -18,10 +18,10 @@
 
 #include "Lattice.hpp"
 #include "KernelPolynomialMethod.hpp"
+#include "LinearAlgebra.hpp"
+#include "RandomNumberGenerator.hpp"
 #include "Plotting.hpp"
 #include "Storage.hpp"
-
-#include <memory>
 
 class QuantumAbysmalContext
 {
@@ -35,6 +35,14 @@ public:
     /// @brief Get Kernel Polynomial Method methods.
     /// @return A unique pointer to KernalPolynomialMethod.
     virtual KernelPolynomialMethod::Uptr GetKpmMethods() = 0;
+
+    /// @brief Get Linear Algebra methods.
+    /// @return A unique pointer to LinearAlgebra.
+    virtual LinearAlgebra::Uptr GetLinearAlgebraMethods() = 0;
+
+    /// @brief Get Random Number Generator methods.
+    /// @return A unique pointer to RandomNumberGenerator.
+    virtual RandomNumberGenerator::Uptr GetRngMethods() = 0;
 
     /// @brief Get Plots methods.
     /// @return A unique pointer to Plotting.

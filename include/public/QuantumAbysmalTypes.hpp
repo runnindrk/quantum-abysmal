@@ -17,6 +17,7 @@
 #define QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 
 #include <cstdint>
+#include <memory>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 
