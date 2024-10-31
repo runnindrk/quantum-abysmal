@@ -37,7 +37,7 @@ public:
 
     /// @brief Get Random Number Generator methods.
     /// @return A unique pointer to RandomNumberGenerator.
-    RandomNumberGenerator::Uptr GetRngMethods() override;
+    RngMethod::Uptr GetRngMethods() override;
 
     /// @brief Get Plots methods.
     /// @return A unique pointer to Plotting.

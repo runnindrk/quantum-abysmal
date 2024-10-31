@@ -18,7 +18,6 @@
 
 #include "include/public/KernelPolynomialMethod.hpp"
 
-#include "src/lattice/LatticeImpl.hpp"
 #include "kpm/density_of_states/cpu/standard/DensityOfStates1d.hpp"
 #include "kpm/density_of_states/cpu/standard/DensityOfStates2d.hpp"
 #include "kpm/density_of_states/cpu/standard/DensityOfStates3d.hpp"
@@ -26,16 +25,17 @@
 #include "kpm/density_of_states/gpu/standard/DensityOfStates2d.hpp"
 #include "kpm/density_of_states/gpu/standard/DensityOfStates3d.hpp"
 
+#include "src/lattice/LatticeImpl.hpp"
+
 class KernelPolynomialMethodFactory : public KernelPolynomialMethod
 {
   public:
-    DensityOfStates::Uptr GetDensityOfStates(ProviderImplementation implementation) override;
+    DensityOfStates::Uptr CreateDoSCtx(ProviderImplementation implementation) override;
 
-    LocalDensityOfStates::Uptr
-    GetLocalDensityOfStates(ProviderImplementation implementation) override;
+    LocalDensityOfStates::Uptr CreateLDoSCtx(ProviderImplementation implementation) override;
 
     StochasticLocalDensityOfStates::Uptr
-    GetStochasticLocalDensityOfStates(ProviderImplementation implementation) override;
+    CreateStochasticLDoSCtx(ProviderImplementation implementation) override;
 };
 
 #endif

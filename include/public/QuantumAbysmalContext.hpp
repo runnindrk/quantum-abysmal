@@ -19,7 +19,7 @@
 #include "Lattice.hpp"
 #include "KernelPolynomialMethod.hpp"
 #include "LinearAlgebra.hpp"
-#include "RandomNumberGenerator.hpp"
+#include "RngMethod.hpp"
 #include "Plotting.hpp"
 #include "Storage.hpp"
 
@@ -42,7 +42,7 @@ public:
 
     /// @brief Get Random Number Generator methods.
     /// @return A unique pointer to RandomNumberGenerator.
-    virtual RandomNumberGenerator::Uptr GetRngMethods() = 0;
+    virtual RngMethod::Uptr GetRngMethods() = 0;
 
     /// @brief Get Plots methods.
     /// @return A unique pointer to Plotting.

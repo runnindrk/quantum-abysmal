@@ -13,28 +13,19 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
+#ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_METHOD_HPP
+#define QUANTUM_ABYSMAL_PUBLIC_RNG_METHOD_HPP
 
-#include "ErrorHandler.hpp"
-#include "QuantumAbysmalTypes.hpp"
+#include "Rng.hpp"
 
-class RandomNumberGenerator
+class RngMethod
 {
   public:
-    using Uptr = std::unique_ptr<RandomNumberGenerator>;
+    using Uptr = std::unique_ptr<RngMethod>;
 
-    /// @brief Get a random number.
-    /// @param implementation Implementation to draw the random number.
-    /// @return A random number.
-    // virtual void GetRandomNumber(ProviderImplementation implementation) = 0;
-
-    /// @brief Get a random vector.
-    /// @param implementation Implementation to draw the random number.
-    /// @return A random number.
-    // virtual void GetRandomVector(ProviderImplementation implementation) = 0;
-
-    virtual ~RandomNumberGenerator() = default;
+    /// @brief Get Random Number Generator.
+    /// @return A unique pointer to Random Number Generator.
+    // virtual RandomNumberGenerator::Uptr CreateRngCtx(ProviderImplementation implementation) = 0;
 };
 
 #endif

@@ -16,9 +16,9 @@
 #ifndef QUANTUM_ABYSMAL_SRC_RNG_FACTORY_HPP
 #define QUANTUM_ABYSMAL_SRC_RNG_FACTORY_HPP
 
-#include "include/public/RandomNumberGenerator.hpp"
+#include "include/public/RngMethod.hpp"
 
-class RngFactory : public RandomNumberGenerator
+class RngFactory : public RngMethod
 {
   public:
 };

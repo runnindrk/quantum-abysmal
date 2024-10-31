@@ -16,7 +16,7 @@
 #include "KernelPolynomialMethodFactory.hpp"
 
 DensityOfStates::Uptr
-KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation implementation)
+KernelPolynomialMethodFactory::CreateDoSCtx(ProviderImplementation implementation)
 {
     switch (LatticeImpl::GetInstance().GetLattice().dimension)
     {
@@ -80,13 +80,13 @@ KernelPolynomialMethodFactory::GetDensityOfStates(ProviderImplementation impleme
 }
 
 LocalDensityOfStates::Uptr
-KernelPolynomialMethodFactory::GetLocalDensityOfStates(ProviderImplementation implementation)
+KernelPolynomialMethodFactory::CreateLDoSCtx(ProviderImplementation implementation)
 {
     return nullptr;
 }
 
 StochasticLocalDensityOfStates::Uptr
-KernelPolynomialMethodFactory::GetStochasticLocalDensityOfStates(
+KernelPolynomialMethodFactory::CreateStochasticLDoSCtx(
     ProviderImplementation implementation)
 {
     return nullptr;

@@ -18,10 +18,8 @@
 
 #include "DensityOfStates.hpp"
 #include "LocalDensityOfStates.hpp"
-#include "StochasticLocalDensityOfStates.hpp"
 #include "QuantumAbysmalTypes.hpp"
-
-#include <memory>
+#include "StochasticLocalDensityOfStates.hpp"
 
 class KernelPolynomialMethod
 {
@@ -30,18 +28,16 @@ class KernelPolynomialMethod
 
     /// @brief Get Density of States.
     /// @return A unique pointer to Density of States.
-    virtual DensityOfStates::Uptr
-    GetDensityOfStates(ProviderImplementation implementation) = 0;
+    virtual DensityOfStates::Uptr CreateDoSCtx(ProviderImplementation implementation) = 0;
 
     /// @brief Get Local Density of States.
     /// @return A unique pointer to Local Density of States.
-    virtual LocalDensityOfStates::Uptr
-    GetLocalDensityOfStates(ProviderImplementation implementation) = 0;
+    virtual LocalDensityOfStates::Uptr CreateLDoSCtx(ProviderImplementation implementation) = 0;
 
     /// @brief Get Local Density of States.
     /// @return A unique pointer to Local Density of States.
-    virtual StochasticLocalDensityOfStates::Uptr GetStochasticLocalDensityOfStates(
-        ProviderImplementation implementation) = 0;
+    virtual StochasticLocalDensityOfStates::Uptr
+    CreateStochasticLDoSCtx(ProviderImplementation implementation) = 0;
 };
 
 #endif

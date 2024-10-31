@@ -36,7 +36,7 @@ LinearAlgebra::Uptr QuantumAbysmalContextImpl::GetLinearAlgebraMethods()
     return std::make_unique<LinearAlgebraFactory>();
 }
 
-RandomNumberGenerator::Uptr QuantumAbysmalContextImpl::GetRngMethods()
+RngMethod::Uptr QuantumAbysmalContextImpl::GetRngMethods()
 {
     return std::make_unique<RngFactory>();
 }

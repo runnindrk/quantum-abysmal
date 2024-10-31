@@ -44,7 +44,7 @@ class DensityOfStates
 
     /// @brief Retrieve the computed DoS.
     /// @return A vector containing the DoS values.
-    // virtual std::vector<double> GetDensityOfStates(size_t numPoints) const = 0;
+    // virtual std::vector<double> CreateDoSCtx(size_t numPoints) const = 0;
 
     /// @brief Save the computed moments.
     // virtual Error SaveMoments() const = 0;
