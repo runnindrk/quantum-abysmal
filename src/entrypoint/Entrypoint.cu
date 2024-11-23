@@ -22,3 +22,5 @@ QuantumAbysmalContext::Uptr GetQuantumAbysmalContext()
 {
     return std::make_unique<QuantumAbysmalContextImpl>();
 }
+
+// Diogo was here.

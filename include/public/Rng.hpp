@@ -30,9 +30,9 @@ class RandomNumberGenerator
     // virtual void GetRandomNumber() = 0;
 
     /// @brief Get a random vector.
-    /// @param implementation Implementation to draw the random number.
+    /// @param implementation Implementation to draw a random vector.
     /// @return A random number.
-    // virtual void GetRandomVector() = 0;
+    virtual std::vector<double> GetRandomVector() = 0;
 
     virtual ~RandomNumberGenerator() = default;
 };
