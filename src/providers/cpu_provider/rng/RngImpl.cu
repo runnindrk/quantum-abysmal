@@ -13,28 +13,33 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
+#include "RngImpl.hpp"
 
-#include "ErrorHandler.hpp"
-#include "QuantumAbysmalTypes.hpp"
-
-class RandomNumberGenerator
+RngCpuStandard::RngCpuStandard()
 {
-  public:
-    using Uptr = std::unique_ptr<RandomNumberGenerator>;
+}
 
-    /// @brief Get a random number.
-    /// @param implementation Implementation to draw the random number.
-    /// @return A random number.
-    // virtual void GetRandomNumber() = 0;
+std::vector<double> RngCpuStandard::GetRandomVector(unsigned int size)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> dist(0.0, pow(2.0 / 3.0, 1.0 / 4.0));
 
-    /// @brief Get a random vector.
-    /// @param implementation Implementation to draw a random vector.
-    /// @return A random number.
-    virtual std::vector<double> GetRandomVector(unsigned int size) = 0;
+    std::vector<double> numbers(size);
 
-    virtual ~RandomNumberGenerator() = default;
-};
+    for (auto& num : numbers)
+    {
+        num = dist(gen);
+    }
 
-#endif
+    double sum_of_squares =
+        std::accumulate(numbers.begin(), numbers.end(), 0.0,
+                        [](double sum, double value) { return sum + value * value; });
+
+    for (auto& num : numbers)
+    {
+        num /= sqrt(sum_of_squares);
+    }
+
+    return numbers;
+}

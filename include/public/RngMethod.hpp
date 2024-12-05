@@ -25,7 +25,7 @@ class RngMethod
 
     /// @brief Get Random Number Generator.
     /// @return A unique pointer to Random Number Generator.
-    // virtual RandomNumberGenerator::Uptr CreateRngCtx(ProviderImplementation implementation) = 0;
+    virtual RandomNumberGenerator::Uptr CreateRngCtx(ProviderImplementation implementation) = 0;
 };
 
 #endif

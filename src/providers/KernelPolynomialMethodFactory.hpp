@@ -18,12 +18,13 @@
 
 #include "include/public/KernelPolynomialMethod.hpp"
 
-#include "kpm/density_of_states/cpu/standard/DensityOfStates1d.hpp"
-#include "kpm/density_of_states/cpu/standard/DensityOfStates2d.hpp"
-#include "kpm/density_of_states/cpu/standard/DensityOfStates3d.hpp"
-#include "kpm/density_of_states/gpu/standard/DensityOfStates1d.hpp"
-#include "kpm/density_of_states/gpu/standard/DensityOfStates2d.hpp"
-#include "kpm/density_of_states/gpu/standard/DensityOfStates3d.hpp"
+#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates1d.hpp"
+#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
+#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
+
+#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates1d.hpp"
+#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
+#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
 
 #include "src/lattice/LatticeImpl.hpp"
 

@@ -13,28 +13,30 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
+#include "../include/public/Entrypoint.hpp"
 
-#include "ErrorHandler.hpp"
-#include "QuantumAbysmalTypes.hpp"
+#include <iostream>
+#include <vector>
 
-class RandomNumberGenerator
+int main()
 {
-  public:
-    using Uptr = std::unique_ptr<RandomNumberGenerator>;
+    std::cout << "Quantum Abysmal PoC-Rng.\n\n";
 
-    /// @brief Get a random number.
-    /// @param implementation Implementation to draw the random number.
-    /// @return A random number.
-    // virtual void GetRandomNumber() = 0;
+    // ------------------------------------------------------------------------
+    // Context.
 
-    /// @brief Get a random vector.
-    /// @param implementation Implementation to draw a random vector.
-    /// @return A random number.
-    virtual std::vector<double> GetRandomVector(unsigned int size) = 0;
+    auto abysmalCtx = GetQuantumAbysmalContext();
 
-    virtual ~RandomNumberGenerator() = default;
-};
+    // ------------------------------------------------------------------------
+    // Random Number Generation.
 
-#endif
+    auto rngCtx = abysmalCtx->GetRngMethods()->CreateRngCtx(CPU_STANDARD_IMPL);
+    auto res = rngCtx->GetRandomVector(16384);
+
+    for (int i = 0; i < res.size(); i++)
+    {
+        std::cout << res[i] << std::endl;
+    }
+
+    return 0;
+}

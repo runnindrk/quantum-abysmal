@@ -13,28 +13,11 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
+#include "RngImpl.hpp"
 
-#include "ErrorHandler.hpp"
-#include "QuantumAbysmalTypes.hpp"
-
-class RandomNumberGenerator
+std::vector<double> RngGpuStandard::GetRandomVector(unsigned int size)
 {
-  public:
-    using Uptr = std::unique_ptr<RandomNumberGenerator>;
+    LOG_INFO << "Hello from GPU/RNG!";
+    return {};
+}
 
-    /// @brief Get a random number.
-    /// @param implementation Implementation to draw the random number.
-    /// @return A random number.
-    // virtual void GetRandomNumber() = 0;
-
-    /// @brief Get a random vector.
-    /// @param implementation Implementation to draw a random vector.
-    /// @return A random number.
-    virtual std::vector<double> GetRandomVector(unsigned int size) = 0;
-
-    virtual ~RandomNumberGenerator() = default;
-};
-
-#endif

@@ -29,14 +29,15 @@ add_library(Quantum-Abysmal STATIC
     
     src/plotting/PlotDensityOfStatesImpl.cu
     
-    src/providers/kpm/density_of_states/cpu/standard/DensityOfStates1d.cu
-    src/providers/kpm/density_of_states/cpu/standard/DensityOfStates2d.cu
-    src/providers/kpm/density_of_states/cpu/standard/DensityOfStates3d.cu
-    src/providers/kpm/density_of_states/cpu/standard/util/Util.cu
+    src/providers/cpu_provider/kpm/density_of_states/standard/DensityOfStates1d.cu
+    src/providers/cpu_provider/kpm/density_of_states/standard/DensityOfStates2d.cu
+    src/providers/cpu_provider/kpm/density_of_states/standard/DensityOfStates3d.cu
+    src/providers/cpu_provider/kpm/density_of_states/standard/util/Util.cu
 
-    src/providers/kpm/density_of_states/gpu/standard/DensityOfStates2d.cu
+    src/providers/cuda_provider/kpm/density_of_states/standard/DensityOfStates2d.cu
 
-    src/providers/rng_engine/cpu/RngImpl.cu
+    src/providers/cpu_provider/rng/RngImpl.cu
+    src/providers/cuda_provider/rng/RngImpl.cu
 )
 
 target_include_directories(Quantum-Abysmal PUBLIC ${CMAKE_SOURCE_DIR}/include)

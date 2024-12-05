@@ -13,28 +13,22 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
-#define QUANTUM_ABYSMAL_PUBLIC_RNG_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
+#define QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
 
-#include "ErrorHandler.hpp"
-#include "QuantumAbysmalTypes.hpp"
+#include "include/internal/Logger.hpp"
+#include "include/public/Rng.hpp"
 
-class RandomNumberGenerator
+#include <random>
+
+class RngCpuStandard : public RandomNumberGenerator
 {
   public:
-    using Uptr = std::unique_ptr<RandomNumberGenerator>;
+    
+    RngCpuStandard();
+    ~RngCpuStandard() = default;
 
-    /// @brief Get a random number.
-    /// @param implementation Implementation to draw the random number.
-    /// @return A random number.
-    // virtual void GetRandomNumber() = 0;
-
-    /// @brief Get a random vector.
-    /// @param implementation Implementation to draw a random vector.
-    /// @return A random number.
-    virtual std::vector<double> GetRandomVector(unsigned int size) = 0;
-
-    virtual ~RandomNumberGenerator() = default;
+    std::vector<double> GetRandomVector(unsigned int size) override;
 };
 
 #endif

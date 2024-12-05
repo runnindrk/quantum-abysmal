@@ -18,9 +18,13 @@
 
 #include "include/public/RngMethod.hpp"
 
+#include "cpu_provider/rng/RngImpl.hpp"
+#include "cuda_provider/rng/RngImpl.hpp"
+
 class RngFactory : public RngMethod
 {
   public:
+    RandomNumberGenerator::Uptr CreateRngCtx(ProviderImplementation implementation) override;
 };
 
 #endif
