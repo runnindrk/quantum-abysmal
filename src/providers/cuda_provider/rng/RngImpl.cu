@@ -15,9 +15,15 @@
 
 #include "RngImpl.hpp"
 
+// -------------------------------------------------------------------------------------------------
+// Interface.
+
 std::vector<double> RngGpuStandard::GetRandomVector(unsigned int size)
 {
-    LOG_INFO << "Hello from GPU/RNG!";
-    return {};
+    return RngGpuEngine::GetInstance().GetRandomVector(size);
 }
 
+void RngGpuStandard::SetSeed(unsigned int seed)
+{
+    RngGpuEngine::GetInstance().SetSeed(seed);
+}

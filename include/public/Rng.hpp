@@ -30,9 +30,13 @@ class RandomNumberGenerator
     // virtual void GetRandomNumber() = 0;
 
     /// @brief Get a random vector.
-    /// @param implementation Implementation to draw a random vector.
+    /// @param size Size of the random vector.
     /// @return A random number.
     virtual std::vector<double> GetRandomVector(unsigned int size) = 0;
+
+    /// @brief Set the seed for RNG.
+    /// @param seed Seed.
+    virtual void SetSeed(unsigned int seed) = 0;
 
     virtual ~RandomNumberGenerator() = default;
 };

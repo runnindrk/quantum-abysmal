@@ -73,16 +73,16 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     cudaMalloc((void**)&devB, mLattice.hamiltonianSize * sizeof(double));
     cudaMemset(devB, 0, mLattice.hamiltonianSize * sizeof(double));
 
-    curandStateXORWOW* devStates;
-    cudaMalloc((void**)&devStates, numThreads * numBlocks * sizeof(curandStateXORWOW));
+    // curandStateXORWOW* devStates;
+    // cudaMalloc((void**)&devStates, numThreads * numBlocks * sizeof(curandStateXORWOW));
 
     // ---------------------------------------------------------------------------------------------
     // Kernel execution logic.
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    InitCurandXorwow<<<numBlocks, numThreads>>>(devStates);
-    InitRandomVector<<<numBlocks, numThreads>>>(devStates, devA, mLattice.hamiltonianSize);
+    // InitCurandXorwow<<<numBlocks, numThreads>>>(devStates);
+    // InitRandomVector<<<numBlocks, numThreads>>>(devStates, devA, mLattice.hamiltonianSize);
 
     // Initialize
     Reduce<numThreads, true>
@@ -119,24 +119,3 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 
 // -------------------------------------------------------------------------------------------------
 // Private
-
-__global__ void InitCurandXorwow(curandStateXORWOW* state)
-{
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    curand_init(clock64(), tid, 0, &state[tid]);
-}
-
-__global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsigned int bufferSize)
-{
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    curandStateXORWOW localState = state[tid];
-    int localTid = tid;
-
-    while (tid < bufferSize)
-    {
-        buffer[tid] = curand_normal_double(&localState) / sqrt(double(bufferSize));
-
-        state[localTid] = localState;
-        tid += blockDim.x * gridDim.x;
-    }
-}

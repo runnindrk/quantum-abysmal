@@ -32,14 +32,10 @@ std::vector<double> RngCpuStandard::GetRandomVector(unsigned int size)
         num = dist(gen);
     }
 
-    double sum_of_squares =
-        std::accumulate(numbers.begin(), numbers.end(), 0.0,
-                        [](double sum, double value) { return sum + value * value; });
-
-    for (auto& num : numbers)
-    {
-        num /= sqrt(sum_of_squares);
-    }
-
     return numbers;
+}
+
+void RngCpuStandard::SetSeed(unsigned int seed)
+{
+    
 }

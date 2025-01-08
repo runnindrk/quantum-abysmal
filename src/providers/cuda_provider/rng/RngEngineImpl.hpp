@@ -13,23 +13,39 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#ifndef QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
-#define QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_RNG_GPU_ENGINE_HPP
+#define QUANTUM_ABYSMAL_SRC_RNG_GPU_ENGINE_HPP
 
 #include "include/internal/Logger.hpp"
 #include "include/public/Rng.hpp"
 
-#include <random>
+#include <curand_kernel.h>
 
-class RngCpuStandard : public RandomNumberGenerator
+// This will be to a global header file.
+#define NUM_THREADS 256
+#define NUM_BLOCKS 256 
+
+class RngGpuEngine
 {
   public:
-    
-    RngCpuStandard();
-    ~RngCpuStandard() = default;
 
-    std::vector<double> GetRandomVector(unsigned int size) override;
-    void SetSeed(unsigned int seed) override;
+    static RngGpuEngine& GetInstance();
+
+    RngGpuEngine();
+    ~RngGpuEngine();
+
+    std::vector<double> GetRandomVector(unsigned int size);
+    void SetSeed(unsigned int seed);
+
+    void GetRandomVector(double* gpuBuffer, unsigned int bufferSize);
+
+  private:
+
+    curandStateXORWOW* mDevStates;
+    unsigned int mSeed;
 };
+
+__global__ void InitCurandXorwow(curandStateXORWOW* state);
+__global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsigned int bufferSize);
 
 #endif

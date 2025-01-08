@@ -6,3 +6,4 @@ __build/
 __bin/
 __lib/
 __docs/
+._*

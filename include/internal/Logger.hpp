@@ -36,9 +36,7 @@ class Logger
     LogLevel currentLevel;
 
   public:
-    Logger() : currentLevel(INFO)
-    {
-    }
+    Logger() : currentLevel(INFO) {}
 
     void setLogLevel(LogLevel level)
     {
@@ -50,16 +48,17 @@ class Logger
         return currentLevel;
     }
 
-    template <typename T> Logger& operator<<(const T& msg)
+    template <typename T>
+    Logger& operator<<(const T& msg)
     {
         stream << msg;
         return *this;
     }
 
-    void logMessage()
+    void logMessage(const char* file, int line)
     {
         std::string logPrefix = getLogLevelPrefix(currentLevel);
-        std::string logEntry = logPrefix + stream.str();
+        std::string logEntry = logPrefix + file + " : " + std::to_string(line) + " | " + stream.str();
 
         std::cout << logEntry << std::endl;
 
@@ -92,14 +91,18 @@ class LogLevelStream
 {
     Logger& logger;
     Logger::LogLevel level;
+    const char* file;
+    int line;
 
   public:
-    LogLevelStream(Logger& log, Logger::LogLevel lvl) : logger(log), level(lvl)
+    LogLevelStream(Logger& log, Logger::LogLevel lvl, const char* file, int line)
+        : logger(log), level(lvl), file(file), line(line)
     {
         logger.setLogLevel(level);
     }
 
-    template <typename T> LogLevelStream& operator<<(const T& msg)
+    template <typename T>
+    LogLevelStream& operator<<(const T& msg)
     {
         logger << msg;
         return *this;
@@ -107,13 +110,33 @@ class LogLevelStream
 
     ~LogLevelStream()
     {
-        logger.logMessage();
+        // Log file and line number where the log is generated
+        logger.logMessage(file, line);
     }
 };
 
-#define LOG_DEBUG LogLevelStream(LOGGER, Logger::DEBUG)
-#define LOG_INFO LogLevelStream(LOGGER, Logger::INFO)
-#define LOG_WARN LogLevelStream(LOGGER, Logger::WARN)
-#define LOG_ERROR LogLevelStream(LOGGER, Logger::ERROR)
+#ifdef DEBUG_LOGGING_ENABLED
+    #define LOG_DEBUG LogLevelStream(LOGGER, Logger::DEBUG, __FILE__, __LINE__)
+#else
+    #define LOG_DEBUG if(false) LogLevelStream(LOGGER, Logger::DEBUG, __FILE__, __LINE__)
+#endif
+
+#ifdef INFO_LOGGING_ENABLED
+    #define LOG_INFO LogLevelStream(LOGGER, Logger::INFO, __FILE__, __LINE__)
+#else
+    #define LOG_INFO if(false) LogLevelStream(LOGGER, Logger::INFO, __FILE__, __LINE__)
+#endif
+
+#ifdef WARN_LOGGING_ENABLED
+    #define LOG_WARN LogLevelStream(LOGGER, Logger::WARN, __FILE__, __LINE__)
+#else
+    #define LOG_WARN if(false) LogLevelStream(LOGGER, Logger::WARN, __FILE__, __LINE__)
+#endif
+
+#ifdef ERROR_LOGGING_ENABLED
+    #define LOG_ERROR LogLevelStream(LOGGER, Logger::ERROR, __FILE__, __LINE__)
+#else
+    #define LOG_ERROR if(false) LogLevelStream(LOGGER, Logger::ERROR, __FILE__, __LINE__)
+#endif
 
 #endif

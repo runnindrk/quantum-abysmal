@@ -30,13 +30,13 @@ int main()
     // ------------------------------------------------------------------------
     // Random Number Generation.
 
-    auto rngCtx = abysmalCtx->GetRngMethods()->CreateRngCtx(CPU_STANDARD_IMPL);
+    auto rngCtx = abysmalCtx->GetRngMethods()->CreateRngCtx(GPU_STANDARD_IMPL);
     auto res = rngCtx->GetRandomVector(16384);
 
-    for (int i = 0; i < res.size(); i++)
+    /* for (int i = 0; i < res.size(); i++)
     {
         std::cout << res[i] << std::endl;
-    }
+    } */
 
     return 0;
 }

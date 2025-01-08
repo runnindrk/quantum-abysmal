@@ -45,15 +45,6 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
 // ----------------------------------------------------------------------------
 // CUDA Routines
 
-// Random number will be substituted for an RNG ENGINE in the future.
-// This is just to kickstart the development.
-__global__ void InitCurandXorwow(curandStateXORWOW* state);
-
-__global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsigned int bufferSize);
-
-// ----------------------------------------------------------------------------
-// Optimized reduction routine
-
 __host__ __device__ inline int mod(int a, int b)
 {
     int r = a % b;
@@ -170,7 +161,7 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
     sLattice = lattice;
     sFirstReduceData[threadIdx.x] = 0;
     sSecondReduceData[threadIdx.x] = 0;
-
+    
     uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
     __syncthreads();
@@ -229,8 +220,8 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
 
     if (threadIdx.x == 0)
     {
-        firstReduction[blockIdx.x] = sFirstReduceData[0];
-        secondReduction[blockIdx.x] = sSecondReduceData[0];
+        firstReduction[blockIdx.x] = sFirstReduceData[0] / sLattice.hamiltonianSize;
+        secondReduction[blockIdx.x] = sSecondReduceData[0] / sLattice.hamiltonianSize;
     }
 }
 

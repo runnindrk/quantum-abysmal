@@ -16,13 +16,15 @@
 #ifndef QUANTUM_ABYSMAL_SRC_RNG_GPU_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_RNG_GPU_STANDARD_HPP
 
-#include "include/internal/Logger.hpp"
 #include "include/public/Rng.hpp"
+#include "RngEngineImpl.hpp"
 
 class RngGpuStandard : public RandomNumberGenerator
 {
   public:
+
     std::vector<double> GetRandomVector(unsigned int size) override;
+    void SetSeed(unsigned int seed) override;
 };
 
 #endif

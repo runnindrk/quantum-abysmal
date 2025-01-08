@@ -120,8 +120,8 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors()
         }
     }
 
-    moments.push_back(firstMoment);
-    moments.push_back(secondMoment);
+    moments.push_back(firstMoment / lattice.hamiltonianSize);
+    moments.push_back(secondMoment / lattice.hamiltonianSize);
     UpdateGhosts(b);
 }
 
@@ -192,8 +192,8 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
     }
 
     // Trick to halve the number of vector updates.
-    moments.push_back(2 * firstMoment - moments[0]);
-    moments.push_back(2 * secondMoment - moments[1]);
+    moments.push_back(2 * (firstMoment / lattice.hamiltonianSize) - moments[0]);
+    moments.push_back(2 * (secondMoment / lattice.hamiltonianSize) - moments[1]);
 
     UpdateGhosts(a);
 }
