@@ -16,6 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_INTERNAL_LOGGER_HPP
 #define QUANTUM_ABYSMAL_INTERNAL_LOGGER_HPP
 
+#include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -36,7 +38,9 @@ class Logger
     LogLevel currentLevel;
 
   public:
-    Logger() : currentLevel(INFO) {}
+    Logger() : currentLevel(INFO)
+    {
+    }
 
     void setLogLevel(LogLevel level)
     {
@@ -48,8 +52,7 @@ class Logger
         return currentLevel;
     }
 
-    template <typename T>
-    Logger& operator<<(const T& msg)
+    template <typename T> Logger& operator<<(const T& msg)
     {
         stream << msg;
         return *this;
@@ -58,7 +61,10 @@ class Logger
     void logMessage(const char* file, int line)
     {
         std::string logPrefix = getLogLevelPrefix(currentLevel);
-        std::string logEntry = logPrefix + file + " : " + std::to_string(line) + " | " + stream.str();
+        std::string timestamp = getCurrentTime();
+
+        std::string logEntry = timestamp + " " + logPrefix + file + " : " + std::to_string(line) +
+                               " | " + stream.str();
 
         std::cout << logEntry << std::endl;
 
@@ -83,6 +89,20 @@ class Logger
             return "[LOG] ";
         }
     }
+
+    std::string getCurrentTime() const
+    {
+        auto now = std::chrono::system_clock::now();
+        auto ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+        std::tm tm_struct = *std::localtime(&now_time);
+
+        std::ostringstream timeStream;
+        timeStream << std::put_time(&tm_struct, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0')
+                   << std::setw(3) << ms.count();
+        return timeStream.str();
+    }
 };
 
 extern Logger LOGGER;
@@ -101,8 +121,7 @@ class LogLevelStream
         logger.setLogLevel(level);
     }
 
-    template <typename T>
-    LogLevelStream& operator<<(const T& msg)
+    template <typename T> LogLevelStream& operator<<(const T& msg)
     {
         logger << msg;
         return *this;
@@ -118,25 +137,33 @@ class LogLevelStream
 #ifdef DEBUG_LOGGING_ENABLED
     #define LOG_DEBUG LogLevelStream(LOGGER, Logger::DEBUG, __FILE__, __LINE__)
 #else
-    #define LOG_DEBUG if(false) LogLevelStream(LOGGER, Logger::DEBUG, __FILE__, __LINE__)
+    #define LOG_DEBUG                                                                              \
+        if (false)                                                                                 \
+        LogLevelStream(LOGGER, Logger::DEBUG, __FILE__, __LINE__)
 #endif
 
 #ifdef INFO_LOGGING_ENABLED
     #define LOG_INFO LogLevelStream(LOGGER, Logger::INFO, __FILE__, __LINE__)
 #else
-    #define LOG_INFO if(false) LogLevelStream(LOGGER, Logger::INFO, __FILE__, __LINE__)
+    #define LOG_INFO                                                                               \
+        if (false)                                                                                 \
+        LogLevelStream(LOGGER, Logger::INFO, __FILE__, __LINE__)
 #endif
 
 #ifdef WARN_LOGGING_ENABLED
     #define LOG_WARN LogLevelStream(LOGGER, Logger::WARN, __FILE__, __LINE__)
 #else
-    #define LOG_WARN if(false) LogLevelStream(LOGGER, Logger::WARN, __FILE__, __LINE__)
+    #define LOG_WARN                                                                               \
+        if (false)                                                                                 \
+        LogLevelStream(LOGGER, Logger::WARN, __FILE__, __LINE__)
 #endif
 
 #ifdef ERROR_LOGGING_ENABLED
     #define LOG_ERROR LogLevelStream(LOGGER, Logger::ERROR, __FILE__, __LINE__)
 #else
-    #define LOG_ERROR if(false) LogLevelStream(LOGGER, Logger::ERROR, __FILE__, __LINE__)
+    #define LOG_ERROR                                                                              \
+        if (false)                                                                                 \
+        LogLevelStream(LOGGER, Logger::ERROR, __FILE__, __LINE__)
 #endif
 
 #endif

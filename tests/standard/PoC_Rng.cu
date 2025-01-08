@@ -31,7 +31,7 @@ int main()
     // Random Number Generation.
 
     auto rngCtx = abysmalCtx->GetRngMethods()->CreateRngCtx(GPU_STANDARD_IMPL);
-    auto res = rngCtx->GetRandomVector(16384);
+    auto res = rngCtx->GetRandomVector(1000000000);
 
     /* for (int i = 0; i < res.size(); i++)
     {

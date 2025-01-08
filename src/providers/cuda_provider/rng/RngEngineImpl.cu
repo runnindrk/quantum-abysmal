@@ -37,7 +37,7 @@ RngGpuEngine::~RngGpuEngine()
 
 std::vector<double> RngGpuEngine::GetRandomVector(unsigned int size)
 {
-    LOG_INFO << "Entering GetRandomVector.";
+    LOG_INFO << "Entering RngGpuEngine::GetRandomVector";
 
     std::vector<double> numbers(size);
     
@@ -45,11 +45,15 @@ std::vector<double> RngGpuEngine::GetRandomVector(unsigned int size)
     cudaMalloc((void**)&gpuBuffer, size * sizeof(double));
     cudaMemset(gpuBuffer, 0, size * sizeof(double));
 
+    LOG_INFO << "Computing random numbers ...";
     GetRandomVector(gpuBuffer, size);
+    LOG_INFO << "Computing random numbers done!";
 
     cudaMemcpy(numbers.data(), gpuBuffer, size * sizeof(double), cudaMemcpyDeviceToHost);
     cudaFree(gpuBuffer);
 
+    LOG_INFO << "Exiting RngGpuEngine::GetRandomVector";
+    
     return numbers;
 }
 
