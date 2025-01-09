@@ -18,25 +18,47 @@
 #include <iostream>
 #include <vector>
 
+extern "C" 
+{
+#include "TestU01.h"
+}
+
+// -------------------------------------------------------------------------------------------------
+// We shall test the quality of the RNG
+
+int batchSize = 2 << 20;
+int batchCount = 0;
+std::vector<double> batchRandomNumbers(batchSize);
+
+// Constant Context
+auto abysmalCtx = GetQuantumAbysmalContext();
+auto rngCtx = abysmalCtx->GetRngMethods()->CreateRngCtx(GPU_STANDARD_IMPL);
+
+unsigned int CustomRng()
+{
+    if (batchCount % batchSize == 0)
+    {
+        batchRandomNumbers = rngCtx->GetRandomVector(batchSize);
+        batchCount = 0;
+    }
+
+    unsigned int randomNumber = static_cast<unsigned int>(batchRandomNumbers[batchCount] * (1 << 31));
+    batchCount += 1;
+    
+    return randomNumber;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 int main()
 {
-    std::cout << "Quantum Abysmal PoC-Rng.\n\n";
-
-    // ------------------------------------------------------------------------
-    // Context.
-
-    auto abysmalCtx = GetQuantumAbysmalContext();
-
-    // ------------------------------------------------------------------------
-    // Random Number Generation.
-
-    auto rngCtx = abysmalCtx->GetRngMethods()->CreateRngCtx(GPU_STANDARD_IMPL);
-    auto res = rngCtx->GetRandomVector(1000000000);
-
-    /* for (int i = 0; i < res.size(); i++)
-    {
-        std::cout << res[i] << std::endl;
-    } */
+    unif01_Gen* gen = unif01_CreateExternGenBits("Custom CUDA RNG", CustomRng);
+    
+    bbattery_SmallCrush(gen);
+    // bbattery_Crush(gen);
+    // bbattery_BigCrush(gen);
+    
+    unif01_DeleteExternGenBits(gen);
 
     return 0;
 }

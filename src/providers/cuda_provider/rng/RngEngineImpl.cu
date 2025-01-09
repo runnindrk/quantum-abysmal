@@ -53,7 +53,6 @@ std::vector<double> RngGpuEngine::GetRandomVector(unsigned int size)
     cudaFree(gpuBuffer);
 
     LOG_INFO << "Exiting RngGpuEngine::GetRandomVector";
-    
     return numbers;
 }
 
@@ -88,7 +87,7 @@ __global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsig
 
     while (tid < bufferSize)
     {
-        buffer[tid] = curand_normal_double(&localState);
+        buffer[tid] = curand_uniform_double(&localState);
 
         state[localTid] = localState;
         tid += blockDim.x * gridDim.x;
