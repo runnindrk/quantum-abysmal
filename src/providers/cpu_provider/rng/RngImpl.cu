@@ -35,6 +35,11 @@ std::vector<double> RngCpuStandard::GetRandomVector(unsigned int size)
     return numbers;
 }
 
+std::vector<unsigned int> RngCpuStandard::GetRandomBitsVector(unsigned int size)
+{
+    return {};
+}
+
 void RngCpuStandard::SetSeed(unsigned int seed)
 {
     

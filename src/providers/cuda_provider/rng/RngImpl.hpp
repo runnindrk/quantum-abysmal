@@ -24,6 +24,7 @@ class RngGpuStandard : public RandomNumberGenerator
   public:
 
     std::vector<double> GetRandomVector(unsigned int size) override;
+    std::vector<unsigned int> GetRandomBitsVector(unsigned int size) override;
     void SetSeed(unsigned int seed) override;
 };
 

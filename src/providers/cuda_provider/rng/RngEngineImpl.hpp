@@ -35,9 +35,11 @@ class RngGpuEngine
     ~RngGpuEngine();
 
     std::vector<double> GetRandomVector(unsigned int size);
+    std::vector<unsigned int> GetRandomBitsVector(unsigned int size);
     void SetSeed(unsigned int seed);
 
     void GetRandomVector(double* gpuBuffer, unsigned int bufferSize);
+    void GetRandomBitsVector(unsigned int* gpuBuffer, unsigned int bufferSize);
 
   private:
 
@@ -47,5 +49,6 @@ class RngGpuEngine
 
 __global__ void InitCurandXorwow(curandStateXORWOW* state);
 __global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsigned int bufferSize);
+__global__ void InitRandomBitsVector(curandStateXORWOW* state, unsigned int* buffer, unsigned int bufferSize);
 
 #endif

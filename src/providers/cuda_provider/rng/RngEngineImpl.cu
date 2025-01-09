@@ -56,6 +56,27 @@ std::vector<double> RngGpuEngine::GetRandomVector(unsigned int size)
     return numbers;
 }
 
+std::vector<unsigned int> RngGpuEngine::GetRandomBitsVector(unsigned int size)
+{
+    LOG_INFO << "Entering RngGpuEngine::GetRandomBitsVector";
+
+    std::vector<unsigned int> numbers(size);
+    
+    unsigned int* gpuBuffer;
+    cudaMalloc((void**)&gpuBuffer, size * sizeof(unsigned int));
+    cudaMemset(gpuBuffer, 0, size * sizeof(unsigned int));
+
+    LOG_INFO << "Computing random bits ...";
+    GetRandomBitsVector(gpuBuffer, size);
+    LOG_INFO << "Computing random bits done!";
+
+    cudaMemcpy(numbers.data(), gpuBuffer, size * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaFree(gpuBuffer);
+
+    LOG_INFO << "Exiting RngGpuEngine::GetRandomBitsVector";
+    return numbers;
+}
+
 void RngGpuEngine::SetSeed(unsigned int seed)
 {
     mSeed = seed;
@@ -68,6 +89,12 @@ void RngGpuEngine::GetRandomVector(double* gpuBuffer, unsigned int bufferSize)
 {
     InitCurandXorwow<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates);
     InitRandomVector<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates, gpuBuffer, bufferSize);
+}
+
+void RngGpuEngine::GetRandomBitsVector(unsigned int* gpuBuffer, unsigned int bufferSize)
+{
+    InitCurandXorwow<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates);
+    InitRandomBitsVector<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates, gpuBuffer, bufferSize);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -88,6 +115,21 @@ __global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsig
     while (tid < bufferSize)
     {
         buffer[tid] = curand_uniform_double(&localState);
+
+        state[localTid] = localState;
+        tid += blockDim.x * gridDim.x;
+    }
+}
+
+__global__ void InitRandomBitsVector(curandStateXORWOW* state, unsigned int* buffer, unsigned int bufferSize)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    curandStateXORWOW localState = state[tid];
+    int localTid = tid;
+
+    while (tid < bufferSize)
+    {
+        buffer[tid] = curand(&localState);
 
         state[localTid] = localState;
         tid += blockDim.x * gridDim.x;

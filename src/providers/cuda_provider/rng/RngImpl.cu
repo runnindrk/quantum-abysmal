@@ -23,6 +23,11 @@ std::vector<double> RngGpuStandard::GetRandomVector(unsigned int size)
     return RngGpuEngine::GetInstance().GetRandomVector(size);
 }
 
+std::vector<unsigned int> RngGpuStandard::GetRandomBitsVector(unsigned int size)
+{
+    return RngGpuEngine::GetInstance().GetRandomBitsVector(size);
+}
+
 void RngGpuStandard::SetSeed(unsigned int seed)
 {
     RngGpuEngine::GetInstance().SetSeed(seed);
