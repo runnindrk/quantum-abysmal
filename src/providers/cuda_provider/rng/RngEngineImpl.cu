@@ -114,7 +114,7 @@ __global__ void InitRandomVector(curandStateXORWOW* state, double* buffer, unsig
 
     while (tid < bufferSize)
     {
-        buffer[tid] = curand_uniform_double(&localState);
+        buffer[tid] = curand_normal_double(&localState);
 
         state[localTid] = localState;
         tid += blockDim.x * gridDim.x;

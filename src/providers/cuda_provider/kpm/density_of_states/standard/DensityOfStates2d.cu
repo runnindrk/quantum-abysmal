@@ -73,18 +73,15 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     cudaMalloc((void**)&devB, mLattice.hamiltonianSize * sizeof(double));
     cudaMemset(devB, 0, mLattice.hamiltonianSize * sizeof(double));
 
-    // curandStateXORWOW* devStates;
-    // cudaMalloc((void**)&devStates, numThreads * numBlocks * sizeof(curandStateXORWOW));
-
     // ---------------------------------------------------------------------------------------------
     // Kernel execution logic.
 
-    auto start = std::chrono::high_resolution_clock::now();
+    LOG_INFO << "Computing moments ... ";
 
-    // InitCurandXorwow<<<numBlocks, numThreads>>>(devStates);
-    // InitRandomVector<<<numBlocks, numThreads>>>(devStates, devA, mLattice.hamiltonianSize);
+    // Initialize first random vector
+    RngGpuEngine::GetInstance().GetRandomVector(devA, mLattice.hamiltonianSize);
 
-    // Initialize
+    // Initialize second vector
     Reduce<numThreads, true>
         <<<numBlocks, numThreads>>>(devA, devB, *devLattice, devFirstReduction, devSecondReduction);
     FinalReduce<numThreads>
@@ -103,14 +100,7 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     double* moments = (double*)malloc(mNumOfMoments * sizeof(double));
     cudaMemcpy(moments, devMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    LOG_INFO << "Computation time : " << elapsed.count() << " seconds.";
-
-    // for (int i = 0; i < mNumOfMoments; i++)
-    // {
-    //     LOG_INFO << moments[i];
-    // }
+    LOG_INFO << "Moments computed!";
 
     std::vector<double> momentsToReturn;
     momentsToReturn.assign(moments, moments + mNumOfMoments);
@@ -118,4 +108,4 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 }
 
 // -------------------------------------------------------------------------------------------------
-// Private
+// CUDA Kernels
