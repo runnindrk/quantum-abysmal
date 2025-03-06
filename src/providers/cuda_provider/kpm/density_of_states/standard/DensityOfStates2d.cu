@@ -82,7 +82,7 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     RngGpuEngine::GetInstance().GetRandomVector(devA, mLattice.hamiltonianSize);
 
     // Initialize second vector
-    Reduce<numThreads, true>
+    Reduce2d<numThreads, true>
         <<<numBlocks, numThreads>>>(devA, devB, *devLattice, devFirstReduction, devSecondReduction);
     FinalReduce<numThreads>
         <<<1, numThreads>>>(devFirstReduction, devSecondReduction, devMoments, 0);
@@ -90,7 +90,7 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     // Compute
     for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
     {
-        Reduce<numThreads, false>
+        Reduce2d<numThreads, false>
             <<<numBlocks, numThreads>>>((i % 2 == 0) ? devA : devB, (i % 2 == 0) ? devB : devA,
                                         *devLattice, devFirstReduction, devSecondReduction);
         FinalReduce<numThreads>

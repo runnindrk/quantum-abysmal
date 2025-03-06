@@ -21,4 +21,4 @@ export LD_LIBRARY_PATH=/snap/root-framework/936/usr/local/lib:$LD_LIBRARY_PATH <
 mkdir __build <br>
 cd __build <br>
 cmake .. <br>
-cmake --build . && cmake --install . <br>
+cmake -DINFO_LOGGING_ENABLED=ON -S . -B __build && cmake --build __build && cmake --install __build <br>

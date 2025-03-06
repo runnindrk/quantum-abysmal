@@ -28,7 +28,7 @@ KernelPolynomialMethodFactory::CreateDoSCtx(ProviderImplementation implementatio
         case CPU_STANDARD_IMPL:
             return std::make_unique<DensityOfStates1dCpuStandard>();
         case GPU_STANDARD_IMPL:
-            return nullptr;
+            return std::make_unique<DensityOfStates1dGpuStandard>();
         case CPU_DUMMY_IMPL:
             return nullptr;
         case GPU_DUMMY_IMPL:

@@ -39,7 +39,9 @@ add_library(Quantum-Abysmal STATIC
     src/providers/cpu_provider/kpm/density_of_states/standard/DensityOfStates3d.cu
     src/providers/cpu_provider/kpm/density_of_states/standard/util/Util.cu
 
+    src/providers/cuda_provider/kpm/density_of_states/standard/DensityOfStates1d.cu
     src/providers/cuda_provider/kpm/density_of_states/standard/DensityOfStates2d.cu
+    src/providers/cuda_provider/kpm/density_of_states/standard/util/Util.cu
 
     src/providers/cpu_provider/rng/RngImpl.cu
     

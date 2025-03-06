@@ -38,26 +38,33 @@ int main()
     // latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
 
     // BBH Model
-    double delta = 0;
-    double gamma = -0.5;
+    // double delta = 0;
+    // double gamma = -0.5;
 
-    latticeCtx->AddHopping({0, 0}, {'A', 'A'}, delta);
-    latticeCtx->AddHopping({0, 0}, {'B', 'B'}, delta);
-    latticeCtx->AddHopping({0, 0}, {'C', 'D'}, -delta);
-    latticeCtx->AddHopping({0, 0}, {'D', 'D'}, -delta);
+    // latticeCtx->AddHopping({0, 0}, {'A', 'A'}, delta);
+    // latticeCtx->AddHopping({0, 0}, {'B', 'B'}, delta);
+    // latticeCtx->AddHopping({0, 0}, {'C', 'D'}, -delta);
+    // latticeCtx->AddHopping({0, 0}, {'D', 'D'}, -delta);
 
-    latticeCtx->AddHopping({1, 0}, {'C', 'A'}, 1);
-    latticeCtx->AddHopping({1, 0}, {'B', 'D'}, 1);
-    latticeCtx->AddHopping({0, 1}, {'D', 'A'}, 1);
-    latticeCtx->AddHopping({0, 1}, {'B', 'C'}, -1);
+    // latticeCtx->AddHopping({1, 0}, {'C', 'A'}, 1);
+    // latticeCtx->AddHopping({1, 0}, {'B', 'D'}, 1);
+    // latticeCtx->AddHopping({0, 1}, {'D', 'A'}, 1);
+    // latticeCtx->AddHopping({0, 1}, {'B', 'C'}, -1);
 
-    latticeCtx->AddHopping({0, 0}, {'C', 'A'}, gamma);
-    latticeCtx->AddHopping({0, 0}, {'B', 'D'}, gamma);
-    latticeCtx->AddHopping({0, 0}, {'D', 'A'}, gamma);
-    latticeCtx->AddHopping({0, 0}, {'B', 'C'}, -gamma);
+    // latticeCtx->AddHopping({0, 0}, {'C', 'A'}, gamma);
+    // latticeCtx->AddHopping({0, 0}, {'B', 'D'}, gamma);
+    // latticeCtx->AddHopping({0, 0}, {'D', 'A'}, gamma);
+    // latticeCtx->AddHopping({0, 0}, {'B', 'C'}, -gamma);
 
-    latticeCtx->SetLatticeSize({4096, 4096});
-    latticeCtx->SetEnergyRange(-3, 3);
+    // latticeCtx->SetLatticeSize({4096, 4096});
+    // latticeCtx->SetEnergyRange(-3, 3);
+    // latticeCtx->SetBoundaryType(PERIODIC);
+
+    // 1D TB Model
+    latticeCtx->AddHopping({1}, {'A', 'A'}, -1);
+
+    latticeCtx->SetLatticeSize({4194304});
+    latticeCtx->SetEnergyRange(-2, 2);
     latticeCtx->SetBoundaryType(PERIODIC);
 
     // ------------------------------------------------------------------------
@@ -67,14 +74,19 @@ int main()
     auto dosCtx = kpmCtx->CreateDoSCtx(GPU_STANDARD_IMPL);
 
     dosCtx->SetNumberOfRandomVectors(1);
-    dosCtx->SetNumberOfMoments(1024);
+    dosCtx->SetNumberOfMoments(131072);
     std::vector<double> moments = dosCtx->Compute();
+
+    // for (int i = 0; i < moments.size(); i++)
+    // {
+    //    std::cout << moments[i] << std::endl;
+    // }
 
     // ------------------------------------------------------------------------
     // Plot DoS
 
-    auto plottingCtx = abysmalCtx->GetPlotMethods();
-    plottingCtx->PlotDensityOfStates(moments);
+    // auto plottingCtx = abysmalCtx->GetPlotMethods();
+    // plottingCtx->PlotDensityOfStates(moments);
 
     // ------------------------------------------------------------------------
 

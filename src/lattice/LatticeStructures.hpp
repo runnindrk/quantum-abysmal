@@ -29,7 +29,7 @@ struct LatticeStructure
     uint32_t latticeSize[3] = {};
     uint64_t numberOfSites{1};
     uint64_t hamiltonianSize{1};
-    
+
     Hopping hoppings[128] = {};
     uint8_t numberOfHoppings{};
 
@@ -39,4 +39,78 @@ struct LatticeStructure
     double energyShift{};
 
     BoundaryType boundaryType{};
+};
+
+struct CudaLattice
+{
+    double* data;
+    LatticeStructure latticeStructure;
+
+    __host__ CudaLattice(LatticeStructure structure)
+    {
+        latticeStructure = structure;
+        cudaMalloc(&data, latticeStructure.hamiltonianSize * sizeof(double));
+    }
+
+    __host__ ~CudaLattice()
+    {
+        cudaFree(data);
+    }
+
+    __host__ CudaLattice(CudaLattice&& other) noexcept : data(other.data)
+    {
+        other.data = nullptr;
+    }
+
+    __host__ CudaLattice& operator=(CudaLattice&& other) noexcept
+    {
+        if (this != &other)
+        {
+            cudaFree(data);
+
+            data = other.data;
+            latticeStructure = other.latticeStructure;
+
+            other.data = nullptr;
+        }
+
+        return *this;
+    }
+
+    CudaLattice(const Lattice&) = delete;
+    CudaLattice& operator=(const CudaLattice&) = delete;
+
+    // Overload operator() for 1D access (device & host)
+    __device__ double& operator()(uint64_t x, uint64_t o)
+    {
+        return data[latticeStructure.numberOfOrbitals * x + o];
+    }
+
+    // Overload operator() for 2D access (device & host)
+    __device__ double& operator()(uint64_t x, uint64_t y, uint64_t o)
+    {
+        return data[latticeStructure.numberOfOrbitals * (x + latticeStructure.latticeSize[0] * y) +
+                    o];
+    }
+
+    // Overload operator() for 3D access (device & host)
+    __device__ double& operator()(uint64_t x, uint64_t y, uint64_t z, uint64_t o)
+    {
+        return data[latticeStructure.numberOfOrbitals *
+                        (x + latticeStructure.latticeSize[0] * y +
+                         latticeStructure.latticeSize[0] * latticeStructure.latticeSize[1] * z) +
+                    o];
+    }
+
+    __host__ void copyFromHost(const double* hostData)
+    {
+        cudaMemcpy(data, hostData, latticeStructure.hamiltonianSize * sizeof(double),
+                   cudaMemcpyHostToDevice);
+    }
+
+    __host__ void copyToHost(double* hostData) const
+    {
+        cudaMemcpy(hostData, data, latticeStructure.hamiltonianSize * sizeof(double),
+                   cudaMemcpyDeviceToHost);
+    }
 };

@@ -20,6 +20,7 @@
 #include "include/public/DensityOfStates.hpp"
 #include "src/lattice/LatticeImpl.hpp"
 #include "src/providers/cuda_provider/rng/RngEngineImpl.hpp"
+#include "util/Util.hpp"
 
 #include <curand_kernel.h>
 
@@ -46,13 +47,7 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
 // ----------------------------------------------------------------------------
 // CUDA Routines
 
-__host__ __device__ inline int mod(int a, int b)
-{
-    int r = a % b;
-    return r < 0 ? r + b : r;
-}
-
-__forceinline__ __device__ void KpmSparseMatrixInitializer(uint64_t tid, double* a, double* b,
+__forceinline__ __device__ void KpmSparseMatrixInitializer2d(uint64_t tid, double* a, double* b,
                                                            LatticeStructure& lattice,
                                                            double* sFirstReduceData,
                                                            double* sSecondReduceData)
@@ -91,7 +86,7 @@ __forceinline__ __device__ void KpmSparseMatrixInitializer(uint64_t tid, double*
     }
 }
 
-__forceinline__ __device__ void KpmSparseMatrixOperation(uint64_t tid, double* a, double* b,
+__forceinline__ __device__ void KpmSparseMatrixOperation2d(uint64_t tid, double* a, double* b,
                                                          LatticeStructure& lattice,
                                                          double* sFirstReduceData,
                                                          double* sSecondReduceData)
@@ -135,45 +130,32 @@ __forceinline__ __device__ void KpmSparseMatrixOperation(uint64_t tid, double* a
     }
 }
 
-template <uint32_t blockSize> __device__ void WarpReduce(volatile double* sdata, uint64_t tid)
-{
-    if (blockSize >= 64)
-        sdata[tid] += sdata[tid + 32];
-    if (blockSize >= 32)
-        sdata[tid] += sdata[tid + 16];
-    if (blockSize >= 16)
-        sdata[tid] += sdata[tid + 8];
-    if (blockSize >= 8)
-        sdata[tid] += sdata[tid + 4];
-    if (blockSize >= 4)
-        sdata[tid] += sdata[tid + 2];
-    if (blockSize >= 2)
-        sdata[tid] += sdata[tid + 1];
-}
-
 template <uint32_t blockSize, bool initializer>
-__global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* firstReduction,
+__global__ void Reduce2d(double* a, double* b, LatticeStructure& lattice, double* firstReduction,
                        double* secondReduction)
 {
-    __shared__ LatticeStructure sLattice;
     __shared__ double sFirstReduceData[blockSize];
     __shared__ double sSecondReduceData[blockSize];
 
-    sLattice = lattice;
     sFirstReduceData[threadIdx.x] = 0;
     sSecondReduceData[threadIdx.x] = 0;
-    
+
     uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+    // uint64_t tid_y = threadIdx.y + blockIdx.y * blockDim.y;
 
     __syncthreads();
 
-    while (tid < sLattice.numberOfSites)
+    while (tid < lattice.numberOfSites)
     {
         if (initializer)
-            KpmSparseMatrixInitializer(tid, a, b, sLattice, sFirstReduceData, sSecondReduceData);
+        {
+            KpmSparseMatrixInitializer2d(tid, a, b, lattice, sFirstReduceData, sSecondReduceData);
+        }
 
         else
-            KpmSparseMatrixOperation(tid, a, b, sLattice, sFirstReduceData, sSecondReduceData);
+        {
+            KpmSparseMatrixOperation2d(tid, a, b, lattice, sFirstReduceData, sSecondReduceData);
+        }
 
         tid += blockDim.x * gridDim.x;
     }
@@ -221,85 +203,8 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
 
     if (threadIdx.x == 0)
     {
-        firstReduction[blockIdx.x] = sFirstReduceData[0] / sLattice.hamiltonianSize;
-        secondReduction[blockIdx.x] = sSecondReduceData[0] / sLattice.hamiltonianSize;
-    }
-}
-
-// Number of block must be = 1.
-template <unsigned int blockSize>
-__global__ void FinalReduce(double* firstPartialReduction, double* secondPartialReduction,
-                            double* moments, unsigned int momentIndex)
-{
-    __shared__ double sFirstData[blockSize];
-    __shared__ double sSecondData[blockSize];
-
-    sFirstData[threadIdx.x] = 0;
-    sSecondData[threadIdx.x] = 0;
-
-    uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-
-    __syncthreads();
-
-    while (tid < blockSize)
-    {
-        sFirstData[threadIdx.x] += firstPartialReduction[tid];
-        sSecondData[threadIdx.x] += secondPartialReduction[tid];
-        
-        tid += blockDim.x * gridDim.x;
-    }
-
-    __syncthreads();
-
-    if (blockSize >= 512)
-    {
-        if (threadIdx.x < 256)
-        {
-            sFirstData[threadIdx.x] += sFirstData[threadIdx.x + 256];
-            sSecondData[threadIdx.x] += sSecondData[threadIdx.x + 256];
-        }
-
-        __syncthreads();
-    }
-
-    if (blockSize >= 256)
-    {
-        if (threadIdx.x < 128)
-        {
-            sFirstData[threadIdx.x] += sFirstData[threadIdx.x + 128];
-            sSecondData[threadIdx.x] += sSecondData[threadIdx.x + 128];
-        }
-
-        __syncthreads();
-    }
-
-    if (blockSize >= 128)
-    {
-        if (threadIdx.x < 64)
-        {
-            sFirstData[threadIdx.x] += sFirstData[threadIdx.x + 64];
-            sSecondData[threadIdx.x] += sSecondData[threadIdx.x + 64];
-        }
-
-        __syncthreads();
-    }
-
-    if (threadIdx.x < 32)
-    {
-        WarpReduce<blockSize>(sFirstData, threadIdx.x);
-        WarpReduce<blockSize>(sSecondData, threadIdx.x);
-    }
-
-    if (threadIdx.x == 0 && momentIndex != 0)
-    {
-        moments[2 * momentIndex] = 2 * sFirstData[0] - moments[0];
-        moments[2 * momentIndex + 1] = 2 * sSecondData[0] - moments[1];
-    }
-
-    if (threadIdx.x == 0 && momentIndex == 0)
-    {
-        moments[2 * momentIndex] = sFirstData[0];
-        moments[2 * momentIndex + 1] = sSecondData[0];
+        firstReduction[blockIdx.x] = sFirstReduceData[0] / lattice.hamiltonianSize;
+        secondReduction[blockIdx.x] = sSecondReduceData[0] / lattice.hamiltonianSize;
     }
 }
 
