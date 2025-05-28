@@ -2,8 +2,9 @@
 .VSCodeCounter/
 out/
 build/
-__build/
-__bin/
-__lib/
+_build/
+_bin/
+_lib/
 __docs/
 ._*
+data/

@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_PUBLIC_KERNEL_POLYNOMIAL_METHOD_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_KERNEL_POLYNOMIAL_METHOD_HPP
@@ -26,6 +26,8 @@ class KernelPolynomialMethod
   public:
     using Uptr = std::unique_ptr<KernelPolynomialMethod>;
 
+    virtual ~KernelPolynomialMethod() = default;
+    
     /// @brief Get Density of States.
     /// @return A unique pointer to Density of States.
     virtual DensityOfStates::Uptr CreateDoSCtx(ProviderImplementation implementation) = 0;

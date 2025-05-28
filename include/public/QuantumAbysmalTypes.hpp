@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,15 +11,14 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 
 #include <cstdint>
 #include <memory>
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
+#include <vector>
 
 typedef enum
 {

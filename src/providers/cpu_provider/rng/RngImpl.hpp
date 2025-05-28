@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,22 +11,17 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
 
-#include "include/internal/Logger.hpp"
 #include "include/public/Rng.hpp"
-
-#include <random>
+#include "RngEngineImpl.hpp"
 
 class RngCpuStandard : public RandomNumberGenerator
 {
   public:
-    
-    RngCpuStandard();
-    ~RngCpuStandard() = default;
 
     std::vector<double> GetRandomVector(unsigned int size) override;
     std::vector<unsigned int> GetRandomBitsVector(unsigned int size) override;

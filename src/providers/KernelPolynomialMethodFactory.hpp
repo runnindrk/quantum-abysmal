@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_SRC_KERNEL_POLYNOMIAL_METHOD_FACTORY_HPP
 #define QUANTUM_ABYSMAL_SRC_KERNEL_POLYNOMIAL_METHOD_FACTORY_HPP
@@ -22,9 +22,11 @@
 #include "cpu_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
 #include "cpu_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
 
+#ifndef __APPLE__
 #include "cuda_provider/kpm/density_of_states/standard/DensityOfStates1d.hpp"
 #include "cuda_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
 #include "cuda_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
+#endif 
 
 #include "src/lattice/LatticeImpl.hpp"
 

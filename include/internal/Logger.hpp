@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_INTERNAL_LOGGER_HPP
 #define QUANTUM_ABYSMAL_INTERNAL_LOGGER_HPP
@@ -62,9 +62,19 @@ class Logger
     {
         std::string logPrefix = getLogLevelPrefix(currentLevel);
         std::string timestamp = getCurrentTime();
+        std::string relativeFile = file;
+        
+        #ifdef PROJECT_ROOT
+        std::string root = PROJECT_ROOT;
 
-        std::string logEntry = timestamp + " " + logPrefix + file + " : " + std::to_string(line) +
-                               " | " + stream.str();
+        if (relativeFile.find(root) == 0)
+        {
+            relativeFile = relativeFile.substr(root.length());
+        }
+        #endif
+        
+        std::string logEntry = timestamp + " " + logPrefix + relativeFile + " : " +
+                            std::to_string(line) + " | " + stream.str();
 
         std::cout << logEntry << std::endl;
 

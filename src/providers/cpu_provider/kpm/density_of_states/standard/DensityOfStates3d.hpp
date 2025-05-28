@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_3D_CPU_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_3D_CPU_STANDARD_HPP
@@ -26,6 +26,7 @@ class DensityOfStates3dCpuStandard : public DensityOfStates
     Error SetNumberOfRandomVectors(size_t numVectors) override;
     Error SetNumberOfMoments(size_t order) override;
     std::vector<double> Compute() override;
+    Error Save() const override;
 
   private:
 };

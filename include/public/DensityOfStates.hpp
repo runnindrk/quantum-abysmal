@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_PUBLIC_DENSITY_OF_STATES_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_DENSITY_OF_STATES_HPP
@@ -50,7 +50,7 @@ class DensityOfStates
     // virtual Error SaveMoments() const = 0;
 
     /// @brief Save the computed DoS.
-    // virtual Error SaveDoS() const = 0;
+    virtual Error Save() const = 0;
 
     /// @brief Plot the computed DoS.
     // virtual Error PlotDoS() const = 0;

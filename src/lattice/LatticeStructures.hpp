@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #include "include/public/QuantumAbysmalTypes.hpp"
 
@@ -41,6 +41,7 @@ struct LatticeStructure
     BoundaryType boundaryType{};
 };
 
+/*
 struct CudaLattice
 {
     double* data;
@@ -114,3 +115,4 @@ struct CudaLattice
                    cudaMemcpyDeviceToHost);
     }
 };
+*/

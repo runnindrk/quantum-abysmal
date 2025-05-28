@@ -18,7 +18,7 @@ export LD_LIBRARY_PATH=/snap/root-framework/936/usr/local/lib:$LD_LIBRARY_PATH <
 (The Graphics Library will be optionally built, I need to study how to add compile options.) <br>
 
 # Build Quantum-Abysmal 
-mkdir __build <br>
-cd __build <br>
+mkdir _build <br>
+cd _build <br>
 cmake .. <br>
-cmake -DINFO_LOGGING_ENABLED=ON -S . -B __build && cmake --build __build && cmake --install __build <br>
+cmake -DINFO_LOGGING_ENABLED=ON -S . -B _build && cmake --build _build && cmake --install _build <br>

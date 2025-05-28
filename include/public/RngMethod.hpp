@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -11,7 +11,7 @@
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_PUBLIC_RNG_METHOD_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_RNG_METHOD_HPP
@@ -22,6 +22,8 @@ class RngMethod
 {
   public:
     using Uptr = std::unique_ptr<RngMethod>;
+
+    virtual ~RngMethod() = default;
 
     /// @brief Get Random Number Generator.
     /// @return A unique pointer to Random Number Generator.
