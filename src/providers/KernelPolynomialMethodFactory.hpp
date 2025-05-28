@@ -26,7 +26,7 @@
 #include "cuda_provider/kpm/density_of_states/standard/DensityOfStates1d.hpp"
 #include "cuda_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
 #include "cuda_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
-#endif 
+#endif
 
 #include "src/lattice/LatticeImpl.hpp"
 

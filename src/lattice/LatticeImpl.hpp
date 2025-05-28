@@ -22,6 +22,7 @@
 #include "LatticeStructures.hpp"
 
 #include <unordered_set>
+#include <array>
 
 class LatticeImpl : public Lattice
 {

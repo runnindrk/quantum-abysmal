@@ -20,6 +20,7 @@
 
 #include <chrono>
 #include <omp.h>
+#include <cstring>
 
 Error DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {

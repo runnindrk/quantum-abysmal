@@ -107,5 +107,10 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
     return momentsToReturn;
 }
 
+Error DensityOfStates2dGpuStandard::Save() const
+{
+    return SUCCESS;
+}
+
 // -------------------------------------------------------------------------------------------------
 // CUDA Kernels

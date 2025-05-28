@@ -14,6 +14,7 @@
 // ================================================================================================
 
 #include "StorageEngineImpl.hpp"
+#include <filesystem>
 #include <H5Cpp.h>
 
 StorageEngine::StorageEngine()
@@ -26,6 +27,18 @@ StorageEngine::~StorageEngine()
 
 void StorageEngine::SaveDoS()
 {
+    // --------------------------------------------------------------------------------------------
+    // Check if the folder exists
+
+    const std::filesystem::path dir{"data"};
+    if (!std::filesystem::exists(dir)) 
+    {
+        std::filesystem::create_directories(dir);
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Save DoS data
+
     hid_t fileId = H5Fcreate("data/DoS.hdf5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     if (fileId < 0) 
     {

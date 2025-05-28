@@ -19,41 +19,9 @@
 add_definitions(-DPROJECT_ROOT=\"${CMAKE_SOURCE_DIR}/\")
 
 # =================================================================================================
-# Dependencies
-
-include(FetchContent)
-
-find_package(ZLIB REQUIRED)
-
-# -------------------------------------------------------------------------------------------------
-# HDF5 Library
-
-# Configure HDF5 options
-set(HDF5_BUILD_CPP_LIB ON CACHE BOOL "" FORCE)
-set(HDF5_BUILD_HL_LIB ON CACHE BOOL "" FORCE)
-set(HDF5_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-set(HDF5_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-set(HDF5_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-
-FetchContent_Declare(
-  HDF5
-  GIT_REPOSITORY https://github.com/HDFGroup/hdf5.git
-  GIT_TAG hdf5-1_14_3
-)
-
-FetchContent_MakeAvailable(hdf5)
-
-set(HDF5_LIB_DIR "${HDF5_BINARY_DIR}/bin")
-set(HDF5_INCLUDE_DIR "${HDF5_SOURCE_DIR}/src" "${HDF5_SOURCE_DIR}/c++/src")
-
-# -------------------------------------------------------------------------------------------------
-# Google Test Library
-
-# =================================================================================================
 # Architecture agnostic build
 
-if (APPLE)
+if(APPLE)
     project(Quantum-Abysmal LANGUAGES CXX VERSION 1.0)
 else()
     project(Quantum-Abysmal LANGUAGES CXX CUDA VERSION 1.0)
@@ -69,7 +37,14 @@ if(APPLE)
     set(OpenMP_CXX_LIBRARY /opt/homebrew/opt/libomp/lib/libomp.dylib)
 endif()
 
-find_package(OpenMP REQUIRED)
+if(APPLE)
+    find_package(OpenMP REQUIRED)
+    find_package(HDF5 REQUIRED)
+else()
+    find_package(OpenMP REQUIRED)
+    find_package(HDF5 REQUIRED)
+    find_package(CUDAToolkit REQUIRED)
+endif()
 
 if(APPLE)
     set(COMMON_OPT_FLAGS "-O3 -funroll-loops -march=native ${OpenMP_CXX_FLAGS}")
@@ -80,11 +55,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_OPT_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_OPT_FLAGS}")
 
-if(WIN32)
-    enable_language(CUDA)
-    set(CMAKE_CUDA_ARCHITECTURES 86)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${COMMON_OPT_FLAGS}")
-elseif(APPLE)
+if(APPLE)
     message(STATUS "CUDA is not enabled on macOS.")
 else()
     enable_language(CUDA)
@@ -122,17 +93,23 @@ file(
 if(APPLE)
     file(
         GLOB_RECURSE METAL_SOURCES
+
         ${CMAKE_CURRENT_SOURCE_DIR}/providers/metal_provider/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/providers/metal_provider/**/*.cpp
     )
     list(APPEND QUANTUM_ABYSMAL_SOURCES ${METAL_SOURCES})
 else()
     file(
-        GLOB_RECURSE GPU_SOURCES
+        GLOB_RECURSE CUDA_SOURCES
+
         ${CMAKE_CURRENT_SOURCE_DIR}/providers/cuda_provider/*.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/providers/cuda_provider/**/*.cu
     )
-    list(APPEND QUANTUM_ABYSMAL_SOURCES ${GPU_SOURCES})
+    list(APPEND QUANTUM_ABYSMAL_SOURCES ${CUDA_SOURCES})
+endif()
+
+if(NOT APPLE)
+    set_source_files_properties(${QUANTUM_ABYSMAL_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
 
 message(STATUS "Found source files:")
@@ -159,18 +136,14 @@ target_include_directories(Quantum-Abysmal PUBLIC
 if(APPLE)
     target_link_libraries(Quantum-Abysmal
         OpenMP::OpenMP_CXX
-        ZLIB::ZLIB
-        ${HDF5_LIB_DIR}/libhdf5_cpp.a
-        ${HDF5_LIB_DIR}/libhdf5.a
+        HDF5::HDF5
     )
 else()
     target_link_libraries(Quantum-Abysmal
         OpenMP::OpenMP_CXX
-        ZLIB::ZLIB
+        HDF5::HDF5
         CUDA::cudart
         CUDA::curand
-        ${HDF5_LIB_DIR}/libhdf5_cpp.a
-        ${HDF5_LIB_DIR}/libhdf5.a
     )
 endif()
 

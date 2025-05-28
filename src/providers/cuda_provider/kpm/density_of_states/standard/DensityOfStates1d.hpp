@@ -30,6 +30,7 @@ class DensityOfStates1dGpuStandard : public DensityOfStates
     Error SetNumberOfRandomVectors(size_t numVectors) override;
     Error SetNumberOfMoments(size_t order) override;
     std::vector<double> Compute() override;
+    Error Save() const override;
 
     virtual ~DensityOfStates1dGpuStandard() override;
 
