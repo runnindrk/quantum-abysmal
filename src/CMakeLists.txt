@@ -37,14 +37,18 @@ if(APPLE)
     set(OpenMP_CXX_LIBRARY /opt/homebrew/opt/libomp/lib/libomp.dylib)
 endif()
 
-if(APPLE)
-    find_package(OpenMP REQUIRED)
-    find_package(HDF5 REQUIRED)
-else()
-    find_package(OpenMP REQUIRED)
-    find_package(HDF5 REQUIRED)
+# -------------------------------------------------------------------------------------------------
+# Requirements
+
+find_package(OpenMP REQUIRED)
+find_package(HDF5 REQUIRED)
+find_package(ROOT REQUIRED CONFIG)
+
+if(NOT APPLE)
     find_package(CUDAToolkit REQUIRED)
 endif()
+
+# -------------------------------------------------------------------------------------------------
 
 if(APPLE)
     set(COMMON_OPT_FLAGS "-O3 -funroll-loops -march=native ${OpenMP_CXX_FLAGS}")
@@ -63,6 +67,9 @@ else()
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${COMMON_OPT_FLAGS}")
 endif()
 
+# -------------------------------------------------------------------------------------------------
+# Include source files
+
 file(
     GLOB_RECURSE QUANTUM_ABYSMAL_SOURCES
 
@@ -77,8 +84,8 @@ file(
     ${CMAKE_CURRENT_SOURCE_DIR}/math/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/math/**/*.cpp
 
-    # ${CMAKE_CURRENT_SOURCE_DIR}/plotting/*.cpp
-    # ${CMAKE_CURRENT_SOURCE_DIR}/plotting/**/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/plotting/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/plotting/**/*.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/storage/**/*.cpp
@@ -108,6 +115,8 @@ else()
     list(APPEND QUANTUM_ABYSMAL_SOURCES ${CUDA_SOURCES})
 endif()
 
+# -------------------------------------------------------------------------------------------------
+
 if(NOT APPLE)
     set_source_files_properties(${QUANTUM_ABYSMAL_SOURCES} PROPERTIES LANGUAGE CUDA)
 endif()
@@ -127,25 +136,33 @@ target_compile_definitions(
     $<$<BOOL:${ERROR_LOGGING_ENABLED}>:ERROR_LOGGING_ENABLED>
 )
 
+# -------------------------------------------------------------------------------------------------
+# Include headers
+
 target_include_directories(Quantum-Abysmal PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}
-    ${HDF5_INCLUDE_DIR}
+    ${HDF5_INCLUDE_DIRS}
+    ${ROOT_INCLUDE_DIRS}
 )
 
-if(APPLE)
+# -------------------------------------------------------------------------------------------------
+# Link libraries
+
+target_link_libraries(Quantum-Abysmal
+    OpenMP::OpenMP_CXX
+    ${HDF5_LIBRARIES}
+    ${ROOT_LIBRARIES}
+)
+
+if(NOT APPLE)
     target_link_libraries(Quantum-Abysmal
-        OpenMP::OpenMP_CXX
-        HDF5::HDF5
-    )
-else()
-    target_link_libraries(Quantum-Abysmal
-        OpenMP::OpenMP_CXX
-        HDF5::HDF5
         CUDA::cudart
         CUDA::curand
     )
 endif()
+
+# -------------------------------------------------------------------------------------------------
 
 set_target_properties(Quantum-Abysmal PROPERTIES PREFIX "" OUTPUT_NAME "libquantum-abysmal")
 install(TARGETS Quantum-Abysmal DESTINATION ${CMAKE_SOURCE_DIR}/_lib)

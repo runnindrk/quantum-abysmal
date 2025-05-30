@@ -1,32 +1,67 @@
-# Required packages
+# Quantum-Abysmal
 
-# -------------------------------------------------------------------------------------------------
-# If WSL/Linux build
+## Required Packages
 
-# CUDA Toolkit 
-https://developer.nvidia.com/cuda-downloads
+### Building on WSL/Linux
 
-# OpenMP
+- **CUDA Toolkit**  
+  https://developer.nvidia.com/cuda-downloads
 
-# HDF5
+- **OpenMP**  
+  Usually comes with GCC. Ensure GCC is installed:
+  ```bash  
+  `sudo apt install build-essential`
+  ```
 
-# Google Test
-sudo apt install libgtest-dev
+- **HDF5**  
+  ```bash
+  sudo apt install libhdf5-dev
+  ```
 
-# -------------------------------------------------------------------------------------------------
-# If Apple build
+- **Google Test**  
+  ```bash
+  sudo apt install libgtest-dev
+  ```
 
-# OpenMP
-brew install libomp
+- **ROOT (via binaries)**  
+  ```bash
+  wget https://root.cern/download/root_v6.30.06.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
+  tar -xzf root_v6.30.06.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
+  mv root_v6.30.06.Linux* $HOME/root
+  source $HOME/root/bin/thisroot.sh
+  ```
 
-# HDF5 
-brew install hdf5
+> **Note:** CMake may prompt you to install additional dependencies. Follow its suggestions.
 
-# Google Test
-brew install googletest
+---
 
-# -------------------------------------------------------------------------------------------------
-# Build Quantum-Abysmal
+### Building on macOS
 
-sudo cmake -DINFO_LOGGING_ENABLED=ON -S . -B _build && sudo cmake --build _build && sudo cmake --install _build <br>
-sudo cmake -DINFO_LOGGING_ENABLED=ON -DCMAKE_CUDA_ARCHITECTURES=86 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -S . -B _build && sudo cmake --build _build && sudo cmake --install _build <br>
+- **OpenMP**  
+  ```bash
+  brew install libomp
+  ```
+
+- **HDF5**  
+  ```bash
+  brew install hdf5
+  ```
+
+- **Google Test**  
+  ```bash
+  brew install googletest
+  ```
+
+- **ROOT**
+
+---
+
+## Building Quantum-Abysmal
+
+### On WSL/Linux
+
+```bash
+sudo cmake -DINFO_LOGGING_ENABLED=ON -DCMAKE_PREFIX_PATH=$HOME/root -S . -B _build
+sudo cmake --build _build
+sudo cmake --install _build
+```

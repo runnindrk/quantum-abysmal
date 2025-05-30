@@ -18,7 +18,7 @@
 #include "../src/providers/KernelPolynomialMethodFactory.hpp"
 #include "../src/providers/LinearAlgebraFactory.hpp"
 #include "../src/providers/RngFactory.hpp"
-// #include "../src/plotting/PlotFactory.hpp"
+#include "../src/plotting/PlotFactory.hpp"
 // #include "../src/storage/StorageImpl.hpp"
 
 Lattice::Uptr QuantumAbysmalContextImpl::GetLatticeMethods()
@@ -43,8 +43,7 @@ RngMethod::Uptr QuantumAbysmalContextImpl::GetRngMethods()
 
 Plotting::Uptr QuantumAbysmalContextImpl::GetPlotMethods()
 {
-    // return std::make_unique<PlottingFactory>();
-    return nullptr;
+    return std::make_unique<PlottingFactory>();
 }
 
 Storage::Uptr QuantumAbysmalContextImpl::GetStorageMethods()
