@@ -20,8 +20,9 @@
 
 class PlottingFactory : public Plotting
 {
-  public:
-    Error PlotDensityOfStates(std::vector<double> moments) override;
+    public:
+    
+    Result<void> PlotDensityOfStates(std::vector<std::array<double, 2>> DensityOfStates) override;
 };
 
 #endif

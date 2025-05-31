@@ -15,6 +15,9 @@
 
 #include "RngEngineImpl.hpp"
 
+// -------------------------------------------------------------------------------------------------
+// Constructors
+
 RngCpuEngine& RngCpuEngine::GetInstance()
 {
     static RngCpuEngine instance;
@@ -29,18 +32,13 @@ RngCpuEngine::~RngCpuEngine()
 {
 }
 
+// -------------------------------------------------------------------------------------------------
+// Interface
+
 std::vector<double> RngCpuEngine::GetRandomVector(unsigned int size)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<> dist(0.0, pow(2.0 / 3.0, 1.0 / 4.0));
-
     std::vector<double> numbers(size);
-
-    for (auto& num : numbers)
-    {
-        num = dist(gen);
-    }
+    GetRandomVector(numbers.data(), numbers.size());
 
     return numbers;
 }
@@ -50,7 +48,27 @@ std::vector<unsigned int> RngCpuEngine::GetRandomBitsVector(unsigned int size)
     return {};
 }
 
-void RngCpuEngine::SetSeed(unsigned int seed)
+Error RngCpuEngine::SetSeed(unsigned int seed)
+{
+    return SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
+// Internal public functions.
+
+void RngCpuEngine::GetRandomVector(double* cpuBuffer, unsigned int bufferSize)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> dist(0.0, pow(2.0 / 3.0, 1.0 / 4.0));
+
+    for (int i = 0; i < bufferSize; i++)
+    {
+        cpuBuffer[i] = dist(gen);
+    }
+}
+
+void RngCpuEngine::GetRandomBitsVector(unsigned int* cpuBuffer, unsigned int bufferSize)
 {
     
 }

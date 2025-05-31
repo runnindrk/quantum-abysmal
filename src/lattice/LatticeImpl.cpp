@@ -16,7 +16,7 @@
 #include "LatticeImpl.hpp"
 
 // NOTE: This class is internally read only. No need for locks and mutex (I think).
-// TODO: Error Handling.
+// TODO: Result<void> Handling.
 
 LatticeStructure LatticeImpl::mLattice;
 
@@ -26,7 +26,7 @@ LatticeImpl& LatticeImpl::GetInstance()
     return instance;
 }
 
-Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+Result<void> LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
                               double hoppingStrength)
 {
     LOG_WARN << "Please be sure to call your AddHoppings in sequence!";
@@ -34,13 +34,13 @@ Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 
     if (mIsAnyOtherFunctionCalled)
     {
         LOG_ERROR << "inserting AddHopping after calling other functions is not allowed.";
-        return FUNCTION_CALL_ORDER_ERROR;
+        return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
     }
 
     if (latticeHop.size() == 0 || latticeHop.size() > 3)
     {
         LOG_ERROR << "Unsupported dimensions.";
-        return DIMENSION_ERROR;
+        return Result<void>::SetError(DIMENSION_ERROR);
     }
 
     mLattice.dimension = latticeHop.size();
@@ -64,14 +64,14 @@ Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 
     if (firstOrbital == orbitalMapToInt.end())
     {
         LOG_ERROR << "Map to internal hopping not found!";
-        return RUNTIME_ERROR;
+        return Result<void>::SetError(RUNTIME_ERROR);
     }
 
     auto secondOrbital = orbitalMapToInt.find(orbitalHop[1]);
     if (secondOrbital == orbitalMapToInt.end())
     {
         LOG_ERROR << "Map to internal hopping not found!";
-        return RUNTIME_ERROR;
+        return Result<void>::SetError(RUNTIME_ERROR);
     }
 
     // ------------------------------------------------------------------------
@@ -109,21 +109,21 @@ Error LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 
 
     mIsAddHoppingCalled = true;
 
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
+Result<void> LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
 {
     if (!mIsAddHoppingCalled)
     {
         LOG_ERROR << "AddHopping was not called. Cannot determine dimensions.";
-        return FUNCTION_CALL_ORDER_ERROR;
+        return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
     }
 
     if (lateralSizes.size() != mLattice.dimension)
     {
         LOG_ERROR << "Wrong set of dimensions.";
-        return DIMENSION_ERROR;
+        return Result<void>::SetError(DIMENSION_ERROR);
     }
 
     for (int i = 0; i < lateralSizes.size(); i++)
@@ -139,15 +139,15 @@ Error LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
     mLattice.hamiltonianSize = mLattice.numberOfOrbitals * mLattice.numberOfSites;
     mIsAnyOtherFunctionCalled = true;
 
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
+Result<void> LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
 {
     if (!mIsAddHoppingCalled)
     {
         LOG_ERROR << "AddHopping was not called. Cannot resize hoppings.";
-        return FUNCTION_CALL_ORDER_ERROR;
+        return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
     }
 
     // I still need to check for shifts != 0.
@@ -164,13 +164,13 @@ Error LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
 
     mIsAnyOtherFunctionCalled = true;
 
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
+Result<void> LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 {
     mLattice.boundaryType = boundaryType;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
 // ----------------------------------------------------------------------------
@@ -181,9 +181,9 @@ LatticeStructure LatticeImpl::GetLattice()
     return mLattice;
 }
 
-Error LatticeImpl::PrintLatticeInformation()
+Result<void> LatticeImpl::PrintLatticeInformation()
 {
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
 // ----------------------------------------------------------------------------

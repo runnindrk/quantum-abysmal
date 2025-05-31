@@ -15,6 +15,9 @@
 
 #include "RngEngineImpl.hpp"
 
+// -------------------------------------------------------------------------------------------------
+// Constructors
+
 RngGpuEngine& RngGpuEngine::GetInstance()
 {
     static RngGpuEngine instance;
@@ -33,7 +36,7 @@ RngGpuEngine::~RngGpuEngine()
 }
 
 // -------------------------------------------------------------------------------------------------
-// Interface.
+// Interface
 
 std::vector<double> RngGpuEngine::GetRandomVector(unsigned int size)
 {
@@ -77,9 +80,10 @@ std::vector<unsigned int> RngGpuEngine::GetRandomBitsVector(unsigned int size)
     return numbers;
 }
 
-void RngGpuEngine::SetSeed(unsigned int seed)
+Error RngGpuEngine::SetSeed(unsigned int seed)
 {
     mSeed = seed;
+    return SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------

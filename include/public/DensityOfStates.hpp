@@ -19,41 +19,35 @@
 #include "ErrorHandler.hpp"
 #include "QuantumAbysmalTypes.hpp"
 
-#include <memory>
-#include <vector>
-
 class DensityOfStates
 {
-  public:
+    public:
+
     using Uptr = std::unique_ptr<DensityOfStates>;
 
     /// @brief Set the number of random vectors to use for the DoS computation.
     /// @param numVectors The number of random vectors.
-    virtual Error SetNumberOfRandomVectors(size_t numVectors) = 0;
+    virtual Result<void> SetDomainDecomposition(std::vector<uint32_t> numDomains) = 0;
+
+    /// @brief Set the number of random vectors to use for the DoS computation.
+    /// @param numVectors The number of random vectors.
+    virtual Result<void> SetNumberOfRandomVectors(size_t numVectors) = 0;
 
     /// @brief Set the number of polynomials for the KPM.
     /// @param order The polynomial order.
-    virtual Error SetNumberOfMoments(size_t order) = 0;
+    virtual Result<void> SetNumberOfMoments(size_t order) = 0;
 
     /// @brief Perform the DoS moments computation.
-    virtual std::vector<double> Compute() = 0;
+    virtual Result<std::vector<double>> ComputeMoments() = 0;
 
-    /// @brief Retrieve the computed moments.
-    /// @return A vector containing the moments values.
-    // virtual std::vector<double> GetMoments() const = 0;
-
-    /// @brief Retrieve the computed DoS.
-    /// @return A vector containing the DoS values.
-    // virtual std::vector<double> CreateDoSCtx(size_t numPoints) const = 0;
-
-    /// @brief Save the computed moments.
-    // virtual Error SaveMoments() const = 0;
+    /// @brief Perform the DoS moments computation.
+    virtual Result<std::vector<double>> ComputeDoS(uint32_t numPoints) = 0;
 
     /// @brief Save the computed DoS.
-    virtual Error Save() const = 0;
+    virtual Result<void> Save() = 0;
 
     /// @brief Plot the computed DoS.
-    // virtual Error PlotDoS() const = 0;
+    virtual Result<void> PlotDoS() = 0;
 
     virtual ~DensityOfStates() = default;
 };

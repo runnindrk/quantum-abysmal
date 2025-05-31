@@ -14,7 +14,6 @@
 // ================================================================================================
 
 #include "Math.hpp"
-#include <cmath>
 
 double Math::ChebyshevPolynomial(int n, double x)
 {

@@ -22,19 +22,24 @@ DensityOfStates1dGpuStandard::~DensityOfStates1dGpuStandard()
 
 }
 
-Error DensityOfStates1dGpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Result<void> DensityOfStates1dGpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
+{
+    return Result<void>::SetError(NOT_SUPPORTED);
+}
+
+Result<void> DensityOfStates1dGpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     mNumRandomVectors = numVectors;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error DensityOfStates1dGpuStandard::SetNumberOfMoments(size_t order)
+Result<void> DensityOfStates1dGpuStandard::SetNumberOfMoments(size_t order)
 {
     mNumOfMoments = order;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-std::vector<double> DensityOfStates1dGpuStandard::Compute()
+Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
 {
     // ------------------------------------------------------------------------
     // Output info.
@@ -108,12 +113,22 @@ std::vector<double> DensityOfStates1dGpuStandard::Compute()
 
     std::vector<double> momentsToReturn;
     momentsToReturn.assign(moments, moments + mNumOfMoments);
-    return momentsToReturn;
+    return Result<std::vector<double>>::SetValue(momentsToReturn);
 }
 
-Error DensityOfStates1dGpuStandard::Save() const
+Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    return SUCCESS;
+    return Result<std::vector<double>>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates1dGpuStandard::Save()
+{
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates1dGpuStandard::PlotDoS()
+{
+    return Result<void>::SetError(SUCCESS);
 }
 
 // -------------------------------------------------------------------------------------------------

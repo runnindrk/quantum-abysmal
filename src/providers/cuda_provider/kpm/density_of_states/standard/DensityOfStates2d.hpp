@@ -26,13 +26,18 @@
 
 class DensityOfStates2dGpuStandard : public DensityOfStates
 {
-  public:
-    Error SetNumberOfRandomVectors(size_t numVectors) override;
-    Error SetNumberOfMoments(size_t order) override;
-    std::vector<double> Compute() override;
-    Error Save() const override;
+    public:
+    
+    Result<void> SetDomainDecomposition(std::vector<uint32_t> numDomains) override;
+    Result<void> SetNumberOfRandomVectors(size_t numVectors) override;
+    Result<void> SetNumberOfMoments(size_t order) override;
+    Result<std::vector<double>> ComputeMoments() override;
+    Result<std::vector<double>> ComputeDoS(uint32_t numPoints) override;
+    Result<void> Save() override;
+    Result<void> PlotDoS() override;
 
-  private:
+    private:
+    
     // ------------------------------------------------------------------------
     // Private methods.
 

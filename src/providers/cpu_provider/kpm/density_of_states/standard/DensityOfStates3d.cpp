@@ -15,24 +15,39 @@
 
 #include "DensityOfStates3d.hpp"
 
-Error DensityOfStates3dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Result<void> DensityOfStates3dCpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
+{
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates3dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     LOG_INFO << "Hello from DoS 3D on CPU/STANDARD!";
     LOG_INFO << "Number of Orbitals : " << LatticeImpl::GetInstance().GetLattice().numberOfOrbitals;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error DensityOfStates3dCpuStandard::SetNumberOfMoments(size_t order)
+Result<void> DensityOfStates3dCpuStandard::SetNumberOfMoments(size_t order)
 {
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-std::vector<double> DensityOfStates3dCpuStandard::Compute()
+Result<std::vector<double>> DensityOfStates3dCpuStandard::ComputeMoments()
 {
-    return {};
+    return Result<std::vector<double>>::SetError(SUCCESS);
 }
 
-Error DensityOfStates3dCpuStandard::Save() const
+Result<std::vector<double>> DensityOfStates3dCpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    return SUCCESS;
+    return Result<std::vector<double>>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates3dCpuStandard::Save()
+{
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates3dCpuStandard::PlotDoS()
+{
+    return Result<void>::SetError(SUCCESS);
 }

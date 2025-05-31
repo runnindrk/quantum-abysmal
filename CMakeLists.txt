@@ -19,7 +19,7 @@ project(Quantum-Abysmal)
 option(DEBUG_LOGGING_ENABLED "Enable DEBUG level logging" OFF)
 option(INFO_LOGGING_ENABLED "Enable INFO level logging" OFF)
 option(WARN_LOGGING_ENABLED "Enable WARN level logging" OFF)
-option(ERROR_LOGGING_ENABLED "Enable ERROR level logging" OFF)
+option(ERROR_LOGGING_ENABLED "Enable Result<void> level logging" OFF)
 
 message(STATUS "DEBUG_LOGGING_ENABLED: ${DEBUG_LOGGING_ENABLED}")
 message(STATUS "INFO_LOGGING_ENABLED: ${INFO_LOGGING_ENABLED}")

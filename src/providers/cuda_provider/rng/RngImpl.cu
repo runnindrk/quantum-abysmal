@@ -18,17 +18,17 @@
 // -------------------------------------------------------------------------------------------------
 // Interface.
 
-std::vector<double> RngGpuStandard::GetRandomVector(unsigned int size)
+Result<std::vector<double>> RngGpuStandard::GetRandomVector(unsigned int size)
 {
-    return RngGpuEngine::GetInstance().GetRandomVector(size);
+    return Result<std::vector<double>>::SetValue(RngGpuEngine::GetInstance().GetRandomVector(size));
 }
 
-std::vector<unsigned int> RngGpuStandard::GetRandomBitsVector(unsigned int size)
+Result<std::vector<unsigned int>> RngGpuStandard::GetRandomBitsVector(unsigned int size)
 {
-    return RngGpuEngine::GetInstance().GetRandomBitsVector(size);
+    return Result<std::vector<unsigned int>>::SetValue(RngGpuEngine::GetInstance().GetRandomBitsVector(size));
 }
 
-void RngGpuStandard::SetSeed(unsigned int seed)
+Result<void> RngGpuStandard::SetSeed(unsigned int seed)
 {
-    RngGpuEngine::GetInstance().SetSeed(seed);
+    return Result<void>::SetError(RngGpuEngine::GetInstance().SetSeed(seed));
 }

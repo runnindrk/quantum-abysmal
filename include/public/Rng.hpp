@@ -32,16 +32,16 @@ class RandomNumberGenerator
     /// @brief Get a random vector.
     /// @param size Size of the random vector.
     /// @return A random number.
-    virtual std::vector<double> GetRandomVector(unsigned int size) = 0;
+    virtual Result<std::vector<double>> GetRandomVector(unsigned int size) = 0;
 
     /// @brief Get a random vector of bits.
     /// @param size Size of the random vector.
     /// @return A random number.
-    virtual std::vector<unsigned int> GetRandomBitsVector(unsigned int size) = 0;
+    virtual Result<std::vector<unsigned int>> GetRandomBitsVector(unsigned int size) = 0;
 
     /// @brief Set the seed for RNG.
     /// @param seed Seed.
-    virtual void SetSeed(unsigned int seed) = 0;
+    virtual Result<void> SetSeed(unsigned int seed) = 0;
 
     virtual ~RandomNumberGenerator() = default;
 };

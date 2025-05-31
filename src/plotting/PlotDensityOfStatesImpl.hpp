@@ -23,8 +23,9 @@
 
 class PlotDensityOfStatesImpl
 {
-  public:
-    Error Plot(std::vector<double> moments);
+    public:
+    
+    Result<void> Plot(std::vector<std::array<double, 2>> DensityOfStates);
 };
 
 #endif

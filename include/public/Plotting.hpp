@@ -29,8 +29,8 @@ class Plotting
 
     // In the distant future, this will change because there are several methods for the DoS
     /// @brief Plot the Density of States.
-    /// @param moments Kernel Polynomial Method moments.
-    virtual Error PlotDensityOfStates(std::vector<double> moments) = 0;
+    /// @param DensityOfStates
+    virtual Result<void> PlotDensityOfStates(std::vector<std::array<double, 2>> DensityOfStates) = 0;
 
     virtual ~Plotting() = default;
 };

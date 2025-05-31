@@ -1,4 +1,5 @@
 BasedOnStyle: llvm
+AccessModifierOffset: 0
 BraceWrapping:
   AfterFunction: true
   AfterClass: true
@@ -8,7 +9,7 @@ BraceWrapping:
   AfterUnion: true
   BeforeElse: true
   IndentBraces: false
-ColumnLimit: 100
+ColumnLimit: 140
 IndentWidth: 4
 AllowShortFunctionsOnASingleLine: false
 BreakBeforeBraces: Allman

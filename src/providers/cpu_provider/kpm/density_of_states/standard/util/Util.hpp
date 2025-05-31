@@ -1,4 +1,4 @@
-//============================================================================
+// ================================================================================================
 // Copyright (c) 2024, runnindrk
 //
 // This file is part of Quantum Abysmal.
@@ -7,15 +7,15 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
-//============================================================================
+// ================================================================================================
 
 #ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_1D_CPU_UTIL_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_1D_CPU_UTIL_STANDARD_HPP
 
-int maxOutNumThreads(int n);
+#define ARRAY_IDX(x, y, hx, hy, o) (numOrbitals * ((x + hx) + (y + hy) * xGhostedSize) + o)
 
 #endif

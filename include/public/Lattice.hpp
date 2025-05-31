@@ -40,21 +40,21 @@ class Lattice
     /// @param latticeHop hopping struct.
     /// @param orbitalHop hopping struct.
     /// @param hoppingStrength hopping struct.
-    virtual Error AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+    virtual Result<void> AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
                              double hoppingStrength) = 0;
 
     /// @brief Set the size of the lattice in each dimension.
     /// @param sizes A vector containing the size of the lattice in each dimension.
-    virtual Error SetLatticeSize(std::vector<uint32_t> lateralSizes) = 0;
+    virtual Result<void> SetLatticeSize(std::vector<uint32_t> lateralSizes) = 0;
 
     /// @brief Set the range of the spectrum for resizing.
     /// @param minEnergy The minimum energy.
     /// @param maxEnergy The maximum energy.
-    virtual Error SetEnergyRange(double minEnergy, double maxEnergy) = 0;
+    virtual Result<void> SetEnergyRange(double minEnergy, double maxEnergy) = 0;
 
     /// @brief Set the boundary type of the lattice.
     /// @param boundaryType The boundary type (PERIODIC, TWISTED, OPEN).
-    virtual Error SetBoundaryType(BoundaryType boundaryType) = 0;
+    virtual Result<void> SetBoundaryType(BoundaryType boundaryType) = 0;
 
     virtual ~Lattice() = default;
 };

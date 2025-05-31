@@ -15,72 +15,42 @@
 
 #include "PlotDensityOfStatesImpl.hpp"
 #include "src/lattice/LatticeImpl.hpp"
+#include "src/math/Math.hpp"
 
 #include "TApplication.h"
 #include "TCanvas.h"
 #include "TGraph.h"
 
-#include <cmath>
-
+// ------------------------------------------------------------------------------------------------
 // NOTE: All of this is provisionary. Only to have the first plots.
 
-double chebyshevPolynomial(int n, double x)
-{
-    return cos(n * acos(x));
-}
-
-double jacksonKernel(int n, int N)
-{
-    double factor1 = (N - n + 1) * cos(M_PI * n / (N + 1));
-    double factor2 = sin(M_PI * n / (N + 1)) * cos(M_PI / (N + 1)) / sin(M_PI / (N + 1));
-    return (factor1 + factor2) / (N + 1);
-}
-
-Error PlotDensityOfStatesImpl::Plot(std::vector<double> moments)
+Result<void> PlotDensityOfStatesImpl::Plot(std::vector<std::array<double, 2>> DensityOfStates)
 {
     LOG_INFO << "Hello from DoS plot!";
 
     int fakeArgc = 0;
     char* fakeArgv[] = {(char*)""};
-
     TApplication theApp("App", &fakeArgc, fakeArgv);
 
-    LatticeStructure lattice = LatticeImpl::GetInstance().GetLattice();
+    // Extract energies and dos into separate vectors
+    std::vector<double> energies;
+    std::vector<double> dosValues;
+    energies.reserve(DensityOfStates.size());
+    dosValues.reserve(DensityOfStates.size());
 
-    double dos[200000];
-    double energy[200000];
-
-    for (int i = 0; i < 200000; i++)
+    for (const auto& pair : DensityOfStates)
     {
-        double E = -0.999 + i * (2 * 0.999) / (200000 - 1);
-
-        for (int j = 0; j < moments.size(); j++)
-        {
-            if (j == 0)
-            {
-                dos[i] += moments[j];
-            }
-
-            else
-            {
-                dos[i] +=
-                    2 * moments[j] * jacksonKernel(j, moments.size()) * chebyshevPolynomial(j, E);
-            }
-        }
-
-        dos[i] *= 1 / (3.141592 * (sqrt(1 - E * E)));
-
-        energy[i] = E * lattice.energyScaling + lattice.energyShift;
-        dos[i] = dos[i] / lattice.energyScaling + lattice.energyShift;
+        energies.push_back(pair[0]);
+        dosValues.push_back(pair[1]);
     }
 
-    auto g = new TGraph(200000, energy, dos);
-    g->SetTitle("Graph title;X title;Y title");
+    auto g = new TGraph(DensityOfStates.size(), energies.data(), dosValues.data());
+    g->SetTitle("Graph title;Energy;Density of States");
 
     TCanvas* c = new TCanvas("c", "Canvas", 800, 600);
     g->Draw("AL");
 
-    theApp.Run();
+    theApp.Run(kTRUE);
 
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }

@@ -16,9 +16,12 @@
 #ifndef QUANTUM_ABYSMAL_SRC_MATH_HPP
 #define QUANTUM_ABYSMAL_SRC_MATH_HPP
 
+#include "include/public/ErrorHandler.hpp"
+#include "include/public/QuantumAbysmalTypes.hpp"
+
 class Math
 {
-  public:
+    public:
     
     static double ChebyshevPolynomial(int n, double x);
     static double JacksonKernel(int n, int N);

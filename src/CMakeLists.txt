@@ -42,7 +42,7 @@ endif()
 
 find_package(OpenMP REQUIRED)
 find_package(HDF5 REQUIRED)
-find_package(ROOT REQUIRED CONFIG)
+find_package(ROOT REQUIRED COMPONENTS RIO Net Tree MathCore Hist Graf Graf3d Gpad ROOTDataFrame Gui)
 
 if(NOT APPLE)
     find_package(CUDAToolkit REQUIRED)

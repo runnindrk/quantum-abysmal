@@ -18,17 +18,17 @@
 // -------------------------------------------------------------------------------------------------
 // Interface.
 
-std::vector<double> RngCpuStandard::GetRandomVector(unsigned int size)
+Result<std::vector<double>> RngCpuStandard::GetRandomVector(unsigned int size)
 {
-    return RngCpuEngine::GetInstance().GetRandomVector(size);
+    return Result<std::vector<double>>::SetValue(RngCpuEngine::GetInstance().GetRandomVector(size));
 }
 
-std::vector<unsigned int> RngCpuStandard::GetRandomBitsVector(unsigned int size)
+Result<std::vector<unsigned int>> RngCpuStandard::GetRandomBitsVector(unsigned int size)
 {
-    return RngCpuEngine::GetInstance().GetRandomBitsVector(size);
+    return Result<std::vector<unsigned int>>::SetValue(RngCpuEngine::GetInstance().GetRandomBitsVector(size));
 }
 
-void RngCpuStandard::SetSeed(unsigned int seed)
+Result<void> RngCpuStandard::SetSeed(unsigned int seed)
 {
-    RngCpuEngine::GetInstance().SetSeed(seed);
+    return Result<void>::SetError(RngCpuEngine::GetInstance().SetSeed(seed));
 }

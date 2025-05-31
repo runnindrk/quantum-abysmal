@@ -26,23 +26,25 @@
 
 class LatticeImpl : public Lattice
 {
-  public:
+    public:
+
     // Singleton for thread safety access
     static LatticeImpl& GetInstance();
 
-    Error AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
+    Result<void> AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
                     double hoppingStrength) override;
-    Error SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
-    Error SetEnergyRange(double minEnergy, double maxEnergy) override;
-    Error SetBoundaryType(BoundaryType boundaryType) override;
+    Result<void> SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
+    Result<void> SetEnergyRange(double minEnergy, double maxEnergy) override;
+    Result<void> SetBoundaryType(BoundaryType boundaryType) override;
 
     // ------------------------------------------------------------------------
     // Internal methods.
 
     LatticeStructure GetLattice();
-    Error PrintLatticeInformation();
+    Result<void> PrintLatticeInformation();
 
-  private:
+    private:
+    
     // ------------------------------------------------------------------------
     // Private methods.
 

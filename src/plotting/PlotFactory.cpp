@@ -18,8 +18,8 @@
 
 #include "include/internal/Logger.hpp"
 
-Error PlottingFactory::PlotDensityOfStates(std::vector<double> moments)
+Result<void> PlottingFactory::PlotDensityOfStates(std::vector<std::array<double, 2>> DensityOfStates)
 {
     PlotDensityOfStatesImpl instance;
-    return instance.Plot(moments);
+    return instance.Plot(DensityOfStates);
 }

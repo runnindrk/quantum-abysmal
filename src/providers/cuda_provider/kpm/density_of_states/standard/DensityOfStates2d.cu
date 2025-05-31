@@ -17,19 +17,24 @@
 
 #include <chrono>
 
-Error DensityOfStates2dGpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Result<void> DensityOfStates2dGpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
+{
+    return Result<void>::SetError(NOT_SUPPORTED);
+}
+
+Result<void> DensityOfStates2dGpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     mNumRandomVectors = numVectors;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error DensityOfStates2dGpuStandard::SetNumberOfMoments(size_t order)
+Result<void> DensityOfStates2dGpuStandard::SetNumberOfMoments(size_t order)
 {
     mNumOfMoments = order;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-std::vector<double> DensityOfStates2dGpuStandard::Compute()
+Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
 {
     // ------------------------------------------------------------------------
     // Output info.
@@ -104,12 +109,22 @@ std::vector<double> DensityOfStates2dGpuStandard::Compute()
 
     std::vector<double> momentsToReturn;
     momentsToReturn.assign(moments, moments + mNumOfMoments);
-    return momentsToReturn;
+    return Result<std::vector<double>>::SetValue(momentsToReturn);
 }
 
-Error DensityOfStates2dGpuStandard::Save() const
+Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    return SUCCESS;
+    return Result<std::vector<double>>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates2dGpuStandard::Save()
+{
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates2dGpuStandard::PlotDoS()
+{
+    return Result<void>::SetError(SUCCESS);
 }
 
 // -------------------------------------------------------------------------------------------------

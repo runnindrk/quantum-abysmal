@@ -24,7 +24,7 @@
 
 class RngCpuEngine
 {
-  public:
+    public:
 
     static RngCpuEngine& GetInstance();
 
@@ -33,10 +33,14 @@ class RngCpuEngine
 
     std::vector<double> GetRandomVector(unsigned int size);
     std::vector<unsigned int> GetRandomBitsVector(unsigned int size);
-    void SetSeed(unsigned int seed);
+    Error SetSeed(unsigned int seed);
 
-  private:
-  
+    void GetRandomVector(double* cpuBuffer, unsigned int bufferSize);
+    void GetRandomBitsVector(unsigned int* cpuBuffer, unsigned int bufferSize);
+
+    private:
+    
+    unsigned int mSeed;
 };
 
 #endif

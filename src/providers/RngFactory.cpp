@@ -22,8 +22,8 @@ RngFactory::CreateRngCtx(ProviderImplementation implementation)
     {
     case CPU_STANDARD_IMPL:
         return std::make_unique<RngCpuStandard>();
-    // case GPU_STANDARD_IMPL:
-    //     return std::make_unique<RngGpuStandard>();
+    case GPU_STANDARD_IMPL:
+        return std::make_unique<RngGpuStandard>();
     case CPU_DUMMY_IMPL:
         return nullptr;
     case GPU_DUMMY_IMPL:

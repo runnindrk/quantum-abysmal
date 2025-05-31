@@ -31,34 +31,71 @@ protected:
 
 TEST_F(QuantumAbysmalTest, GrapheneModel_DensityOfStates) 
 {
+    // --------------------------------------------------------------------------------------------
     // Get context
+
     auto abysmalCtx = GetQuantumAbysmalContext();
     ASSERT_NE(abysmalCtx, nullptr);
 
     auto latticeCtx = abysmalCtx->GetLatticeMethods();
     ASSERT_NE(latticeCtx, nullptr);
 
-    // Graphene model hoppings
-    EXPECT_NO_THROW(latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1));
-    EXPECT_NO_THROW(latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1));
-    EXPECT_NO_THROW(latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1));
+    auto plottingCtx = abysmalCtx->GetPlotMethods();
+    ASSERT_NE(plottingCtx, nullptr);
 
+    // --------------------------------------------------------------------------------------------
+    // Set Graphene Model lattice hoppings
+
+    auto res1 = latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
+    EXPECT_EQ(res1.ErrorCode, SUCCESS);
+
+    auto res2 = latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
+    EXPECT_EQ(res2.ErrorCode, SUCCESS);
+
+    auto res3 = latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
+    EXPECT_EQ(res3.ErrorCode, SUCCESS);
+
+    // --------------------------------------------------------------------------------------------
     // Set lattice properties
-    EXPECT_NO_THROW(latticeCtx->SetLatticeSize({1024, 1024}));
-    EXPECT_NO_THROW(latticeCtx->SetEnergyRange(-3, 3));
-    EXPECT_NO_THROW(latticeCtx->SetBoundaryType(PERIODIC));
 
+    auto res4 = latticeCtx->SetLatticeSize({2048, 2048});
+    EXPECT_EQ(res4.ErrorCode, SUCCESS);
+
+    auto res5 = latticeCtx->SetEnergyRange(-3, 3);
+    EXPECT_EQ(res5.ErrorCode, SUCCESS);
+
+    auto res6 = latticeCtx->SetBoundaryType(PERIODIC);
+    EXPECT_EQ(res6.ErrorCode, SUCCESS);
+
+    // --------------------------------------------------------------------------------------------
     // DoS calculation
+
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     ASSERT_NE(kpmCtx, nullptr);
 
     auto dosCtx = kpmCtx->CreateDoSCtx(CPU_STANDARD_IMPL);
     ASSERT_NE(dosCtx, nullptr);
 
-    EXPECT_NO_THROW(dosCtx->SetNumberOfRandomVectors(1));
-    EXPECT_NO_THROW(dosCtx->SetNumberOfMoments(256));
-    EXPECT_NO_THROW(dosCtx->Compute());
-    EXPECT_NO_THROW(dosCtx->Save());
+    auto res7 = dosCtx->SetDomainDecomposition({2, 2});
+    EXPECT_EQ(res7.ErrorCode, SUCCESS);
+
+    auto res8 = dosCtx->SetNumberOfRandomVectors(1);
+    EXPECT_EQ(res8.ErrorCode, SUCCESS);
+
+    auto res9 = dosCtx->SetNumberOfMoments(512);
+    EXPECT_EQ(res9.ErrorCode, SUCCESS);
+
+    auto res10 = dosCtx->ComputeMoments();
+    EXPECT_EQ(res10.ErrorCode, SUCCESS);
+
+    auto res11 = dosCtx->ComputeDoS(200000);
+    EXPECT_EQ(res10.ErrorCode, SUCCESS);
+
+    auto res12 = dosCtx->Save();
+    EXPECT_EQ(res12.ErrorCode, SUCCESS);
+
+    auto res13 = dosCtx->PlotDoS();
+    EXPECT_EQ(res13.ErrorCode, SUCCESS);
 }
 
 TEST_F(QuantumAbysmalTest, DISABLED_BBHModel_DensityOfStates) 
@@ -105,7 +142,7 @@ TEST_F(QuantumAbysmalTest, DISABLED_BBHModel_DensityOfStates)
 
     EXPECT_NO_THROW(dosCtx->SetNumberOfRandomVectors(1));
     EXPECT_NO_THROW(dosCtx->SetNumberOfMoments(256));
-    EXPECT_NO_THROW(dosCtx->Compute());
+    EXPECT_NO_THROW(dosCtx->ComputeMoments());
     EXPECT_NO_THROW(dosCtx->Save());
 }
 
@@ -135,6 +172,6 @@ TEST_F(QuantumAbysmalTest, DISABLED_OneDTightBindingModel_DensityOfStates)
 
     EXPECT_NO_THROW(dosCtx->SetNumberOfRandomVectors(1));
     EXPECT_NO_THROW(dosCtx->SetNumberOfMoments(256));
-    EXPECT_NO_THROW(dosCtx->Compute());
+    EXPECT_NO_THROW(dosCtx->ComputeMoments());
     EXPECT_NO_THROW(dosCtx->Save());
 }

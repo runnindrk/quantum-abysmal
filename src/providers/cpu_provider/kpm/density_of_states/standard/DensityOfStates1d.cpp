@@ -15,24 +15,39 @@
 
 #include "DensityOfStates1d.hpp"
 
-Error DensityOfStates1dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Result<void> DensityOfStates1dCpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
+{
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates1dCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     LOG_INFO << "Hello from DoS 1D on CPU/STANDARD!";
     LOG_INFO << "Number of Orbitals : " << LatticeImpl::GetInstance().GetLattice().numberOfOrbitals;
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-Error DensityOfStates1dCpuStandard::SetNumberOfMoments(size_t order)
+Result<void> DensityOfStates1dCpuStandard::SetNumberOfMoments(size_t order)
 {
-    return SUCCESS;
+    return Result<void>::SetError(SUCCESS);
 }
 
-std::vector<double> DensityOfStates1dCpuStandard::Compute()
+Result<std::vector<double>> DensityOfStates1dCpuStandard::ComputeMoments()
 {
-    return {};
+    return Result<std::vector<double>>::SetError(SUCCESS);
 }
 
-Error DensityOfStates1dCpuStandard::Save() const
+Result<std::vector<double>> DensityOfStates1dCpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    return SUCCESS;
+    return Result<std::vector<double>>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates1dCpuStandard::Save()
+{
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStates1dCpuStandard::PlotDoS()
+{
+    return Result<void>::SetError(SUCCESS);
 }

@@ -16,9 +16,12 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_TYPES_HPP
 
+#include <cstring>
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <array>
+#include <cmath>
 
 typedef enum
 {

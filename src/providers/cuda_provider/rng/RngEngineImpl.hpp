@@ -36,7 +36,7 @@ class RngGpuEngine
 
     std::vector<double> GetRandomVector(unsigned int size);
     std::vector<unsigned int> GetRandomBitsVector(unsigned int size);
-    void SetSeed(unsigned int seed);
+    Error SetSeed(unsigned int seed);
 
     void GetRandomVector(double* gpuBuffer, unsigned int bufferSize);
     void GetRandomBitsVector(unsigned int* gpuBuffer, unsigned int bufferSize);

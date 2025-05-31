@@ -18,6 +18,9 @@
 
 #include "include/internal/Logger.hpp"
 
+#include <vector>
+#include <array>
+
 class StorageEngine
 {
   public:
@@ -25,7 +28,7 @@ class StorageEngine
     StorageEngine();
     ~StorageEngine();
 
-    static void SaveDoS();
+    static void SaveDoS(std::vector<double> moments, std::vector<std::array<double, 2>> densityOfStates);
     static void SaveLDoS();
 
   private:

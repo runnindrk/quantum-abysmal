@@ -10,7 +10,7 @@
 - **OpenMP**  
   Usually comes with GCC. Ensure GCC is installed:
   ```bash  
-  `sudo apt install build-essential`
+  sudo apt install build-essential
   ```
 
 - **HDF5**  
@@ -23,15 +23,17 @@
   sudo apt install libgtest-dev
   ```
 
-- **ROOT (via binaries)**  
+- **ROOT (via binaries)**
+  https://root.cern/install/
+    
+  This package may cause of lot of pain because of missing libraries or linkage. Please export the path.
   ```bash
-  wget https://root.cern/download/root_v6.30.06.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
-  tar -xzf root_v6.30.06.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
-  mv root_v6.30.06.Linux* $HOME/root
-  source $HOME/root/bin/thisroot.sh
+  sudo snap install root-framework
+  export LD_LIBRARY_PATH=/snap/root-framework/current/usr/local/lib:$LD_LIBRARY_PATH
   ```
 
 > **Note:** CMake may prompt you to install additional dependencies. Follow its suggestions.
+> **Note:** You may need an xServer, I recommend VcXsrv.
 
 ---
 
@@ -64,4 +66,11 @@
 sudo cmake -DINFO_LOGGING_ENABLED=ON -DCMAKE_PREFIX_PATH=$HOME/root -S . -B _build
 sudo cmake --build _build
 sudo cmake --install _build
+```
+
+## Running Quantum-Abysmal Tests
+
+```bash
+export LD_LIBRARY_PATH=$HOME/root/lib:$LD_LIBRARY_PATH
+./_bin/Quantum-Abysmal-PoC-DoS
 ```

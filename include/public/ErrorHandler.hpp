@@ -16,17 +16,55 @@
 #ifndef QUANTUM_ABYSMAL_PUBLIC_ERRORHANDLER_HPP
 #define QUANTUM_ABYSMAL_PUBLIC_ERRORHANDLER_HPP
 
+// ------------------------------------------------------------------------------------------------
+// Errors
+
 typedef enum
 {
     DIMENSION_ERROR,
     FUNCTION_CALL_ORDER_ERROR,
     RUNTIME_ERROR,
     UNKNOWN_ERROR,
+    NOT_SUPPORTED,
     SUCCESS
 
 } Error;
 
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// Result type
+
+// Generic version
+template <typename T>
+struct Result 
+{
+    T Value;
+    Error ErrorCode;
+
+    static Result<T> SetError(Error error) 
+    {
+        return { T{}, error };
+    }
+
+    static Result<T> SetValue(T value) 
+    {
+        return { value, SUCCESS };
+    }
+};
+
+
+// Specialization for void
+template <>
+struct Result<void> 
+{
+    Error ErrorCode;
+
+    static Result<void> SetError(Error error) 
+    {
+        return { error };
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
 // String output of errors.
 
 void GetErrorString(Error err);

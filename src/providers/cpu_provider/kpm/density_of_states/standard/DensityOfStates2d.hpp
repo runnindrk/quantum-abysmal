@@ -16,53 +16,62 @@
 #ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_2D_CPU_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_2D_CPU_STANDARD_HPP
 
-#include "include/internal/Logger.hpp"
 #include "include/public/DensityOfStates.hpp"
 #include "src/lattice/LatticeImpl.hpp"
-#include "src/storage/StorageEngineImpl.hpp"
 
 class DensityOfStates2dCpuStandard : public DensityOfStates
 {
-  public:
-    Error SetNumberOfRandomVectors(size_t numVectors) override;
-    Error SetNumberOfMoments(size_t order) override;
-    std::vector<double> Compute() override;
-    Error Save() const override;
+    // --------------------------------------------------------------------------------------------
+    //
 
-  private:
-    // ------------------------------------------------------------------------
-    // Private methods.
+    public:
 
-    void InitializeKpmVectors();
+    DensityOfStates2dCpuStandard();
+    ~DensityOfStates2dCpuStandard();
+
+    Result<void> SetDomainDecomposition(std::vector<uint32_t> numDomains) override;
+    Result<void> SetNumberOfRandomVectors(size_t numVectors) override;
+    Result<void> SetNumberOfMoments(size_t order) override;
+    Result<std::vector<double>> ComputeMoments() override;
+    Result<std::vector<double>> ComputeDoS(uint32_t numPoints) override;
+    Result<void> Save() override;
+    Result<void> PlotDoS() override;
+
+    // --------------------------------------------------------------------------------------------
+    // Private
+
+    private:
+
+    void InitializeKpmVectors(double* a, double* b);
     void ExecuteKpmVectorUpdate(double* a, double* b);
     inline void UpdateGhosts(double* a);
 
-    // ------------------------------------------------------------------------
-    // Member variables.
+    // --------------------------------------------------------------------------------------------
+    // Member variables
 
+    // Kpm variables. 
     size_t mNumRandomVectors{};
     size_t mNumOfMoments{};
+    std::vector<double> mMoments;
+    std::vector<std::array<double, 2>> mDoS;
+    
+    // Lattice variables. 
+    LatticeStructure mLattice{};
+    uint32_t numOrbitals{};
+    uint32_t xSize{};
+    uint32_t ySize{};
+    uint32_t xGhostedSize{};
+    uint32_t yGhostedSize{};
+    uint32_t numberOfGhosts{};
 
-    LatticeStructure lattice = LatticeImpl::GetInstance().GetLattice();
-    uint32_t numOrbitals = lattice.numberOfOrbitals;
-    uint32_t xSize = lattice.latticeSize[0];
-    uint32_t ySize = lattice.latticeSize[1];
-    uint32_t xGhostedSize = xSize + 2;
-    uint32_t yGhostedSize = ySize + 2;
-
-    int numberOfGhosts = numOrbitals * (2 * xSize + 2 * ySize + 4);
-
-    double* a = (double*)malloc((lattice.hamiltonianSize + numberOfGhosts) * sizeof(double));
-    double* b = (double*)malloc((lattice.hamiltonianSize + numberOfGhosts) * sizeof(double));
-
-    std::vector<double> moments;
+    // Parallelization variables. 
+    uint32_t xDomainDecomposition{1};
+    uint32_t yDomainDecomposition{1};
+    uint32_t numThreads{};
 
     // Have to think how to handle disorder. (maybe a flag on LatticeMethods)
     // (a flag is wrong, the lattice should allways have the same disorder)
     // (different disorders == different lattices)
-
-    // Domain decomposition is needed for better perfomance.
-    // Always max out threads internaly?.
 };
 
 #endif
