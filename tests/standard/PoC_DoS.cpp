@@ -58,7 +58,7 @@ TEST_F(QuantumAbysmalTest, GrapheneModel_DensityOfStates)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res4 = latticeCtx->SetLatticeSize({2048, 2048});
+    auto res4 = latticeCtx->SetLatticeSize({8192, 8192});
     EXPECT_EQ(res4.ErrorCode, SUCCESS);
 
     auto res5 = latticeCtx->SetEnergyRange(-3, 3);
@@ -73,7 +73,7 @@ TEST_F(QuantumAbysmalTest, GrapheneModel_DensityOfStates)
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     ASSERT_NE(kpmCtx, nullptr);
 
-    auto dosCtx = kpmCtx->CreateDoSCtx(CPU_STANDARD_IMPL);
+    auto dosCtx = kpmCtx->CreateDoSCtx(GPU_STANDARD_IMPL);
     ASSERT_NE(dosCtx, nullptr);
 
     auto res7 = dosCtx->SetDomainDecomposition({2, 2});

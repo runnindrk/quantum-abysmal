@@ -15,7 +15,6 @@
 
 #include "DensityOfStates2d.hpp"
 
-#include "include/internal/Logger.hpp"
 #include "src/providers/cpu_provider/rng/RngImpl.hpp"
 #include "src/storage/StorageEngineImpl.hpp"
 #include "src/math/Math.hpp"

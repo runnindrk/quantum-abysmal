@@ -56,7 +56,7 @@ class DensityOfStates1dGpuStandard : public DensityOfStates
 // CUDA Routines
 
 __forceinline__ __device__ void
-KpmSparseMatrixInitializer(uint64_t local_tid, double* aHaloRegion,
+KpmSparseInit(uint64_t local_tid, double* aHaloRegion,
                            double* bHaloRegion, LatticeStructure& lattice, double* sFirstReduceData,
                            double* sSecondReduceData)
 {
@@ -90,7 +90,7 @@ KpmSparseMatrixInitializer(uint64_t local_tid, double* aHaloRegion,
 }
 
 __forceinline__ __device__ void
-KpmSparseMatrixOperation(uint64_t local_tid, double* aHaloRegion,
+KpmSparse(uint64_t local_tid, double* aHaloRegion,
                          double* bHaloRegion, LatticeStructure& lattice, double* sFirstReduceData,
                          double* sSecondReduceData)
 {
@@ -180,7 +180,7 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
         
         if (initializer)
         {
-            KpmSparseMatrixInitializer(local_tid + 1, aHaloRegion, bHaloRegion, lattice,
+            KpmSparseInit(local_tid + 1, aHaloRegion, bHaloRegion, lattice,
                                        sFirstReduceData, sSecondReduceData);
 
             for (int j = 0; j < numOrbitals; j++)
@@ -191,7 +191,7 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
 
         else
         {
-            KpmSparseMatrixOperation(local_tid + 1, aHaloRegion, bHaloRegion, lattice,
+            KpmSparse(local_tid + 1, aHaloRegion, bHaloRegion, lattice,
                                      sFirstReduceData, sSecondReduceData);
             
             for (int j = 0; j < numOrbitals; j++)

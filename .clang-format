@@ -9,7 +9,7 @@ BraceWrapping:
   AfterUnion: true
   BeforeElse: true
   IndentBraces: false
-ColumnLimit: 140
+ColumnLimit: 150
 IndentWidth: 4
 AllowShortFunctionsOnASingleLine: false
 BreakBeforeBraces: Allman

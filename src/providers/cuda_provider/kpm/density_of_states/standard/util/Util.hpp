@@ -7,7 +7,7 @@
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
-// expressed or implied, including but not limited to the warranties of 
+// expressed or implied, including but not limited to the warranties of
 // merchantability, fitness for a particular purpose, or non-infringement.
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
@@ -16,6 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_UTIL_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_UTIL_STANDARD_HPP
 
+#include "src/lattice/LatticeImpl.hpp"
+
 #include <cstdint>
 #include <curand_kernel.h>
 
@@ -23,8 +25,8 @@
 
 __host__ __device__ inline int mod(int a, int b)
 {
-   int r = a % b;
-   return r < 0 ? r + b : r;
+    int r = a % b;
+    return r < 0 ? r + b : r;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -48,8 +50,7 @@ template <uint32_t blockSize> __device__ void WarpReduce(volatile double* sdata,
 
 // Number of block must be = 1.
 template <unsigned int blockSize>
-__global__ void FinalReduce(double* firstPartialReduction, double* secondPartialReduction,
-                            double* moments, unsigned int momentIndex)
+__global__ void Reduce(double* firstPartialReduction, double* secondPartialReduction, double* moments, unsigned int momentIndex)
 {
     __shared__ double sFirstData[blockSize];
     __shared__ double sSecondData[blockSize];
@@ -120,6 +121,70 @@ __global__ void FinalReduce(double* firstPartialReduction, double* secondPartial
     {
         moments[2 * momentIndex] = sFirstData[0];
         moments[2 * momentIndex + 1] = sSecondData[0];
+    }
+}
+
+template <uint32_t blockSize, typename Op>
+__global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* firstReduction, double* secondReduction, Op opFunc)
+{
+    __shared__ double sFirstReduceData[blockSize];
+    __shared__ double sSecondReduceData[blockSize];
+
+    sFirstReduceData[threadIdx.x] = 0;
+    sSecondReduceData[threadIdx.x] = 0;
+
+    uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+    __syncthreads();
+
+    while (tid < lattice.numberOfSites)
+    {
+        opFunc(tid, a, b, lattice, sFirstReduceData, sSecondReduceData);
+        tid += blockDim.x * gridDim.x;
+    }
+
+    __syncthreads();
+
+    if (blockSize >= 512)
+    {
+        if (threadIdx.x < 256)
+        {
+            sFirstReduceData[threadIdx.x] += sFirstReduceData[threadIdx.x + 256];
+            sSecondReduceData[threadIdx.x] += sSecondReduceData[threadIdx.x + 256];
+        }
+        __syncthreads();
+    }
+
+    if (blockSize >= 256)
+    {
+        if (threadIdx.x < 128)
+        {
+            sFirstReduceData[threadIdx.x] += sFirstReduceData[threadIdx.x + 128];
+            sSecondReduceData[threadIdx.x] += sSecondReduceData[threadIdx.x + 128];
+        }
+        __syncthreads();
+    }
+
+    if (blockSize >= 128)
+    {
+        if (threadIdx.x < 64)
+        {
+            sFirstReduceData[threadIdx.x] += sFirstReduceData[threadIdx.x + 64];
+            sSecondReduceData[threadIdx.x] += sSecondReduceData[threadIdx.x + 64];
+        }
+        __syncthreads();
+    }
+
+    if (threadIdx.x < 32)
+    {
+        WarpReduce<blockSize>(sFirstReduceData, threadIdx.x);
+        WarpReduce<blockSize>(sSecondReduceData, threadIdx.x);
+    }
+
+    if (threadIdx.x == 0)
+    {
+        firstReduction[blockIdx.x] = sFirstReduceData[0] / lattice.hamiltonianSize;
+        secondReduction[blockIdx.x] = sSecondReduceData[0] / lattice.hamiltonianSize;
     }
 }
 

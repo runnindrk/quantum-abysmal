@@ -58,29 +58,29 @@ Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
     // ---------------------------------------------------------------------------------------------
     // Memory Allocation.
 
-    LatticeStructure* devLattice;
-    cudaMalloc((void**)&devLattice, sizeof(LatticeStructure));
-    cudaMemcpy(devLattice, &mLattice, sizeof(LatticeStructure), cudaMemcpyHostToDevice);
+    LatticeStructure* dLattice;
+    cudaMalloc((void**)&dLattice, sizeof(LatticeStructure));
+    cudaMemcpy(dLattice, &mLattice, sizeof(LatticeStructure), cudaMemcpyHostToDevice);
 
-    double* devFirstReduction;
-    cudaMalloc((void**)&devFirstReduction, numThreads * sizeof(double));
-    cudaMemset(devFirstReduction, 0, numThreads * sizeof(double));
+    double* dFirstRed;
+    cudaMalloc((void**)&dFirstRed, numThreads * sizeof(double));
+    cudaMemset(dFirstRed, 0, numThreads * sizeof(double));
 
-    double* devSecondReduction;
-    cudaMalloc((void**)&devSecondReduction, numThreads * sizeof(double));
-    cudaMemset(devSecondReduction, 0, numThreads * sizeof(double));
+    double* dSecondRed;
+    cudaMalloc((void**)&dSecondRed, numThreads * sizeof(double));
+    cudaMemset(dSecondRed, 0, numThreads * sizeof(double));
 
-    double* devMoments;
-    cudaMalloc((void**)&devMoments, mNumOfMoments * sizeof(double));
-    cudaMemset(devMoments, 0, mNumOfMoments * sizeof(double));
+    double* dMoments;
+    cudaMalloc((void**)&dMoments, mNumOfMoments * sizeof(double));
+    cudaMemset(dMoments, 0, mNumOfMoments * sizeof(double));
 
-    double* devA;
-    cudaMalloc((void**)&devA, mLattice.hamiltonianSize * sizeof(double));
-    cudaMemset(devA, 0, mLattice.hamiltonianSize * sizeof(double));
+    double* dA;
+    cudaMalloc((void**)&dA, mLattice.hamiltonianSize * sizeof(double));
+    cudaMemset(dA, 0, mLattice.hamiltonianSize * sizeof(double));
 
-    double* devB;
-    cudaMalloc((void**)&devB, mLattice.hamiltonianSize * sizeof(double));
-    cudaMemset(devB, 0, mLattice.hamiltonianSize * sizeof(double));
+    double* dB;
+    cudaMalloc((void**)&dB, mLattice.hamiltonianSize * sizeof(double));
+    cudaMemset(dB, 0, mLattice.hamiltonianSize * sizeof(double));
 
     // ---------------------------------------------------------------------------------------------
     // Kernel execution logic.
@@ -88,26 +88,26 @@ Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
     LOG_INFO << "Computing moments ... ";
 
     // Initialize first random vector
-    RngGpuEngine::GetInstance().GetRandomVector(devA, mLattice.hamiltonianSize);
+    RngGpuEngine::GetInstance().GetRandomVector(dA, mLattice.hamiltonianSize);
 
     // Initialize second vector
     Reduce<numThreads, true>
-        <<<numBlocks, numThreads>>>(devA, devB, *devLattice, devFirstReduction, devSecondReduction);
-    FinalReduce<numThreads>
-        <<<1, numThreads>>>(devFirstReduction, devSecondReduction, devMoments, 0);
+        <<<numBlocks, numThreads>>>(dA, dB, *dLattice, dFirstRed, dSecondRed);
+    Reduce<numThreads>
+        <<<1, numThreads>>>(dFirstRed, dSecondRed, dMoments, 0);
 
     // Compute
     for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
     {
         Reduce<numThreads, false>
-            <<<numBlocks, numThreads>>>((i % 2 == 0) ? devA : devB, (i % 2 == 0) ? devB : devA,
-                                        *devLattice, devFirstReduction, devSecondReduction);
-        FinalReduce<numThreads>
-            <<<1, numThreads>>>(devFirstReduction, devSecondReduction, devMoments, i + 1);
+            <<<numBlocks, numThreads>>>((i % 2 == 0) ? dA : dB, (i % 2 == 0) ? dB : dA,
+                                        *dLattice, dFirstRed, dSecondRed);
+        Reduce<numThreads>
+            <<<1, numThreads>>>(dFirstRed, dSecondRed, dMoments, i + 1);
     }
 
     double* moments = (double*)malloc(mNumOfMoments * sizeof(double));
-    cudaMemcpy(moments, devMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(moments, dMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
 
     LOG_INFO << "Moments computed!";
 

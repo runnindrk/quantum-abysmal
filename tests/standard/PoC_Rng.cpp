@@ -29,7 +29,7 @@ protected:
     }
 };
 
-TEST_F(QuantumAbysmalTest, DISABLED_CustomCudaRng_QualityTest_Crush) 
+TEST_F(QuantumAbysmalTest, CustomCudaRng_QualityTest_Crush) 
 {
     auto abysmalCtx = GetQuantumAbysmalContext();
     ASSERT_NE(abysmalCtx, nullptr);
