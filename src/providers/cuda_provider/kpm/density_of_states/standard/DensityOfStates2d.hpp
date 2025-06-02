@@ -27,6 +27,7 @@
 class DensityOfStates2dGpuStandard : public DensityOfStates
 {
     public:
+
     DensityOfStates2dGpuStandard();
     ~DensityOfStates2dGpuStandard();
 
@@ -38,11 +39,27 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
     Result<void> Save() override;
     Result<void> PlotDoS() override;
 
+    // ============================================================================================
+    // CUDA Device Functions
+
+    struct KpmSparseInit
+    {
+        __device__ void operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice, double* sFirstReduceData,
+                                   double* sSecondReduceData) const;
+    };
+
+    struct KpmSparse
+    {
+        __device__ void operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice, double* sFirstReduceData,
+                                   double* sSecondReduceData) const;
+    };
+
     private:
-    // --------------------------------------------------------------------------------------------
+
+    // ============================================================================================
     // Private methods.
 
-    // --------------------------------------------------------------------------------------------
+    // ============================================================================================
     // Member variables.
 
     // Kpm variables.
@@ -59,21 +76,11 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
     uint32_t xGhostedSize{};
     uint32_t yGhostedSize{};
     uint32_t numberOfGhosts{};
-};
 
-// ================================================================================================
-// CUDA Kernels
-
-struct KpmSparseInit
-{
-    __device__ void operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice, double* sFirstReduceData,
-                               double* sSecondReduceData) const;
-};
-
-struct KpmSparse
-{
-    __device__ void operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice, double* sFirstReduceData,
-                               double* sSecondReduceData) const;
+    // CUDA pointers.
+    LatticeStructure* dLattice;
+    double* dMoments;
+    uint32_t dMomentsSize;
 };
 
 #endif

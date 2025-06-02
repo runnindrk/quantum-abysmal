@@ -73,8 +73,8 @@ Result<void> DensityOfStates2dCpuStandard::SetDomainDecomposition(std::vector<ui
 
     xDomainDecomposition = numDomains[0];
     yDomainDecomposition = numDomains[1];
-    numThreads = xDomainDecomposition * yDomainDecomposition;
-    omp_set_num_threads(numThreads);
+    NUM_THREADS = xDomainDecomposition * yDomainDecomposition;
+    omp_set_num_threads(NUM_THREADS);
 
     return Result<void>::SetError(SUCCESS);
 }
@@ -172,11 +172,11 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeDoS(uint32_t nu
 
         mDoS[i][1] *= 1 / (M_PI * (sqrt(1 - E * E)));
         
-        mDoS[i][0]  = E * mLattice.energyScaling;
-        mDoS[i][0] += + mLattice.energyShift;
+        mDoS[i][0] *= mLattice.energyScaling;
+        mDoS[i][0] += mLattice.energyShift;
 
         mDoS[i][1] /= mLattice.energyScaling;
-        mDoS[i][1] +=  mLattice.energyShift;
+        mDoS[i][1] += mLattice.energyShift;
     }
 
     auto end = std::chrono::high_resolution_clock::now();

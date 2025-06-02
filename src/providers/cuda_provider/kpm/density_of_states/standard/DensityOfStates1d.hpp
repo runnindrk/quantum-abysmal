@@ -3,7 +3,7 @@
 //
 // This file is part of Quantum Abysmal.
 //
-// Quantum Abysmal is free software: you can redistribute it and/or modify it
+// Quantum Abysmal is free software: you can redistribute it and/or Math::Modify it
 // as needed, with the intent of making it freely available to everyone.
 //
 // This project is in its early stages and is provided without any warranties,
@@ -19,6 +19,7 @@
 #include "include/internal/Logger.hpp"
 #include "include/public/DensityOfStates.hpp"
 #include "src/lattice/LatticeImpl.hpp"
+#include "src/math/Math.hpp"
 #include "src/providers/cuda_provider/rng/RngEngineImpl.hpp"
 #include "util/Util.hpp"
 
@@ -27,7 +28,6 @@
 class DensityOfStates1dGpuStandard : public DensityOfStates
 {
     public:
-
     Result<void> SetDomainDecomposition(std::vector<uint32_t> numDomains) override;
     Result<void> SetNumberOfRandomVectors(size_t numVectors) override;
     Result<void> SetNumberOfMoments(size_t order) override;
@@ -39,7 +39,6 @@ class DensityOfStates1dGpuStandard : public DensityOfStates
     virtual ~DensityOfStates1dGpuStandard() override;
 
     private:
-    
     // ------------------------------------------------------------------------
     // Private methods.
 
@@ -55,10 +54,8 @@ class DensityOfStates1dGpuStandard : public DensityOfStates
 // ----------------------------------------------------------------------------
 // CUDA Routines
 
-__forceinline__ __device__ void
-KpmSparseInit(uint64_t local_tid, double* aHaloRegion,
-                           double* bHaloRegion, LatticeStructure& lattice, double* sFirstReduceData,
-                           double* sSecondReduceData)
+__forceinline__ __device__ void KpmSparseInit(uint64_t local_tid, double* aHaloRegion, double* bHaloRegion, LatticeStructure& lattice,
+                                              double* sFirstReduceData, double* sSecondReduceData)
 {
     Hopping currentHop;
     int numOrbitals = lattice.numberOfOrbitals;
@@ -89,10 +86,8 @@ KpmSparseInit(uint64_t local_tid, double* aHaloRegion,
     }
 }
 
-__forceinline__ __device__ void
-KpmSparse(uint64_t local_tid, double* aHaloRegion,
-                         double* bHaloRegion, LatticeStructure& lattice, double* sFirstReduceData,
-                         double* sSecondReduceData)
+__forceinline__ __device__ void KpmSparse(uint64_t local_tid, double* aHaloRegion, double* bHaloRegion, LatticeStructure& lattice,
+                                          double* sFirstReduceData, double* sSecondReduceData)
 {
     Hopping currentHop;
     int numOrbitals = lattice.numberOfOrbitals;
@@ -128,8 +123,7 @@ KpmSparse(uint64_t local_tid, double* aHaloRegion,
 }
 
 template <uint32_t blockSize, bool initializer>
-__global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* firstReduction,
-                       double* secondReduction)
+__global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* firstReduction, double* secondReduction)
 {
     __shared__ double aHaloRegion[blockSize + 2];
     __shared__ double bHaloRegion[blockSize + 2];
@@ -161,15 +155,15 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
         // Load left halo (only first thread in the block loads it)
         if (local_tid == 0)
         {
-            aHaloRegion[0] = a[mod(tid - 1, lattice.latticeSize[0])];
-            bHaloRegion[0] = b[mod(tid - 1, lattice.latticeSize[0])];
+            aHaloRegion[0] = a[Math::Mod(tid - 1, lattice.latticeSize[0])];
+            bHaloRegion[0] = b[Math::Mod(tid - 1, lattice.latticeSize[0])];
         }
 
         // Load right halo (only last thread in the block loads it)
-        if (local_tid == blockSize - 1) 
+        if (local_tid == blockSize - 1)
         {
-            aHaloRegion[blockSize + 1] = a[mod(tid + 1, lattice.latticeSize[0])];
-            bHaloRegion[blockSize + 1] = b[mod(tid + 1, lattice.latticeSize[0])];
+            aHaloRegion[blockSize + 1] = a[Math::Mod(tid + 1, lattice.latticeSize[0])];
+            bHaloRegion[blockSize + 1] = b[Math::Mod(tid + 1, lattice.latticeSize[0])];
         }
 
         __syncthreads();
@@ -177,11 +171,9 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
         // ----------------------------------------------------------------------------------------
         // Kpm Sparse Matrix Operation
 
-        
         if (initializer)
         {
-            KpmSparseInit(local_tid + 1, aHaloRegion, bHaloRegion, lattice,
-                                       sFirstReduceData, sSecondReduceData);
+            KpmSparseInit(local_tid + 1, aHaloRegion, bHaloRegion, lattice, sFirstReduceData, sSecondReduceData);
 
             for (int j = 0; j < numOrbitals; j++)
             {
@@ -191,15 +183,14 @@ __global__ void Reduce(double* a, double* b, LatticeStructure& lattice, double* 
 
         else
         {
-            KpmSparse(local_tid + 1, aHaloRegion, bHaloRegion, lattice,
-                                     sFirstReduceData, sSecondReduceData);
-            
+            KpmSparse(local_tid + 1, aHaloRegion, bHaloRegion, lattice, sFirstReduceData, sSecondReduceData);
+
             for (int j = 0; j < numOrbitals; j++)
             {
                 a[numOrbitals * tid + j] = aHaloRegion[numOrbitals * (local_tid + 1) + j];
             }
         }
-        
+
         tid += blockDim.x * gridDim.x;
     }
 

@@ -15,7 +15,6 @@
 
 #include "DensityOfStates2d.hpp"
 
-#include "src/math/Math.hpp"
 #include "src/plotting/PlotDensityOfStatesImpl.hpp"
 #include "src/storage/StorageEngineImpl.hpp"
 
@@ -45,6 +44,7 @@ DensityOfStates2dGpuStandard::~DensityOfStates2dGpuStandard()
 
 Result<void> DensityOfStates2dGpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
 {
+    LOG_ERROR << "Not supported for CUDA Provider.";
     return Result<void>::SetError(NOT_SUPPORTED);
 }
 
@@ -57,43 +57,31 @@ Result<void> DensityOfStates2dGpuStandard::SetNumberOfRandomVectors(size_t numVe
 Result<void> DensityOfStates2dGpuStandard::SetNumberOfMoments(size_t order)
 {
     mNumOfMoments = order;
+    dMomentsSize = order;
     return Result<void>::SetError(SUCCESS);
 }
 
 Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
 {
-    // ------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------------------
     // Output info.
 
-    LOG_INFO << "Computing DoS from a 2D mLattice on CPU/STANDARD!";
+    LOG_INFO << "Computing DoS from a 2D mLattice on GPU/STANDARD!";
     LOG_INFO << "Number of Lattice Points : " << xSize << "x" << ySize << " = " << xSize * ySize;
     LOG_INFO << "Number of Orbitals : " << numOrbitals;
     LOG_INFO << "Number of Hoppings : " << (uint32_t)mLattice.numberOfHoppings;
     LOG_INFO << "Number of Moments  : " << mNumOfMoments;
 
     // ---------------------------------------------------------------------------------------------
-
-    const unsigned int numBlocks = 256;
-    const unsigned int numThreads = 256;
-
-    // ---------------------------------------------------------------------------------------------
     // Memory Allocation.
 
-    LatticeStructure* dLattice;
-    cudaMalloc((void**)&dLattice, sizeof(LatticeStructure));
-    cudaMemcpy(dLattice, &mLattice, sizeof(LatticeStructure), cudaMemcpyHostToDevice);
-
     double* dFirstRed;
-    cudaMalloc((void**)&dFirstRed, numThreads * sizeof(double));
-    cudaMemset(dFirstRed, 0, numThreads * sizeof(double));
+    cudaMalloc((void**)&dFirstRed, NUM_THREADS * sizeof(double));
+    cudaMemset(dFirstRed, 0, NUM_THREADS * sizeof(double));
 
     double* dSecondRed;
-    cudaMalloc((void**)&dSecondRed, numThreads * sizeof(double));
-    cudaMemset(dSecondRed, 0, numThreads * sizeof(double));
-
-    double* dMoments;
-    cudaMalloc((void**)&dMoments, mNumOfMoments * sizeof(double));
-    cudaMemset(dMoments, 0, mNumOfMoments * sizeof(double));
+    cudaMalloc((void**)&dSecondRed, NUM_THREADS * sizeof(double));
+    cudaMemset(dSecondRed, 0, NUM_THREADS * sizeof(double));
 
     double* dA;
     cudaMalloc((void**)&dA, mLattice.hamiltonianSize * sizeof(double));
@@ -102,6 +90,12 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     double* dB;
     cudaMalloc((void**)&dB, mLattice.hamiltonianSize * sizeof(double));
     cudaMemset(dB, 0, mLattice.hamiltonianSize * sizeof(double));
+
+    cudaMalloc((void**)&dLattice, sizeof(LatticeStructure));
+    cudaMemcpy(dLattice, &mLattice, sizeof(LatticeStructure), cudaMemcpyHostToDevice);
+
+    cudaMalloc((void**)&dMoments, dMomentsSize * sizeof(double));
+    cudaMemset(dMoments, 0, dMomentsSize * sizeof(double));
 
     // --------------------------------------------------------------------------------------------
     // Populate the random vector
@@ -114,15 +108,18 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     auto start = std::chrono::high_resolution_clock::now();
 
     {
-        Reduce<numThreads><<<numBlocks, numThreads>>>(dA, dB, *dLattice, dFirstRed, dSecondRed, KpmSparseInit{});
-        Reduce<numThreads><<<1, numThreads>>>(dFirstRed, dSecondRed, dMoments, 0);
+        Reduce<NUM_THREADS><<<NUM_BLOCKS, NUM_THREADS>>>(dA, dB, *dLattice, dFirstRed, dSecondRed, KpmSparseInit{});
+        Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, 0);
     }
 
     for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
     {
-        Reduce<numThreads><<<numBlocks, numThreads>>>((i % 2 == 0) ? dA : dB, (i % 2 == 0) ? dB : dA, *dLattice, dFirstRed, dSecondRed, KpmSparse{});
-        Reduce<numThreads><<<1, numThreads>>>(dFirstRed, dSecondRed, dMoments, i + 1);
+        Reduce<NUM_THREADS><<<NUM_BLOCKS, NUM_THREADS>>>((i % 2 == 0) ? dA : dB, (i % 2 == 0) ? dB : dA, *dLattice, dFirstRed, dSecondRed, KpmSparse{});
+        Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, i + 1);
     }
+
+    // --------------------------------------------------------------------------------------------
+    // Copy to host.
 
     mMoments.resize(mNumOfMoments);
     cudaMemcpy(mMoments.data(), dMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
@@ -139,42 +136,31 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     return Result<std::vector<double>>::SetValue(mMoments);
 }
 
-// Change to a CUDA Kernel
 Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    // Resize to user desired spectral density
-    mDoS.resize(numPoints);
+    // ---------------------------------------------------------------------------------------------
+    // Memory Allocation.
+
+    std::array<double, 2>* dosPointerArray;
+    cudaMalloc((void**)&dosPointerArray, numPoints * sizeof(std::array<double, 2>));
+    cudaMemset(dosPointerArray, 0, numPoints * sizeof(std::array<double, 2>));
+
+    // --------------------------------------------------------------------------------------------
+    // Compute.
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // clang-format off
-    #pragma omp parallel for
-    // clang-format on
-    for (int i = 0; i < numPoints; i++)
-    {
-        double E = -0.999 + i * (2 * 0.999) / (numPoints - 1);
-
-        {
-            mDoS[i][1] += 1 * mMoments[0] * Math::JacksonKernel(0, mMoments.size()) * Math::ChebyshevPolynomial(0, E);
-        }
-
-        for (int j = 1; j < mMoments.size(); j++)
-        {
-            mDoS[i][1] += 2 * mMoments[j] * Math::JacksonKernel(j, mMoments.size()) * Math::ChebyshevPolynomial(j, E);
-        }
-
-        mDoS[i][1] *= 1 / (M_PI * (sqrt(1 - E * E)));
-
-        mDoS[i][0] = E * mLattice.energyScaling;
-        mDoS[i][0] += +mLattice.energyShift;
-
-        mDoS[i][1] /= mLattice.energyScaling;
-        mDoS[i][1] += mLattice.energyShift;
-    }
+    DensityOfStatesFromMoments<<<NUM_BLOCKS, NUM_THREADS>>>(*dLattice, dMoments, dMomentsSize, dosPointerArray, numPoints);
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     LOG_INFO << "DoS computation time : " << elapsed.count() << " seconds.";
+
+    // --------------------------------------------------------------------------------------------
+    // Copy to host.
+
+    mDoS.resize(numPoints);
+    cudaMemcpy(mDoS.data(), dosPointerArray, numPoints * sizeof(std::array<double, 2>), cudaMemcpyDeviceToHost);
 
     return Result<std::vector<double>>::SetError(SUCCESS);
 }
@@ -195,10 +181,10 @@ Result<void> DensityOfStates2dGpuStandard::PlotDoS()
 }
 
 // ================================================================================================
-// CUDA Kernels
+// CUDA Device Functions
 
-__device__ void KpmSparseInit::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice, double* sFirstReduceData,
-                                          double* sSecondReduceData) const
+__device__ void DensityOfStates2dGpuStandard::KpmSparseInit::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
+                                                                        double* sFirstReduceData, double* sSecondReduceData) const
 {
     Hopping currentHop;
     int numOrbitals = lattice.numberOfOrbitals;
@@ -211,8 +197,8 @@ __device__ void KpmSparseInit::operator()(uint64_t tid, double* a, double* b, La
     {
         currentHop = lattice.hoppings[j];
 
-        int64_t newX = mod(x + currentHop.latticeHop[0], xSize);
-        int64_t newY = mod(y + currentHop.latticeHop[1], ySize);
+        int64_t newX = Math::Mod(x + currentHop.latticeHop[0], xSize);
+        int64_t newY = Math::Mod(y + currentHop.latticeHop[1], ySize);
         uint64_t bIndex = numOrbitals * tid + currentHop.orbitalHop[0];
         uint64_t aIndex = numOrbitals * (newX + newY * xSize) + currentHop.orbitalHop[1];
 
@@ -228,8 +214,8 @@ __device__ void KpmSparseInit::operator()(uint64_t tid, double* a, double* b, La
     }
 };
 
-__device__ void KpmSparse::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice, double* sFirstReduceData,
-                                      double* sSecondReduceData) const
+__device__ void DensityOfStates2dGpuStandard::KpmSparse::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
+                                                                    double* sFirstReduceData, double* sSecondReduceData) const
 {
     Hopping currentHop;
     int numOrbitals = lattice.numberOfOrbitals;
@@ -243,8 +229,8 @@ __device__ void KpmSparse::operator()(uint64_t tid, double* a, double* b, Lattic
     {
         currentHop = lattice.hoppings[j];
 
-        int64_t newX = mod(x + currentHop.latticeHop[0], xSize);
-        int64_t newY = mod(y + currentHop.latticeHop[1], ySize);
+        int64_t newX = Math::Mod(x + currentHop.latticeHop[0], xSize);
+        int64_t newY = Math::Mod(y + currentHop.latticeHop[1], ySize);
         int64_t newPos = newX + newY * xSize;
         int64_t newIndex = numOrbitals * newPos + currentHop.orbitalHop[1];
 

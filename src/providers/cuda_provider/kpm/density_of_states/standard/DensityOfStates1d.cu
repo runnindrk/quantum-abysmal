@@ -19,7 +19,6 @@
 
 DensityOfStates1dGpuStandard::~DensityOfStates1dGpuStandard()
 {
-
 }
 
 Result<void> DensityOfStates1dGpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
@@ -51,11 +50,6 @@ Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
     LOG_INFO << "Number of Moments  : " << mNumOfMoments;
 
     // ---------------------------------------------------------------------------------------------
-    
-    const unsigned int numBlocks = 512;
-    const unsigned int numThreads = 1024;
-
-    // ---------------------------------------------------------------------------------------------
     // Memory Allocation.
 
     LatticeStructure* dLattice;
@@ -63,12 +57,12 @@ Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
     cudaMemcpy(dLattice, &mLattice, sizeof(LatticeStructure), cudaMemcpyHostToDevice);
 
     double* dFirstRed;
-    cudaMalloc((void**)&dFirstRed, numThreads * sizeof(double));
-    cudaMemset(dFirstRed, 0, numThreads * sizeof(double));
+    cudaMalloc((void**)&dFirstRed, NUM_THREADS * sizeof(double));
+    cudaMemset(dFirstRed, 0, NUM_THREADS * sizeof(double));
 
     double* dSecondRed;
-    cudaMalloc((void**)&dSecondRed, numThreads * sizeof(double));
-    cudaMemset(dSecondRed, 0, numThreads * sizeof(double));
+    cudaMalloc((void**)&dSecondRed, NUM_THREADS * sizeof(double));
+    cudaMemset(dSecondRed, 0, NUM_THREADS * sizeof(double));
 
     double* dMoments;
     cudaMalloc((void**)&dMoments, mNumOfMoments * sizeof(double));
@@ -91,19 +85,14 @@ Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
     RngGpuEngine::GetInstance().GetRandomVector(dA, mLattice.hamiltonianSize);
 
     // Initialize second vector
-    Reduce<numThreads, true>
-        <<<numBlocks, numThreads>>>(dA, dB, *dLattice, dFirstRed, dSecondRed);
-    Reduce<numThreads>
-        <<<1, numThreads>>>(dFirstRed, dSecondRed, dMoments, 0);
+    Reduce<NUM_THREADS, true><<<NUM_BLOCKS, NUM_THREADS>>>(dA, dB, *dLattice, dFirstRed, dSecondRed);
+    Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, 0);
 
     // Compute
     for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
     {
-        Reduce<numThreads, false>
-            <<<numBlocks, numThreads>>>((i % 2 == 0) ? dA : dB, (i % 2 == 0) ? dB : dA,
-                                        *dLattice, dFirstRed, dSecondRed);
-        Reduce<numThreads>
-            <<<1, numThreads>>>(dFirstRed, dSecondRed, dMoments, i + 1);
+        Reduce<NUM_THREADS, false><<<NUM_BLOCKS, NUM_THREADS>>>((i % 2 == 0) ? dA : dB, (i % 2 == 0) ? dB : dA, *dLattice, dFirstRed, dSecondRed);
+        Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, i + 1);
     }
 
     double* moments = (double*)malloc(mNumOfMoments * sizeof(double));

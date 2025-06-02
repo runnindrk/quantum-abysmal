@@ -67,7 +67,7 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
     // Parallelization variables. 
     uint32_t xDomainDecomposition{1};
     uint32_t yDomainDecomposition{1};
-    uint32_t numThreads{};
+    uint32_t NUM_THREADS{};
 
     // Have to think how to handle disorder. (maybe a flag on LatticeMethods)
     // (a flag is wrong, the lattice should allways have the same disorder)

@@ -53,7 +53,7 @@ endif()
 if(APPLE)
     set(COMMON_OPT_FLAGS "-O3 -funroll-loops -march=native ${OpenMP_CXX_FLAGS}")
 else()
-    set(COMMON_OPT_FLAGS "-O3 -funroll-loops -fopenmp -march=native")
+    set(COMMON_OPT_FLAGS "-O3 -funroll-loops -march=native -fopenmp --expt-relaxed-constexpr")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_OPT_FLAGS}")

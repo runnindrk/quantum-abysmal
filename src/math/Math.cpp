@@ -14,15 +14,3 @@
 // ================================================================================================
 
 #include "Math.hpp"
-
-double Math::ChebyshevPolynomial(int n, double x)
-{
-    return cos(n * acos(x));
-}
-
-double Math::JacksonKernel(int n, int N)
-{
-    double factor1 = (N - n + 1) * cos(M_PI * n / (N + 1));
-    double factor2 = sin(M_PI * n / (N + 1)) * cos(M_PI / (N + 1)) / sin(M_PI / (N + 1));
-    return (factor1 + factor2) / (N + 1);
-}

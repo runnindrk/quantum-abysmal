@@ -39,6 +39,8 @@ struct LatticeStructure
     double energyShift{};
 
     BoundaryType boundaryType{};
+
+    // Add necessary ghost information.
 };
 
 /*
