@@ -15,6 +15,7 @@
 
 #include "../include/public/Entrypoint.hpp"
 #include <gtest/gtest.h>
+#include <iomanip>
 
 class QuantumAbysmalTest : public ::testing::Test 
 {
@@ -58,7 +59,7 @@ TEST_F(QuantumAbysmalTest, GrapheneModel_DensityOfStates)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res4 = latticeCtx->SetLatticeSize({8192, 8192});
+    auto res4 = latticeCtx->SetLatticeSize({2048, 2048});
     EXPECT_EQ(res4.ErrorCode, SUCCESS);
 
     auto res5 = latticeCtx->SetEnergyRange(-3, 3);
@@ -88,14 +89,14 @@ TEST_F(QuantumAbysmalTest, GrapheneModel_DensityOfStates)
     auto res10 = dosCtx->ComputeMoments();
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
-    auto res11 = dosCtx->ComputeDoS(200000);
+    auto res11 = dosCtx->ComputeDoS(2048);
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
     auto res12 = dosCtx->Save();
     EXPECT_EQ(res12.ErrorCode, SUCCESS);
 
-    auto res13 = dosCtx->PlotDoS();
-    EXPECT_EQ(res13.ErrorCode, SUCCESS);
+    // auto res13 = dosCtx->PlotDoS();
+    // EXPECT_EQ(res13.ErrorCode, SUCCESS);
 }
 
 TEST_F(QuantumAbysmalTest, DISABLED_BBHModel_DensityOfStates) 

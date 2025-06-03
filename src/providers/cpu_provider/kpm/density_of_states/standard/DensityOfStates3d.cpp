@@ -37,9 +37,9 @@ Result<std::vector<double>> DensityOfStates3dCpuStandard::ComputeMoments()
     return Result<std::vector<double>>::SetError(SUCCESS);
 }
 
-Result<std::vector<double>> DensityOfStates3dCpuStandard::ComputeDoS(uint32_t numPoints)
+Result<std::vector<std::array<double, 2>>> DensityOfStates3dCpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    return Result<std::vector<double>>::SetError(SUCCESS);
+    return Result<std::vector<std::array<double, 2>>>::SetError(SUCCESS);
 }
 
 Result<void> DensityOfStates3dCpuStandard::Save()

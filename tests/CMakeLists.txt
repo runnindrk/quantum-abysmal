@@ -25,14 +25,14 @@ project(Quantum-Abysmal-PoC)
 find_package(GTest REQUIRED)
 
 add_executable(Quantum-Abysmal-PoC-DoS
-${CMAKE_CURRENT_SOURCE_DIR}/standard/PoC_DoS.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/proof_of_concept/PoC_DoS.cpp
 )
 
 target_link_libraries(Quantum-Abysmal-PoC-DoS PRIVATE Quantum-Abysmal GTest::gtest GTest::gtest_main)
 target_include_directories(Quantum-Abysmal-PoC-DoS PRIVATE ${CMAKE_SOURCE_DIR}/include/public)
 
 add_executable(Quantum-Abysmal-PoC-Rng
-${CMAKE_CURRENT_SOURCE_DIR}/standard/PoC_Rng.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/proof_of_concept/PoC_Rng.cpp
 )
 
 target_link_libraries(Quantum-Abysmal-PoC-Rng PRIVATE Quantum-Abysmal GTest::gtest GTest::gtest_main)

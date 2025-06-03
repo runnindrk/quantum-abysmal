@@ -32,7 +32,7 @@ class DensityOfStates1dGpuStandard : public DensityOfStates
     Result<void> SetNumberOfRandomVectors(size_t numVectors) override;
     Result<void> SetNumberOfMoments(size_t order) override;
     Result<std::vector<double>> ComputeMoments() override;
-    Result<std::vector<double>> ComputeDoS(uint32_t numPoints) override;
+    Result<std::vector<std::array<double, 2>>> ComputeDoS(uint32_t numPoints) override;
     Result<void> Save() override;
     Result<void> PlotDoS() override;
 

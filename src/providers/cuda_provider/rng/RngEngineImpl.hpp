@@ -22,8 +22,8 @@
 #include <curand_kernel.h>
 
 // This will be to a global header file.
-#define NUM_THREADS 256
-#define NUM_BLOCKS 256 
+#define NUM_THREADS_RNG 256
+#define NUM_BLOCKS_RNG 256 
 
 class RngGpuEngine
 {

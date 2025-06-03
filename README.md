@@ -71,6 +71,6 @@ sudo cmake --install _build
 ## Running Quantum-Abysmal Tests
 
 ```bash
-export LD_LIBRARY_PATH=$HOME/root/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/snap/root-framework/current/usr/local/lib:$LD_LIBRARY_PATH
 ./_bin/Quantum-Abysmal-PoC-DoS
 ```

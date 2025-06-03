@@ -26,7 +26,7 @@ RngGpuEngine& RngGpuEngine::GetInstance()
 
 RngGpuEngine::RngGpuEngine()
 {
-    cudaMalloc((void**)&mDevStates, NUM_THREADS * NUM_BLOCKS * sizeof(curandStateXORWOW));
+    cudaMalloc((void**)&mDevStates, NUM_THREADS_RNG * NUM_BLOCKS_RNG * sizeof(curandStateXORWOW));
 }
 
 RngGpuEngine::~RngGpuEngine()
@@ -91,14 +91,14 @@ Error RngGpuEngine::SetSeed(unsigned int seed)
 
 void RngGpuEngine::GetRandomVector(double* gpuBuffer, unsigned int bufferSize)
 {
-    InitCurandXorwow<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates);
-    InitRandomVector<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates, gpuBuffer, bufferSize);
+    InitCurandXorwow<<<NUM_BLOCKS_RNG, NUM_THREADS_RNG>>>(mDevStates);
+    InitRandomVector<<<NUM_BLOCKS_RNG, NUM_THREADS_RNG>>>(mDevStates, gpuBuffer, bufferSize);
 }
 
 void RngGpuEngine::GetRandomBitsVector(unsigned int* gpuBuffer, unsigned int bufferSize)
 {
-    InitCurandXorwow<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates);
-    InitRandomBitsVector<<<NUM_BLOCKS, NUM_THREADS>>>(mDevStates, gpuBuffer, bufferSize);
+    InitCurandXorwow<<<NUM_BLOCKS_RNG, NUM_THREADS_RNG>>>(mDevStates);
+    InitRandomBitsVector<<<NUM_BLOCKS_RNG, NUM_THREADS_RNG>>>(mDevStates, gpuBuffer, bufferSize);
 }
 
 // -------------------------------------------------------------------------------------------------

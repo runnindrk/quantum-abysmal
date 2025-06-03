@@ -41,7 +41,7 @@ class DensityOfStates
     virtual Result<std::vector<double>> ComputeMoments() = 0;
 
     /// @brief Perform the DoS moments computation.
-    virtual Result<std::vector<double>> ComputeDoS(uint32_t numPoints) = 0;
+    virtual Result<std::vector<std::array<double, 2>>> ComputeDoS(uint32_t numPoints) = 0;
 
     /// @brief Save the computed DoS.
     virtual Result<void> Save() = 0;

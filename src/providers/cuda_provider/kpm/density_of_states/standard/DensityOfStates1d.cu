@@ -105,9 +105,9 @@ Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeMoments()
     return Result<std::vector<double>>::SetValue(momentsToReturn);
 }
 
-Result<std::vector<double>> DensityOfStates1dGpuStandard::ComputeDoS(uint32_t numPoints)
+Result<std::vector<std::array<double, 2>>> DensityOfStates1dGpuStandard::ComputeDoS(uint32_t numPoints)
 {
-    return Result<std::vector<double>>::SetError(SUCCESS);
+    return Result<std::vector<std::array<double, 2>>>::SetError(SUCCESS);
 }
 
 Result<void> DensityOfStates1dGpuStandard::Save()

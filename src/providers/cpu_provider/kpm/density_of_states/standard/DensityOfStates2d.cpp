@@ -147,7 +147,7 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeMoments()
     return Result<std::vector<double>>::SetValue(mMoments);
 }
 
-Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeDoS(uint32_t numPoints)
+Result<std::vector<std::array<double, 2>>> DensityOfStates2dCpuStandard::ComputeDoS(uint32_t numPoints)
 {
     // Resize to user desired spectral density
     mDoS.resize(numPoints);
@@ -183,7 +183,7 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeDoS(uint32_t nu
     std::chrono::duration<double> elapsed = end - start;
     LOG_INFO << "DoS computation time : " << elapsed.count() << " seconds.";
 
-    return Result<std::vector<double>>::SetError(SUCCESS);
+    return Result<std::vector<std::array<double, 2>>>::SetValue(mDoS);
 }
 
 Result<void> DensityOfStates2dCpuStandard::Save()

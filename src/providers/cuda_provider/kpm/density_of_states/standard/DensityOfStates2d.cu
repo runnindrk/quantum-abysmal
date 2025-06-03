@@ -136,7 +136,7 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     return Result<std::vector<double>>::SetValue(mMoments);
 }
 
-Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t numPoints)
+Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t numPoints)
 {
     // ---------------------------------------------------------------------------------------------
     // Memory Allocation.
@@ -162,7 +162,7 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t nu
     mDoS.resize(numPoints);
     cudaMemcpy(mDoS.data(), dosPointerArray, numPoints * sizeof(std::array<double, 2>), cudaMemcpyDeviceToHost);
 
-    return Result<std::vector<double>>::SetError(SUCCESS);
+    return Result<std::vector<std::array<double, 2>>>::SetValue(mDoS);
 }
 
 Result<void> DensityOfStates2dGpuStandard::Save()
@@ -174,6 +174,7 @@ Result<void> DensityOfStates2dGpuStandard::Save()
 
 Result<void> DensityOfStates2dGpuStandard::PlotDoS()
 {
+    // change to static
     PlotDensityOfStatesImpl instance;
     instance.Plot(mDoS);
 
