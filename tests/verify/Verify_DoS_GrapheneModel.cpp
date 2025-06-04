@@ -14,7 +14,8 @@
 // ================================================================================================
 
 #include "../include/public/Entrypoint.hpp"
-#include "TestVectors.hpp"
+#include "../include/internal/Logger.hpp"
+#include "../util/TestUtils.hpp"
 
 #include <gtest/gtest.h>
 
@@ -33,6 +34,16 @@ protected:
 
 TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL) 
 {
+    // --------------------------------------------------------------------------------------------
+    // Read test vector
+
+    std::string testVectorFile = "tests/test_vectors/Verify_DoS_GrapheneModel.hdf5";
+    std::array<uint32_t, 2> testVectorLatticeSize;
+    std::vector<double> testVectorMoments;
+    std::vector<std::array<double, 2>> testVectorDoS;
+
+    ReadDensityOfStatesSData(testVectorFile, testVectorLatticeSize, testVectorMoments, testVectorDoS);
+    
     // --------------------------------------------------------------------------------------------
     // Get context
 
@@ -60,7 +71,7 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res4 = latticeCtx->SetLatticeSize({2048, 2048});
+    auto res4 = latticeCtx->SetLatticeSize({testVectorLatticeSize[0], testVectorLatticeSize[1]});
     EXPECT_EQ(res4.ErrorCode, SUCCESS);
 
     auto res5 = latticeCtx->SetEnergyRange(-3, 3);
@@ -85,17 +96,23 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     auto res8 = dosCtx->SetNumberOfRandomVectors(1);
     EXPECT_EQ(res8.ErrorCode, SUCCESS);
 
-    auto res9 = dosCtx->SetNumberOfMoments(DOS_NUM_MOMENTS);
+    auto res9 = dosCtx->SetNumberOfMoments(testVectorMoments.size());
     EXPECT_EQ(res9.ErrorCode, SUCCESS);
 
     auto res10 = dosCtx->ComputeMoments();
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
-    auto res11 = dosCtx->ComputeDoS(DOS_NUM_POINTS);
+    auto res11 = dosCtx->ComputeDoS(testVectorDoS.size());
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
     // --------------------------------------------------------------------------------------------
-    // Test output correctness
+    // Verify output
+
+    auto stdMoments = StandardDeviation(res10.Value, testVectorMoments);
+    auto stdDoS = StandardDeviation(res11.Value, testVectorDoS);
+
+    std::cout << "stdMoments : " << stdMoments << std::endl;
+    std::cout << "stdDoS : " << stdDoS.first << " " << stdDoS.second << std::endl;
 
     
 }

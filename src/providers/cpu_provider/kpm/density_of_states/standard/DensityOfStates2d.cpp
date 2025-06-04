@@ -188,7 +188,7 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dCpuStandard::Compute
 
 Result<void> DensityOfStates2dCpuStandard::Save()
 {
-    StorageEngine::SaveDoS(mMoments, mDoS);
+    StorageEngine::SaveDoS(mLattice, mMoments, mDoS);
 
     return Result<void>::SetError(SUCCESS);
 }

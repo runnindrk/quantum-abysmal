@@ -29,7 +29,7 @@ StorageEngine::~StorageEngine()
 {
 }
 
-void StorageEngine::SaveDoS(std::vector<double> moments, std::vector<std::array<double, 2>> densityOfStates)
+void StorageEngine::SaveDoS(LatticeStructure& mLattice, std::vector<double>& moments, std::vector<std::array<double, 2>>& densityOfStates)
 {
     // Ensure "data" directory exists
     const std::filesystem::path dir{"data"};
@@ -51,6 +51,7 @@ void StorageEngine::SaveDoS(std::vector<double> moments, std::vector<std::array<
     if (fileId < 0)
     {
         // Failed to create file
+        return;
     }
 
     // Save moments as 1D dataset
@@ -61,7 +62,7 @@ void StorageEngine::SaveDoS(std::vector<double> moments, std::vector<std::array<
     H5Dclose(momentsDataset);
     H5Sclose(momentsSpace);
 
-    // Flatten densityOfStates to contiguous array for writing
+    // Flatten densityOfStates to contiguous array
     std::vector<double> dosFlat;
     dosFlat.reserve(densityOfStates.size() * 2);
     for (const auto& pair : densityOfStates)
@@ -70,13 +71,25 @@ void StorageEngine::SaveDoS(std::vector<double> moments, std::vector<std::array<
         dosFlat.push_back(pair[1]);
     }
 
-    // Save densityOfStates as 2D dataset with shape [N, 2]
+    // Save densityOfStates as 2D dataset [N, 2]
     hsize_t dosDims[2] = {densityOfStates.size(), 2};
     hid_t dosSpace = H5Screate_simple(2, dosDims, nullptr);
     hid_t dosDataset = H5Dcreate(fileId, "DensityOfStates", H5T_IEEE_F64LE, dosSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(dosDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, dosFlat.data());
     H5Dclose(dosDataset);
     H5Sclose(dosSpace);
+
+    // Save lattice size as 2D shape [xSize, ySize]
+    double latticeSizeXY[2] = {
+        static_cast<double>(mLattice.latticeSize[0]),
+        static_cast<double>(mLattice.latticeSize[1])
+    };
+    hsize_t latticeSizeDim = 2;
+    hid_t latticeSizeSpace = H5Screate_simple(1, &latticeSizeDim, nullptr);
+    hid_t latticeSizeDataset = H5Dcreate(fileId, "LatticeSize", H5T_IEEE_F64LE, latticeSizeSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(latticeSizeDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, latticeSizeXY);
+    H5Dclose(latticeSizeDataset);
+    H5Sclose(latticeSizeSpace);
 
     // Close file
     herr_t status = H5Fclose(fileId);

@@ -14,7 +14,6 @@
 // ================================================================================================
 
 #include "../include/public/Entrypoint.hpp"
-#include "TestVectors.hpp"
 
 #include <gtest/gtest.h>
 
@@ -55,14 +54,14 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res4 = latticeCtx->SetLatticeSize({2048, 2048});
+    auto res2 = latticeCtx->SetLatticeSize({2048, 2048});
+    EXPECT_EQ(res2.ErrorCode, SUCCESS);
+
+    auto res3 = latticeCtx->SetEnergyRange(-3, 3);
+    EXPECT_EQ(res3.ErrorCode, SUCCESS);
+
+    auto res4 = latticeCtx->SetBoundaryType(PERIODIC);
     EXPECT_EQ(res4.ErrorCode, SUCCESS);
-
-    auto res5 = latticeCtx->SetEnergyRange(-3, 3);
-    EXPECT_EQ(res5.ErrorCode, SUCCESS);
-
-    auto res6 = latticeCtx->SetBoundaryType(PERIODIC);
-    EXPECT_EQ(res6.ErrorCode, SUCCESS);
 
     // --------------------------------------------------------------------------------------------
     // DoS calculation
@@ -74,18 +73,18 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     ASSERT_NE(dosCtx, nullptr);
 
     // Domain Decomposition does not exist in CUDA Provider.
-    auto res7 = dosCtx->SetDomainDecomposition({2, 2});
-    EXPECT_EQ(res7.ErrorCode, NOT_SUPPORTED);
+    auto res5 = dosCtx->SetDomainDecomposition({2, 2});
+    EXPECT_EQ(res5.ErrorCode, NOT_SUPPORTED);
 
-    auto res8 = dosCtx->SetNumberOfRandomVectors(1);
+    auto res6 = dosCtx->SetNumberOfRandomVectors(1);
+    EXPECT_EQ(res6.ErrorCode, SUCCESS);
+
+    auto res7 = dosCtx->SetNumberOfMoments(512);
+    EXPECT_EQ(res7.ErrorCode, SUCCESS);
+
+    auto res8 = dosCtx->ComputeMoments();
     EXPECT_EQ(res8.ErrorCode, SUCCESS);
 
-    auto res9 = dosCtx->SetNumberOfMoments(DOS_NUM_MOMENTS);
+    auto res9 = dosCtx->ComputeDoS(2048);
     EXPECT_EQ(res9.ErrorCode, SUCCESS);
-
-    auto res10 = dosCtx->ComputeMoments();
-    EXPECT_EQ(res10.ErrorCode, SUCCESS);
-
-    auto res11 = dosCtx->ComputeDoS(DOS_NUM_POINTS);
-    EXPECT_EQ(res10.ErrorCode, SUCCESS);
 }

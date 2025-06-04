@@ -20,29 +20,32 @@
 # Architecture agnostic test build
 
 cmake_minimum_required(VERSION 3.10)
-project(Quantum-Abysmal-PoC)
+project(Quantum-Abysmal-Tests)
+
+enable_testing()
 
 find_package(GTest REQUIRED)
 
-add_executable(Quantum-Abysmal-PoC-DoS
-${CMAKE_CURRENT_SOURCE_DIR}/proof_of_concept/PoC_DoS.cpp
+file(GLOB_RECURSE TEST_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/proof_of_concept/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/verify/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/benchmark/*.cpp
 )
 
-target_link_libraries(Quantum-Abysmal-PoC-DoS PRIVATE Quantum-Abysmal GTest::gtest GTest::gtest_main)
-target_include_directories(Quantum-Abysmal-PoC-DoS PRIVATE ${CMAKE_SOURCE_DIR}/include/public)
+set(TEST_UTILS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/util/TestUtils.cpp)
 
-add_executable(Quantum-Abysmal-PoC-Rng
-${CMAKE_CURRENT_SOURCE_DIR}/proof_of_concept/PoC_Rng.cpp
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include/public
+    ${CMAKE_CURRENT_SOURCE_DIR}/util
 )
 
-target_link_libraries(Quantum-Abysmal-PoC-Rng PRIVATE Quantum-Abysmal GTest::gtest GTest::gtest_main)
-target_include_directories(Quantum-Abysmal-PoC-Rng PRIVATE ${CMAKE_SOURCE_DIR}/include/public)
+foreach(TEST_SRC ${TEST_SOURCES})
+    get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_SRC} ${TEST_UTILS_SRC})
 
-install(
-TARGETS 
-Quantum-Abysmal-PoC-DoS 
-Quantum-Abysmal-PoC-Rng
+    target_link_libraries(${TEST_NAME} PRIVATE Quantum-Abysmal GTest::gtest GTest::gtest_main)
 
-DESTINATION 
-${CMAKE_SOURCE_DIR}/_bin
-)
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+    install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_SOURCE_DIR}/_bin)
+endforeach()

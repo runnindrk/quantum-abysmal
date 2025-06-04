@@ -14,7 +14,6 @@
 // ================================================================================================
 
 #include "../include/public/Entrypoint.hpp"
-#include "TestVectors.hpp"
 
 #include <gtest/gtest.h>
 
@@ -85,13 +84,13 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     auto res8 = dosCtx->SetNumberOfRandomVectors(1);
     EXPECT_EQ(res8.ErrorCode, SUCCESS);
 
-    auto res9 = dosCtx->SetNumberOfMoments(DOS_NUM_MOMENTS);
+    auto res9 = dosCtx->SetNumberOfMoments(512);
     EXPECT_EQ(res9.ErrorCode, SUCCESS);
 
     auto res10 = dosCtx->ComputeMoments();
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
-    auto res11 = dosCtx->ComputeDoS(DOS_NUM_POINTS);
+    auto res11 = dosCtx->ComputeDoS(2048);
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
     // --------------------------------------------------------------------------------------------

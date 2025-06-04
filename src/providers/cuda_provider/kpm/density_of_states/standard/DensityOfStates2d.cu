@@ -167,7 +167,7 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::Compute
 
 Result<void> DensityOfStates2dGpuStandard::Save()
 {
-    StorageEngine::SaveDoS(mMoments, mDoS);
+    StorageEngine::SaveDoS(mLattice, mMoments, mDoS);
 
     return Result<void>::SetError(SUCCESS);
 }

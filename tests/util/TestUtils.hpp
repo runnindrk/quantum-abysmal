@@ -12,3 +12,12 @@
 //
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
+
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <array>
+
+void ReadDensityOfStatesSData(const std::string& filename, std::array<uint32_t, 2>& latticeSize, std::vector<double>& moments, std::vector<std::array<double, 2>>& densityOfStates);
+double StandardDeviation(std::vector<double> testData, std::vector<double> groundData);
+std::pair<double, double> StandardDeviation(std::vector<std::array<double, 2>> testData, std::vector<std::array<double, 2>> groundData);
