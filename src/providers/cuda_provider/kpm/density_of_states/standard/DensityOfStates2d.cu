@@ -218,7 +218,6 @@ __device__ void DensityOfStates2dGpuStandard::KpmSparseInit::operator()(uint64_t
 __device__ void DensityOfStates2dGpuStandard::KpmSparse::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
                                                                     double* sFirstReduceData, double* sSecondReduceData) const
 {
-    Hopping currentHop;
     int numOrbitals = lattice.numberOfOrbitals;
     int xSize = lattice.latticeSize[0];
     int ySize = lattice.latticeSize[1];
@@ -226,27 +225,46 @@ __device__ void DensityOfStates2dGpuStandard::KpmSparse::operator()(uint64_t tid
     int x = tid % xSize;
     double temp[4] = {};
 
+    // --------------------------------------------------------------------------------------------
+    // Perfomance test of codegen for Graphene model
+
+    // temp[0] += lattice.hoppings[0].hoppingStrength * b[ARRAY_IDX(x, y, 1, 0, 1)];
+    // temp[0] += lattice.hoppings[1].hoppingStrength * b[ARRAY_IDX(x, y, 0, 1, 1)];
+    // temp[0] += lattice.hoppings[2].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];
+
+    // temp[1] += lattice.hoppings[3].hoppingStrength * b[ARRAY_IDX(x, y, -1, 0, 0)];
+    // temp[1] += lattice.hoppings[4].hoppingStrength * b[ARRAY_IDX(x, y, 0, -1, 0)];
+    // temp[1] += lattice.hoppings[5].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];
+
+    // a[ARRAY_IDX(x, y, 0, 0, 0)] = 2 * temp[0] - a[ARRAY_IDX(x, y, 0, 0, 0)];
+    // a[ARRAY_IDX(x, y, 0, 0, 1)] = 2 * temp[1] - a[ARRAY_IDX(x, y, 0, 0, 1)];
+
+    // sFirstReduceData[threadIdx.x] += b[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];
+    // sFirstReduceData[threadIdx.x] += b[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];
+
+    // sSecondReduceData[threadIdx.x] += a[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];
+    // sSecondReduceData[threadIdx.x] += a[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];
+
+    // Observed reduction of 67%! Codegen/Callback will be remarkable.
+    // This is full loop unrolling.
+
+    // --------------------------------------------------------------------------------------------
+
     for (int j = 0; j < lattice.numberOfHoppings; j++)
     {
-        currentHop = lattice.hoppings[j];
+        Hopping currentHop = lattice.hoppings[j];
+        int64_t idx = ARRAY_IDX(x, y, currentHop.latticeHop[0], currentHop.latticeHop[1], currentHop.orbitalHop[1]);
 
-        int64_t newX = Math::Mod(x + currentHop.latticeHop[0], xSize);
-        int64_t newY = Math::Mod(y + currentHop.latticeHop[1], ySize);
-        int64_t newPos = newX + newY * xSize;
-        int64_t newIndex = numOrbitals * newPos + currentHop.orbitalHop[1];
-
-        temp[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[newIndex];
+        temp[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[idx];
     }
 
     for (int j = 0; j < numOrbitals; j++)
     {
-        uint64_t trueIndex = numOrbitals * (x + y * xSize) + j;
+        int64_t idx = ARRAY_IDX(x, y, 0, 0, j);
 
-        a[trueIndex] = 2 * temp[j] - a[trueIndex];
+        a[idx] = 2 * temp[j] - a[idx];
 
-        sFirstReduceData[threadIdx.x] += b[trueIndex] * b[trueIndex];
-        sSecondReduceData[threadIdx.x] += a[trueIndex] * b[trueIndex];
-
-        temp[j] = 0;
+        sFirstReduceData[threadIdx.x] += b[idx] * b[idx];
+        sSecondReduceData[threadIdx.x] += a[idx] * b[idx];
     }
 };

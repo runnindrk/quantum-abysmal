@@ -59,7 +59,7 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res4 = latticeCtx->SetLatticeSize({2048, 2048});
+    auto res4 = latticeCtx->SetLatticeSize({12288, 12288});
     EXPECT_EQ(res4.ErrorCode, SUCCESS);
 
     auto res5 = latticeCtx->SetEnergyRange(-3, 3);
@@ -93,6 +93,7 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     auto res11 = dosCtx->ComputeDoS(2048);
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
+    dosCtx->Save();
     // --------------------------------------------------------------------------------------------
     // Test output correctness
 

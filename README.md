@@ -23,7 +23,7 @@
   sudo apt install libgtest-dev
   ```
 
-- **ROOT (via binaries)**
+- **ROOT**
   https://root.cern/install/
     
   This package may cause of lot of pain because of missing libraries or linkage. Please export the path.
@@ -63,9 +63,20 @@
 ### On WSL/Linux
 
 ```bash
-sudo cmake -DINFO_LOGGING_ENABLED=ON -DCMAKE_PREFIX_PATH=$HOME/root -S . -B _build
+sudo cmake -DINFO_LOGGING_ENABLED=ON -S . -B _build
 sudo cmake --build _build
 sudo cmake --install _build
+```
+
+You might need these flags due to Windows <-> WSL nvcc linkage.
+```bash
+-DCMAKE_CUDA_ARCHITECTURES=all 
+-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+```
+
+And root issues
+```bash
+-DCMAKE_PREFIX_PATH=/snap/root-framework/current/usr/local/cmake
 ```
 
 ## Running Quantum-Abysmal Tests

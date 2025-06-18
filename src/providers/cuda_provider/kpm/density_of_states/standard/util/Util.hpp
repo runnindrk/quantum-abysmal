@@ -28,7 +28,7 @@
 #define NUM_BLOCKS (256)
 #define NUM_THREADS (256)
 
-#define ARRAY_IDX(x, y, hx, hy, o) (numOrbitals * ((x + hx) + (y + hy) * xGhostedSize) + o)
+#define ARRAY_IDX(x, y, hx, hy, o) (numOrbitals * (Math::Mod(x + hx, xSize) + Math::Mod(y + hy, ySize) * xSize) + o)
 
 // ================================================================================================
 // CUDA KPM reductions helper functions.
