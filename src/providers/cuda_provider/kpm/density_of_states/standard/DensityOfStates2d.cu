@@ -70,31 +70,55 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     LOG_INFO << "Number of Lattice Points : " << xSize << "x" << ySize << " = " << xSize * ySize;
     LOG_INFO << "Number of Orbitals : " << numOrbitals;
     LOG_INFO << "Number of Hoppings : " << (uint32_t)mLattice.numberOfHoppings;
+    LOG_INFO << "Number of Random Vectors  : " << mNumRandomVectors;
     LOG_INFO << "Number of Moments  : " << mNumOfMoments;
 
-    // ---------------------------------------------------------------------------------------------
+    // ============================================================================================
     // Memory Allocation.
 
     double* dFirstRed;
     cudaMalloc((void**)&dFirstRed, NUM_THREADS * sizeof(double));
-    cudaMemset(dFirstRed, 0, NUM_THREADS * sizeof(double));
 
     double* dSecondRed;
     cudaMalloc((void**)&dSecondRed, NUM_THREADS * sizeof(double));
-    cudaMemset(dSecondRed, 0, NUM_THREADS * sizeof(double));
 
     double* dA;
     cudaMalloc((void**)&dA, mLattice.hamiltonianSize * sizeof(double));
-    cudaMemset(dA, 0, mLattice.hamiltonianSize * sizeof(double));
 
     double* dB;
     cudaMalloc((void**)&dB, mLattice.hamiltonianSize * sizeof(double));
-    cudaMemset(dB, 0, mLattice.hamiltonianSize * sizeof(double));
+
+    double* dMoments;
+    cudaMalloc((void**)&dMoments, dMomentsSize * sizeof(double));
 
     cudaMalloc((void**)&dLattice, sizeof(LatticeStructure));
     cudaMemcpy(dLattice, &mLattice, sizeof(LatticeStructure), cudaMemcpyHostToDevice);
 
-    cudaMalloc((void**)&dMoments, dMomentsSize * sizeof(double));
+    // ---------------------------------------------------------------------------------------------
+    // Memory Allocation for Statistics.
+
+    cudaMalloc((void**)&dAverageMoments, dMomentsSize * sizeof(double));
+    cudaMemset(dAverageMoments, 0, dMomentsSize * sizeof(double));
+
+    cudaMalloc((void**)&dVarianceMoments, dMomentsSize * sizeof(double));
+    cudaMemset(dVarianceMoments, 0, dMomentsSize * sizeof(double));
+
+    // ============================================================================================
+    // Compute
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Start of random vector loop
+    for (uint64_t i = 0; i < mNumRandomVectors; i++)
+    {
+    
+    // --------------------------------------------------------------------------------------------
+    // Zeroed out the arrays for the next iteration
+
+    cudaMemset(dFirstRed, 0, NUM_THREADS * sizeof(double));
+    cudaMemset(dSecondRed, 0, NUM_THREADS * sizeof(double));
+    cudaMemset(dA, 0, mLattice.hamiltonianSize * sizeof(double));
+    cudaMemset(dB, 0, mLattice.hamiltonianSize * sizeof(double));
     cudaMemset(dMoments, 0, dMomentsSize * sizeof(double));
 
     // --------------------------------------------------------------------------------------------
@@ -103,9 +127,7 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     RngGpuEngine::GetInstance().GetRandomVector(dA, mLattice.hamiltonianSize);
 
     // --------------------------------------------------------------------------------------------
-    // Compute
-
-    auto start = std::chrono::high_resolution_clock::now();
+    // Compute one average iteration of KPM.
 
     {
         Reduce<NUM_THREADS><<<NUM_BLOCKS, NUM_THREADS>>>(dA, dB, *dLattice, dFirstRed, dSecondRed, KpmSparseInit{});
@@ -118,11 +140,22 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
         Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, i + 1);
     }
 
-    // --------------------------------------------------------------------------------------------
+    // Compute statistics for the moments
+    {
+        Math::SatisticsAccumulator<<<NUM_BLOCKS, NUM_THREADS>>>(dMoments, dAverageMoments, dVarianceMoments, dMomentsSize, i);
+    }
+
+    }
+    // End of random vector loop
+
+    // ============================================================================================
     // Copy to host.
 
-    mMoments.resize(mNumOfMoments);
-    cudaMemcpy(mMoments.data(), dMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
+    mAverageMoments.resize(mNumOfMoments);
+    cudaMemcpy(mAverageMoments.data(), dAverageMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
+
+    mVarianceMoments.resize(mNumOfMoments);
+    cudaMemcpy(mVarianceMoments.data(), dVarianceMoments, mNumOfMoments * sizeof(double), cudaMemcpyDeviceToHost);
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
@@ -133,7 +166,7 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
 
     // --------------------------------------------------------------------------------------------
 
-    return Result<std::vector<double>>::SetValue(mMoments);
+    return Result<std::vector<double>>::SetValue(mAverageMoments);
 }
 
 Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t numPoints)
@@ -150,7 +183,7 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::Compute
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    DensityOfStatesFromMoments<<<NUM_BLOCKS, NUM_THREADS>>>(*dLattice, dMoments, dMomentsSize, dosPointerArray, numPoints);
+    DensityOfStatesFromAverageMoments<<<NUM_BLOCKS, NUM_THREADS>>>(*dLattice, dAverageMoments, dMomentsSize, dosPointerArray, numPoints);
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
@@ -167,7 +200,7 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::Compute
 
 Result<void> DensityOfStates2dGpuStandard::Save()
 {
-    StorageEngine::SaveDoS(mLattice, mMoments, mDoS);
+    StorageEngine::SaveDoS(mLattice, mNumOfMoments, mNumRandomVectors, mAverageMoments, mVarianceMoments, mDoS);
 
     return Result<void>::SetError(SUCCESS);
 }

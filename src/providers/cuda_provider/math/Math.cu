@@ -13,30 +13,4 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#ifndef QUANTUM_ABYSMAL_SRC_STORAGE_ENGINE_HPP
-#define QUANTUM_ABYSMAL_SRC_STORAGE_ENGINE_HPP
-
-#include "include/internal/Logger.hpp"
-#include "src/lattice/LatticeImpl.hpp"
-
-class StorageEngine
-{
-  public:
-
-    StorageEngine();
-    ~StorageEngine();
-
-    static void SaveDoS(LatticeStructure& mLattice,
-                            size_t numOfMoments,
-                            size_t numRandomVectors,
-                            std::vector<double>& momentsAverage,
-                            std::vector<double>& momentsVariance,
-                            std::vector<std::array<double, 2>>& densityOfStates);
-    
-    static void SaveLDoS();
-
-  private:
-  
-};
-
-#endif
+#include "Math.hpp"

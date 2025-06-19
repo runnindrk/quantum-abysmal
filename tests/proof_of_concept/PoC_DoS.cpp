@@ -80,7 +80,7 @@ TEST_F(QuantumAbysmalTest, GrapheneModel_DensityOfStates)
     auto res7 = dosCtx->SetDomainDecomposition({2, 2});
     EXPECT_EQ(res7.ErrorCode, SUCCESS);
 
-    auto res8 = dosCtx->SetNumberOfRandomVectors(1);
+    auto res8 = dosCtx->SetNumberOfRandomVectors(512);
     EXPECT_EQ(res8.ErrorCode, SUCCESS);
 
     auto res9 = dosCtx->SetNumberOfMoments(512);

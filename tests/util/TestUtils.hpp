@@ -18,6 +18,13 @@
 #include <vector>
 #include <array>
 
-void ReadDensityOfStatesSData(const std::string& filename, std::array<uint32_t, 2>& latticeSize, std::vector<double>& moments, std::vector<std::array<double, 2>>& densityOfStates);
+void ReadDensityOfStatesData(const std::string& filename,
+                             std::array<uint32_t, 2>& latticeSize,
+                             size_t& numOfMoments,
+                             size_t& numRandomVectors,
+                             std::vector<double>& momentsAverage,
+                             std::vector<double>& momentsVariance,
+                             std::vector<std::array<double, 2>>& densityOfStates);
+
 double StandardDeviation(std::vector<double> testData, std::vector<double> groundData);
 std::pair<double, double> StandardDeviation(std::vector<std::array<double, 2>> testData, std::vector<std::array<double, 2>> groundData);

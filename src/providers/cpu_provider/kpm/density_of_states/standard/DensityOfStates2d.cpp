@@ -16,8 +16,8 @@
 #include "DensityOfStates2d.hpp"
 
 #include "src/providers/cpu_provider/rng/RngImpl.hpp"
+#include "src/providers/cpu_provider/math/Math.hpp"
 #include "src/storage/StorageEngineImpl.hpp"
-#include "src/math/Math.hpp"
 #include "src/plotting/PlotDensityOfStatesImpl.hpp"
 #include "util/Util.hpp"
 
@@ -73,8 +73,8 @@ Result<void> DensityOfStates2dCpuStandard::SetDomainDecomposition(std::vector<ui
 
     xDomainDecomposition = numDomains[0];
     yDomainDecomposition = numDomains[1];
-    NUM_THREADS = xDomainDecomposition * yDomainDecomposition;
-    omp_set_num_threads(NUM_THREADS);
+    numThreads = xDomainDecomposition * yDomainDecomposition;
+    omp_set_num_threads(numThreads);
 
     return Result<void>::SetError(SUCCESS);
 }
@@ -88,6 +88,9 @@ Result<void> DensityOfStates2dCpuStandard::SetNumberOfRandomVectors(size_t numVe
 Result<void> DensityOfStates2dCpuStandard::SetNumberOfMoments(size_t order)
 {
     mNumOfMoments = order;
+    mAverageMoments.resize(mNumOfMoments, 0.0);
+    mVarianceMoments.resize(mNumOfMoments, 0.0);
+
     return Result<void>::SetError(SUCCESS);
 }
 
@@ -100,18 +103,36 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeMoments()
     LOG_INFO << "Number of Lattice Points : " << xSize << "x" << ySize << " = " << xSize * ySize;
     LOG_INFO << "Number of Orbitals : " << numOrbitals;
     LOG_INFO << "Number of Hoppings : " << (uint32_t)mLattice.numberOfHoppings;
+    LOG_INFO << "Number of Random Vectors  : " << mNumRandomVectors;
     LOG_INFO << "Number of Moments  : " << mNumOfMoments;
 
-    // --------------------------------------------------------------------------------------------
-    // Allocate necessary memory
+    // ============================================================================================
+    // Memory Allocation.
 
     uint64_t arraySize = mLattice.hamiltonianSize + numberOfGhosts;
 
     double* a = (double*)malloc(arraySize * sizeof(double));
     double* b = (double*)malloc(arraySize * sizeof(double));
+    double* m = (double*)malloc(mNumOfMoments * sizeof(double));
+
+    // ---------------------------------------------------------------------------------------------
+    // Memory Allocation for Statistics.
+
+    // ============================================================================================
+    // Compute
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Start of random vector loop
+    for (uint64_t i = 0; i < mNumRandomVectors; i++)
+    {
+    
+    // --------------------------------------------------------------------------------------------
+    // Zeroed out the arrays for the next iteration
 
     memset(a, 0, arraySize * sizeof(double));
     memset(b, 0, arraySize * sizeof(double));
+    memset(m, 0, mNumOfMoments * sizeof(double));
 
     // --------------------------------------------------------------------------------------------
     // Populate the random vector
@@ -119,19 +140,27 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeMoments()
     RngCpuEngine::GetInstance().GetRandomVector(a, arraySize);
 
     // --------------------------------------------------------------------------------------------
-    // Compute
-
-    auto start = std::chrono::high_resolution_clock::now();
+    // Compute one average iteration of KPM.
 
     {
-        InitializeKpmVectors(a, b);
+        InitializeKpmVectors(a, b, m, 0);
     }
 
     for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
     {
-        ExecuteKpmVectorUpdate((i % 2 == 0) ? a : b, (i % 2 == 0) ? b : a);
+        ExecuteKpmVectorUpdate((i % 2 == 0) ? a : b, (i % 2 == 0) ? b : a, m, i + 1);
     }
 
+    // Compute statistics for the moments
+    {
+        Math::SatisticsAccumulator(m, mAverageMoments.data(), mVarianceMoments.data(), mNumOfMoments, i);
+    }
+
+    }
+    // End of random vector loop
+
+    // --------------------------------------------------------------------------------------------
+    
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     LOG_INFO << "Moments computation time : " << elapsed.count() << " seconds.";
@@ -141,10 +170,11 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeMoments()
 
     free(a);
     free(b);
+    free(m);
 
     // --------------------------------------------------------------------------------------------
 
-    return Result<std::vector<double>>::SetValue(mMoments);
+    return Result<std::vector<double>>::SetValue(mAverageMoments);
 }
 
 Result<std::vector<std::array<double, 2>>> DensityOfStates2dCpuStandard::ComputeDoS(uint32_t numPoints)
@@ -162,12 +192,12 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dCpuStandard::Compute
         double E = -0.999 + i * (2 * 0.999) / (numPoints - 1);
 
         {
-            mDoS[i][1] += 1 * mMoments[0] * Math::JacksonKernel(0, mMoments.size()) * Math::ChebyshevPolynomial(0, E);
+            mDoS[i][1] += 1 * mAverageMoments[0] * Math::JacksonKernel(0, mAverageMoments.size()) * Math::ChebyshevPolynomial(0, E);
         }
 
-        for (int j = 1; j < mMoments.size(); j++)
+        for (int j = 1; j < mAverageMoments.size(); j++)
         {
-            mDoS[i][1] += 2 * mMoments[j] * Math::JacksonKernel(j, mMoments.size()) * Math::ChebyshevPolynomial(j, E);
+            mDoS[i][1] += 2 * mAverageMoments[j] * Math::JacksonKernel(j, mAverageMoments.size()) * Math::ChebyshevPolynomial(j, E);
         }
 
         mDoS[i][1] *= 1 / (M_PI * (sqrt(1 - E * E)));
@@ -188,7 +218,7 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dCpuStandard::Compute
 
 Result<void> DensityOfStates2dCpuStandard::Save()
 {
-    StorageEngine::SaveDoS(mLattice, mMoments, mDoS);
+    StorageEngine::SaveDoS(mLattice, mNumOfMoments, mNumRandomVectors, mAverageMoments, mVarianceMoments, mDoS);
 
     return Result<void>::SetError(SUCCESS);
 }
@@ -207,7 +237,7 @@ Result<void> DensityOfStates2dCpuStandard::PlotDoS()
 // ------------------------------------------------------------------------------------------------
 // This is the HPC part. Careful tuning needs to explored.
 
-void DensityOfStates2dCpuStandard::InitializeKpmVectors(double* a, double* b)
+void DensityOfStates2dCpuStandard::InitializeKpmVectors(double* a, double* b, double* m, uint32_t iteration)
 {
     double firstMoment{0};
     double secondMoment{0};
@@ -254,15 +284,15 @@ void DensityOfStates2dCpuStandard::InitializeKpmVectors(double* a, double* b)
     }
 
     // --------------------------------------------------------------------------------------------
-    // 
+    // Trick to halve the number of vector updates.
 
-    mMoments.push_back(firstMoment / mLattice.hamiltonianSize);
-    mMoments.push_back(secondMoment / mLattice.hamiltonianSize);
+    m[2 * iteration] = firstMoment / mLattice.hamiltonianSize;
+    m[2 * iteration + 1] = secondMoment / mLattice.hamiltonianSize;
 
     UpdateGhosts(b);
 }
 
-void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
+void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b, double* m, uint32_t iteration)
 {
     double firstMoment{0};
     double secondMoment{0};
@@ -335,8 +365,8 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b)
     // --------------------------------------------------------------------------------------------
     // Trick to halve the number of vector updates.
 
-    mMoments.push_back(2 * (firstMoment / mLattice.hamiltonianSize) - mMoments[0]);
-    mMoments.push_back(2 * (secondMoment / mLattice.hamiltonianSize) - mMoments[1]);
+    m[2 * iteration] = 2 * (firstMoment / mLattice.hamiltonianSize) - m[0];
+    m[2 * iteration + 1] = 2 * (secondMoment / mLattice.hamiltonianSize) - m[1];
 
     UpdateGhosts(a);
 }

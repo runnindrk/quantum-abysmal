@@ -42,8 +42,8 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
 
     private:
 
-    void InitializeKpmVectors(double* a, double* b);
-    void ExecuteKpmVectorUpdate(double* a, double* b);
+    void InitializeKpmVectors(double* a, double* b, double* m, uint32_t iteration);
+    void ExecuteKpmVectorUpdate(double* a, double* b, double* m, uint32_t iteration);
     inline void UpdateGhosts(double* a);
 
     // --------------------------------------------------------------------------------------------
@@ -52,7 +52,8 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
     // Kpm variables. 
     size_t mNumRandomVectors{};
     size_t mNumOfMoments{};
-    std::vector<double> mMoments;
+    std::vector<double> mAverageMoments;
+    std::vector<double> mVarianceMoments;
     std::vector<std::array<double, 2>> mDoS;
     
     // Lattice variables. 
@@ -67,7 +68,7 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
     // Parallelization variables. 
     uint32_t xDomainDecomposition{1};
     uint32_t yDomainDecomposition{1};
-    uint32_t NUM_THREADS{};
+    uint32_t numThreads{};
 
     // Have to think how to handle disorder. (maybe a flag on LatticeMethods)
     // (a flag is wrong, the lattice should allways have the same disorder)

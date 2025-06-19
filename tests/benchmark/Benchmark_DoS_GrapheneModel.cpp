@@ -92,8 +92,7 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
 
     auto res11 = dosCtx->ComputeDoS(2048);
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
-
-    dosCtx->Save();
+    
     // --------------------------------------------------------------------------------------------
     // Test output correctness
 

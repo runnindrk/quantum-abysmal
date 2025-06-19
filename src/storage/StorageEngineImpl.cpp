@@ -29,7 +29,12 @@ StorageEngine::~StorageEngine()
 {
 }
 
-void StorageEngine::SaveDoS(LatticeStructure& mLattice, std::vector<double>& moments, std::vector<std::array<double, 2>>& densityOfStates)
+void StorageEngine::SaveDoS(LatticeStructure& mLattice,
+                            size_t numOfMoments,
+                            size_t numRandomVectors,
+                            std::vector<double>& momentsAverage,
+                            std::vector<double>& momentsVariance,
+                            std::vector<std::array<double, 2>>& densityOfStates)
 {
     // Ensure "data" directory exists
     const std::filesystem::path dir{"data"};
@@ -54,13 +59,43 @@ void StorageEngine::SaveDoS(LatticeStructure& mLattice, std::vector<double>& mom
         return;
     }
 
-    // Save moments as 1D dataset
-    hsize_t momentsDim = moments.size();
-    hid_t momentsSpace = H5Screate_simple(1, &momentsDim, nullptr);
-    hid_t momentsDataset = H5Dcreate(fileId, "Moments", H5T_IEEE_F64LE, momentsSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Dwrite(momentsDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, moments.data());
-    H5Dclose(momentsDataset);
-    H5Sclose(momentsSpace);
+    // Save numOfMoments as a scalar dataset
+    {
+        hid_t space = H5Screate(H5S_SCALAR);
+        hid_t dataset = H5Dcreate(fileId, "NumOfMoments", H5T_STD_U64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Dwrite(dataset, H5T_NATIVE_UINT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, &numOfMoments);
+        H5Dclose(dataset);
+        H5Sclose(space);
+    }
+
+    // Save numRandomVectors as a scalar dataset
+    {
+        hid_t space = H5Screate(H5S_SCALAR);
+        hid_t dataset = H5Dcreate(fileId, "NumRandomVectors", H5T_STD_U64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Dwrite(dataset, H5T_NATIVE_UINT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, &numRandomVectors);
+        H5Dclose(dataset);
+        H5Sclose(space);
+    }
+
+    // Save momentsAverage as 1D dataset
+    {
+        hsize_t dim = momentsAverage.size();
+        hid_t space = H5Screate_simple(1, &dim, nullptr);
+        hid_t dataset = H5Dcreate(fileId, "MomentsAverage", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, momentsAverage.data());
+        H5Dclose(dataset);
+        H5Sclose(space);
+    }
+
+    // Save momentsVariance as 1D dataset
+    {
+        hsize_t dim = momentsVariance.size();
+        hid_t space = H5Screate_simple(1, &dim, nullptr);
+        hid_t dataset = H5Dcreate(fileId, "MomentsVariance", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, momentsVariance.data());
+        H5Dclose(dataset);
+        H5Sclose(space);
+    }
 
     // Flatten densityOfStates to contiguous array
     std::vector<double> dosFlat;
@@ -72,24 +107,28 @@ void StorageEngine::SaveDoS(LatticeStructure& mLattice, std::vector<double>& mom
     }
 
     // Save densityOfStates as 2D dataset [N, 2]
-    hsize_t dosDims[2] = {densityOfStates.size(), 2};
-    hid_t dosSpace = H5Screate_simple(2, dosDims, nullptr);
-    hid_t dosDataset = H5Dcreate(fileId, "DensityOfStates", H5T_IEEE_F64LE, dosSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Dwrite(dosDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, dosFlat.data());
-    H5Dclose(dosDataset);
-    H5Sclose(dosSpace);
+    {
+        hsize_t dims[2] = {densityOfStates.size(), 2};
+        hid_t space = H5Screate_simple(2, dims, nullptr);
+        hid_t dataset = H5Dcreate(fileId, "DensityOfStates", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, dosFlat.data());
+        H5Dclose(dataset);
+        H5Sclose(space);
+    }
 
     // Save lattice size as 2D shape [xSize, ySize]
-    double latticeSizeXY[2] = {
-        static_cast<double>(mLattice.latticeSize[0]),
-        static_cast<double>(mLattice.latticeSize[1])
-    };
-    hsize_t latticeSizeDim = 2;
-    hid_t latticeSizeSpace = H5Screate_simple(1, &latticeSizeDim, nullptr);
-    hid_t latticeSizeDataset = H5Dcreate(fileId, "LatticeSize", H5T_IEEE_F64LE, latticeSizeSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Dwrite(latticeSizeDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, latticeSizeXY);
-    H5Dclose(latticeSizeDataset);
-    H5Sclose(latticeSizeSpace);
+    {
+        double latticeSizeXY[2] = {
+            static_cast<double>(mLattice.latticeSize[0]),
+            static_cast<double>(mLattice.latticeSize[1])
+        };
+        hsize_t dim = 2;
+        hid_t space = H5Screate_simple(1, &dim, nullptr);
+        hid_t dataset = H5Dcreate(fileId, "LatticeSize", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, latticeSizeXY);
+        H5Dclose(dataset);
+        H5Sclose(space);
+    }
 
     // Close file
     herr_t status = H5Fclose(fileId);

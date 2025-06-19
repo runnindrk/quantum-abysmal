@@ -19,7 +19,7 @@
 #include "include/internal/Logger.hpp"
 #include "include/public/DensityOfStates.hpp"
 #include "src/lattice/LatticeImpl.hpp"
-#include "src/math/Math.hpp"
+#include "src/providers/cuda_provider/math/Math.hpp"
 #include "src/providers/cuda_provider/rng/RngEngineImpl.hpp"
 #include "util/Util.hpp"
 

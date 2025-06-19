@@ -19,84 +19,140 @@
 
 #include <gtest/gtest.h>
 
+// ================================================================================================
+// Warning 
+
+// This test will be modified to use SetUp() override and TearDown() override after the codegen update.
+// This does not work now becase LatticeImpl is a singleton and cannot be instantiated multiple times.
+
+// ================================================================================================
+// Shared variables for test vectors and contexts
+
+std::string testVectorFile;
+std::array<uint32_t, 2> testVectorLatticeSize;
+size_t testVectorNumOfMoments;
+size_t testVectorNumRandomVectors;
+std::vector<double> testVectorMomentsAverage;
+std::vector<double> testVectorMomentsVariance;
+std::vector<std::array<double, 2>> testVectorDoS;
+
+std::shared_ptr<QuantumAbysmalContext> abysmalCtx;
+std::shared_ptr<Lattice> latticeCtx;
+std::shared_ptr<Plotting> plottingCtx;
+
+// ================================================================================================
+// Test fixture for Quantum Abysmal tests
+
 class QuantumAbysmalTest : public ::testing::Test 
 {
-protected:
+    public:
 
-    void SetUp() override 
+    // ============================================================================================
+    // Set Up 
+
+    static void SetUpTestSuite()
+    {
+        // ----------------------------------------------------------------------------------------
+        // Read test vector
+
+        testVectorFile = "tests/test_vectors/Verify_DoS_GrapheneModel.hdf5";
+        ReadDensityOfStatesData(testVectorFile,
+                                testVectorLatticeSize,
+                                testVectorNumOfMoments,
+                                testVectorNumRandomVectors,
+                                testVectorMomentsAverage,
+                                testVectorMomentsVariance,
+                                testVectorDoS);
+        
+        // ----------------------------------------------------------------------------------------
+        // Set up context and lattice
+
+        // Get context
+        abysmalCtx = GetQuantumAbysmalContext();
+        ASSERT_NE(abysmalCtx, nullptr);
+
+        latticeCtx = abysmalCtx->GetLatticeMethods();
+        ASSERT_NE(latticeCtx, nullptr);
+
+        plottingCtx = abysmalCtx->GetPlotMethods();
+        ASSERT_NE(plottingCtx, nullptr);
+
+        // Set Graphene Model lattice hoppings
+        auto res1 = latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
+        ASSERT_EQ(res1.ErrorCode, SUCCESS);
+
+        auto res2 = latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
+        ASSERT_EQ(res2.ErrorCode, SUCCESS);
+
+        auto res3 = latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
+        ASSERT_EQ(res3.ErrorCode, SUCCESS);
+
+        // Set lattice properties
+        auto res4 = latticeCtx->SetLatticeSize({testVectorLatticeSize[0], testVectorLatticeSize[1]});
+        ASSERT_EQ(res4.ErrorCode, SUCCESS);
+
+        auto res5 = latticeCtx->SetEnergyRange(-3, 3);
+        ASSERT_EQ(res5.ErrorCode, SUCCESS);
+
+        auto res6 = latticeCtx->SetBoundaryType(PERIODIC);
+        ASSERT_EQ(res6.ErrorCode, SUCCESS);
+    }
+
+    // ============================================================================================
+    // Tear Down 
+
+    static void TearDownTestSuite() 
     {
     }
 
-    void TearDown() override 
+    // ============================================================================================
+    // Helper function to verify computed moments against test vector
+
+    static void VerifyMoments(const std::vector<double>& computedMoments)
     {
+        std::vector<std::pair<size_t, double>> outOfBounds;
+        for (size_t i = 0; i < computedMoments.size(); ++i) 
+        {
+            double mean = testVectorMomentsAverage[i];
+            double stddev = std::sqrt(testVectorMomentsVariance[i]);
+            double z = (stddev > 0) ? (computedMoments[i] - mean) / stddev : 0.0;
+
+            if (std::abs(z) >= 5.0) 
+            {
+                outOfBounds.emplace_back(i, z);
+            }
+        }
+
+        if (!outOfBounds.empty()) 
+        {
+            std::cout << "Moments with z-score out of bounds:\n";
+            for (const auto& [idx, z] : outOfBounds) 
+            {
+                std::cout << "  Moment " << idx << " z-score: " << z << "\n";
+            }
+            FAIL();
+        }
     }
 };
 
-TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL) 
+// ============================================================================================
+// Test for Density of States (DoS) computation on Graphene model on CPU_STANDARD_IMPL
+
+TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_CPU_STANDARD_IMPL) 
 {
-    // --------------------------------------------------------------------------------------------
-    // Read test vector
-
-    std::string testVectorFile = "tests/test_vectors/Verify_DoS_GrapheneModel.hdf5";
-    std::array<uint32_t, 2> testVectorLatticeSize;
-    std::vector<double> testVectorMoments;
-    std::vector<std::array<double, 2>> testVectorDoS;
-
-    ReadDensityOfStatesSData(testVectorFile, testVectorLatticeSize, testVectorMoments, testVectorDoS);
-    
-    // --------------------------------------------------------------------------------------------
-    // Get context
-
-    auto abysmalCtx = GetQuantumAbysmalContext();
-    ASSERT_NE(abysmalCtx, nullptr);
-
-    auto latticeCtx = abysmalCtx->GetLatticeMethods();
-    ASSERT_NE(latticeCtx, nullptr);
-
-    auto plottingCtx = abysmalCtx->GetPlotMethods();
-    ASSERT_NE(plottingCtx, nullptr);
-
-    // --------------------------------------------------------------------------------------------
-    // Set Graphene Model lattice hoppings
-
-    auto res1 = latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
-    EXPECT_EQ(res1.ErrorCode, SUCCESS);
-
-    auto res2 = latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
-    EXPECT_EQ(res2.ErrorCode, SUCCESS);
-
-    auto res3 = latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
-    EXPECT_EQ(res3.ErrorCode, SUCCESS);
-
-    // --------------------------------------------------------------------------------------------
-    // Set lattice properties
-
-    auto res4 = latticeCtx->SetLatticeSize({testVectorLatticeSize[0], testVectorLatticeSize[1]});
-    EXPECT_EQ(res4.ErrorCode, SUCCESS);
-
-    auto res5 = latticeCtx->SetEnergyRange(-3, 3);
-    EXPECT_EQ(res5.ErrorCode, SUCCESS);
-
-    auto res6 = latticeCtx->SetBoundaryType(PERIODIC);
-    EXPECT_EQ(res6.ErrorCode, SUCCESS);
-
-    // --------------------------------------------------------------------------------------------
-    // DoS calculation
-
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     ASSERT_NE(kpmCtx, nullptr);
 
-    auto dosCtx = kpmCtx->CreateDoSCtx(GPU_STANDARD_IMPL);
+    auto dosCtx = kpmCtx->CreateDoSCtx(CPU_STANDARD_IMPL);
     ASSERT_NE(dosCtx, nullptr);
 
-    // Domain Decomposition does not exist in CUDA Provider.
     auto res7 = dosCtx->SetDomainDecomposition({2, 2});
-    EXPECT_EQ(res7.ErrorCode, NOT_SUPPORTED);
+    EXPECT_EQ(res7.ErrorCode, SUCCESS);
 
     auto res8 = dosCtx->SetNumberOfRandomVectors(1);
     EXPECT_EQ(res8.ErrorCode, SUCCESS);
 
-    auto res9 = dosCtx->SetNumberOfMoments(testVectorMoments.size());
+    auto res9 = dosCtx->SetNumberOfMoments(testVectorNumRandomVectors);
     EXPECT_EQ(res9.ErrorCode, SUCCESS);
 
     auto res10 = dosCtx->ComputeMoments();
@@ -105,14 +161,35 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     auto res11 = dosCtx->ComputeDoS(testVectorDoS.size());
     EXPECT_EQ(res10.ErrorCode, SUCCESS);
 
-    // --------------------------------------------------------------------------------------------
-    // Verify output
+    VerifyMoments(res10.Value);
+}
 
-    auto stdMoments = StandardDeviation(res10.Value, testVectorMoments);
-    auto stdDoS = StandardDeviation(res11.Value, testVectorDoS);
+// ============================================================================================
+// Test for Density of States (DoS) computation on Graphene model on GPU_STANDARD_IMPL
 
-    std::cout << "stdMoments : " << stdMoments << std::endl;
-    std::cout << "stdDoS : " << stdDoS.first << " " << stdDoS.second << std::endl;
+TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL) 
+{
+    auto kpmCtx = abysmalCtx->GetKpmMethods();
+    ASSERT_NE(kpmCtx, nullptr);
 
-    
+    auto dosCtx = kpmCtx->CreateDoSCtx(GPU_STANDARD_IMPL);
+    ASSERT_NE(dosCtx, nullptr);
+
+    // Domain Decomposition does not exist in GPU Provider.
+    auto res7 = dosCtx->SetDomainDecomposition({2, 2});
+    EXPECT_EQ(res7.ErrorCode, NOT_SUPPORTED);
+
+    auto res8 = dosCtx->SetNumberOfRandomVectors(1);
+    EXPECT_EQ(res8.ErrorCode, SUCCESS);
+
+    auto res9 = dosCtx->SetNumberOfMoments(testVectorNumRandomVectors);
+    EXPECT_EQ(res9.ErrorCode, SUCCESS);
+
+    auto res10 = dosCtx->ComputeMoments();
+    EXPECT_EQ(res10.ErrorCode, SUCCESS);
+
+    auto res11 = dosCtx->ComputeDoS(testVectorDoS.size());
+    EXPECT_EQ(res10.ErrorCode, SUCCESS);
+
+    VerifyMoments(res10.Value);
 }

@@ -17,7 +17,7 @@
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_UTIL_STANDARD_HPP
 
 #include "src/lattice/LatticeImpl.hpp"
-#include "src/math/Math.hpp"
+#include "src/providers/cuda_provider/math/Math.hpp"
 
 #include <cstdint>
 #include <curand_kernel.h>
@@ -202,7 +202,7 @@ __global__ void Reduce(double* firstPartialReduction, double* secondPartialReduc
 // Kernel for DoS computation.
 
 template <typename T>
-__global__ void DensityOfStatesFromMoments(LatticeStructure& lattice, T* mom, uint32_t momSize, std::array<double, 2>* dosPointerArray, uint32_t dosArraySize)
+__global__ void DensityOfStatesFromAverageMoments(LatticeStructure& lattice, T* mom, uint32_t momSize, std::array<double, 2>* dosPointerArray, uint32_t dosArraySize)
 {
     uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 

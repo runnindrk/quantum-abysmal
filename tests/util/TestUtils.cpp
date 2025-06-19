@@ -21,73 +21,134 @@
 // ================================================================================================
 // Read test vectors util functions
 
-void ReadDensityOfStatesSData(const std::string& filename, std::array<uint32_t, 2>& latticeSize, std::vector<double>& moments,
-                              std::vector<std::array<double, 2>>& densityOfStates)
+void ReadDensityOfStatesData(const std::string& filename,
+                             std::array<uint32_t, 2>& latticeSize,
+                             size_t& numOfMoments,
+                             size_t& numRandomVectors,
+                             std::vector<double>& momentsAverage,
+                             std::vector<double>& momentsVariance,
+                             std::vector<std::array<double, 2>>& densityOfStates)
 {
-    // --------------------------------------------------------------------------------------------
     // Open the HDF5 file
-
     hid_t fileId = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
     if (fileId < 0)
     {
         // Error. Handle later.
+        return;
     }
 
-    // --------------------------------------------------------------------------------------------
-    // Read Moments Dataset
-
-    hid_t momentsDataset = H5Dopen(fileId, "Moments", H5P_DEFAULT);
-    hid_t momentsSpace = H5Dget_space(momentsDataset);
-    hsize_t momentsDim;
-    H5Sget_simple_extent_dims(momentsSpace, &momentsDim, nullptr);
-
-    moments.resize(momentsDim);
-    H5Dread(momentsDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, moments.data());
-
-    H5Sclose(momentsSpace);
-    H5Dclose(momentsDataset);
-
-    // --------------------------------------------------------------------------------------------
-    // Read DensityOfStates Dataset
-
-    hid_t dosDataset = H5Dopen(fileId, "DensityOfStates", H5P_DEFAULT);
-    hid_t dosSpace = H5Dget_space(dosDataset);
-    hsize_t dosDims[2];
-    H5Sget_simple_extent_dims(dosSpace, dosDims, nullptr);
-
-    std::vector<double> dosFlat(dosDims[0] * 2);
-    H5Dread(dosDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, dosFlat.data());
-
-    densityOfStates.resize(dosDims[0]);
-    for (size_t i = 0; i < dosDims[0]; ++i)
+    // Read NumOfMoments
     {
-        densityOfStates[i] = {dosFlat[2 * i], dosFlat[2 * i + 1]};
+        hid_t dataset = H5Dopen(fileId, "NumOfMoments", H5P_DEFAULT);
+        if (dataset >= 0)
+        {
+            uint64_t nMom;
+            H5Dread(dataset, H5T_NATIVE_UINT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, &nMom);
+            numOfMoments = static_cast<size_t>(nMom);
+            H5Dclose(dataset);
+        }
+        else
+        {
+            numOfMoments = 0;
+        }
     }
 
-    H5Sclose(dosSpace);
-    H5Dclose(dosDataset);
-
-    // --------------------------------------------------------------------------------------------
-    // Read LatticeSize Dataset
-
-    hid_t latticeSizeDataset = H5Dopen(fileId, "LatticeSize", H5P_DEFAULT);
-    if (latticeSizeDataset >= 0)
+    // Read NumRandomVectors
     {
-        double latticeSizeDouble[2];
-        H5Dread(latticeSizeDataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, latticeSizeDouble);
-        latticeSize[0] = static_cast<uint32_t>(latticeSizeDouble[0]);
-        latticeSize[1] = static_cast<uint32_t>(latticeSizeDouble[1]);
-        H5Dclose(latticeSizeDataset);
+        hid_t dataset = H5Dopen(fileId, "NumRandomVectors", H5P_DEFAULT);
+        if (dataset >= 0)
+        {
+            uint64_t nRand;
+            H5Dread(dataset, H5T_NATIVE_UINT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, &nRand);
+            numRandomVectors = static_cast<size_t>(nRand);
+            H5Dclose(dataset);
+        }
+        else
+        {
+            numRandomVectors = 0;
+        }
     }
 
-    else
+    // Read MomentsAverage
     {
-        latticeSize = {0, 0}; // Default fallback if dataset missing
+        hid_t dataset = H5Dopen(fileId, "MomentsAverage", H5P_DEFAULT);
+        if (dataset >= 0)
+        {
+            hid_t space = H5Dget_space(dataset);
+            hsize_t dim;
+            H5Sget_simple_extent_dims(space, &dim, nullptr);
+            momentsAverage.resize(dim);
+            H5Dread(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, momentsAverage.data());
+            H5Sclose(space);
+            H5Dclose(dataset);
+        }
+        else
+        {
+            momentsAverage.clear();
+        }
     }
 
-    // --------------------------------------------------------------------------------------------
+    // Read MomentsVariance
+    {
+        hid_t dataset = H5Dopen(fileId, "MomentsVariance", H5P_DEFAULT);
+        if (dataset >= 0)
+        {
+            hid_t space = H5Dget_space(dataset);
+            hsize_t dim;
+            H5Sget_simple_extent_dims(space, &dim, nullptr);
+            momentsVariance.resize(dim);
+            H5Dread(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, momentsVariance.data());
+            H5Sclose(space);
+            H5Dclose(dataset);
+        }
+        else
+        {
+            momentsVariance.clear();
+        }
+    }
+
+    // Read DensityOfStates
+    {
+        hid_t dataset = H5Dopen(fileId, "DensityOfStates", H5P_DEFAULT);
+        if (dataset >= 0)
+        {
+            hid_t space = H5Dget_space(dataset);
+            hsize_t dims[2];
+            H5Sget_simple_extent_dims(space, dims, nullptr);
+            std::vector<double> dosFlat(dims[0] * 2);
+            H5Dread(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, dosFlat.data());
+            densityOfStates.resize(dims[0]);
+            for (size_t i = 0; i < dims[0]; ++i)
+            {
+                densityOfStates[i] = {dosFlat[2 * i], dosFlat[2 * i + 1]};
+            }
+            H5Sclose(space);
+            H5Dclose(dataset);
+        }
+        else
+        {
+            densityOfStates.clear();
+        }
+    }
+
+    // Read LatticeSize
+    {
+        hid_t dataset = H5Dopen(fileId, "LatticeSize", H5P_DEFAULT);
+        if (dataset >= 0)
+        {
+            double latticeSizeDouble[2];
+            H5Dread(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, latticeSizeDouble);
+            latticeSize[0] = static_cast<uint32_t>(latticeSizeDouble[0]);
+            latticeSize[1] = static_cast<uint32_t>(latticeSizeDouble[1]);
+            H5Dclose(dataset);
+        }
+        else
+        {
+            latticeSize = {0, 0};
+        }
+    }
+
     // Close file
-
     herr_t status = H5Fclose(fileId);
     if (status < 0)
     {

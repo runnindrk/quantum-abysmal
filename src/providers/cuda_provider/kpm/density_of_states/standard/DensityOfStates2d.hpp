@@ -65,7 +65,8 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
     // Kpm variables.
     size_t mNumRandomVectors{};
     size_t mNumOfMoments{};
-    std::vector<double> mMoments;
+    std::vector<double> mAverageMoments;
+    std::vector<double> mVarianceMoments;
     std::vector<std::array<double, 2>> mDoS;
 
     // Lattice variables.
@@ -79,7 +80,8 @@ class DensityOfStates2dGpuStandard : public DensityOfStates
 
     // CUDA pointers.
     LatticeStructure* dLattice;
-    double* dMoments;
+    double* dAverageMoments;
+    double* dVarianceMoments;
     uint32_t dMomentsSize;
 };
 
