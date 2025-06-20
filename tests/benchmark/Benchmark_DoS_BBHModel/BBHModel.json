@@ -1,0 +1,22 @@
+{
+  "system": {
+    "name": "BBHModel",
+    "description": "Benalcazar-Bernevig-Hughes (BBH) model for 2D higher-order topological insulator"
+  },
+  "lattice": {
+    "hoppings": [
+      { "delta": [0, 0], "from": "A", "to": "A", "value": 0.0 },
+      { "delta": [0, 0], "from": "B", "to": "B", "value": 0.0 },
+      { "delta": [0, 0], "from": "C", "to": "D", "value": -0.0 },
+      { "delta": [0, 0], "from": "D", "to": "D", "value": -0.0 },
+      { "delta": [1, 0], "from": "C", "to": "A", "value": 1.0 },
+      { "delta": [1, 0], "from": "B", "to": "D", "value": 1.0 },
+      { "delta": [0, 1], "from": "D", "to": "A", "value": 1.0 },
+      { "delta": [0, 1], "from": "B", "to": "C", "value": -1.0 },
+      { "delta": [0, 0], "from": "C", "to": "A", "value": 0.5 },
+      { "delta": [0, 0], "from": "B", "to": "D", "value": 0.5 },
+      { "delta": [0, 0], "from": "D", "to": "A", "value": 0.5 },
+      { "delta": [0, 0], "from": "B", "to": "C", "value": -0.5 }
+    ]
+  }
+}

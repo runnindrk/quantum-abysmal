@@ -18,8 +18,8 @@
 
 #include "include/internal/Logger.hpp"
 #include "include/public/Lattice.hpp"
+#include "codegen/Codegen_LatticeStructure.hpp"
 #include "util/Conversions.hpp"
-#include "LatticeStructures.hpp"
 
 #include <unordered_set>
 #include <array>
@@ -40,8 +40,7 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Internal methods.
 
-    LatticeStructure GetLattice();
-    Result<void> PrintLatticeInformation();
+    LatticeStructure& GetLattice();
 
     private:
     
@@ -51,10 +50,12 @@ class LatticeImpl : public Lattice
     // ------------------------------------------------------------------------
     // Private member variables.
 
-    bool mIsAddHoppingCalled{false};
-    bool mIsAnyOtherFunctionCalled{false};
     std::unordered_set<char> mOrbitalsSet;
     
+    // A copy of the original lattice structure to reset values.
+    static LatticeStructure originalLattice;
+
+    // The current lattice structure.
     static LatticeStructure mLattice;
 };
 

@@ -15,10 +15,8 @@
 
 #include "LatticeImpl.hpp"
 
-// NOTE: This class is internally read only. No need for locks and mutex (I think).
-// TODO: Result<void> Handling.
-
-LatticeStructure LatticeImpl::mLattice;
+LatticeStructure LatticeImpl::originalLattice = CodegenLatticeStructure;
+LatticeStructure LatticeImpl::mLattice = CodegenLatticeStructure;
 
 LatticeImpl& LatticeImpl::GetInstance()
 {
@@ -26,16 +24,17 @@ LatticeImpl& LatticeImpl::GetInstance()
     return instance;
 }
 
+// This will be deprecated in the future.
 Result<void> LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
                               double hoppingStrength)
 {
     LOG_WARN << "Please be sure to call your AddHoppings in sequence!";
 
-    if (mIsAnyOtherFunctionCalled)
-    {
-        LOG_ERROR << "inserting AddHopping after calling other functions is not allowed.";
-        return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
-    }
+    // if (mIsAnyOtherFunctionCalled)
+    // {
+    //     LOG_ERROR << "inserting AddHopping after calling other functions is not allowed.";
+    //     return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
+    // }
 
     if (latticeHop.size() == 0 || latticeHop.size() > 3)
     {
@@ -107,24 +106,20 @@ Result<void> LatticeImpl::AddHopping(std::vector<int32_t> latticeHop, std::array
     mLattice.hoppings[mLattice.numberOfHoppings + 1] = conjugate;
     mLattice.numberOfHoppings += 2;
 
-    mIsAddHoppingCalled = true;
-
     return Result<void>::SetError(SUCCESS);
 }
 
 Result<void> LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
 {
-    if (!mIsAddHoppingCalled)
-    {
-        LOG_ERROR << "AddHopping was not called. Cannot determine dimensions.";
-        return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
-    }
-
     if (lateralSizes.size() != mLattice.dimension)
     {
         LOG_ERROR << "Wrong set of dimensions.";
         return Result<void>::SetError(DIMENSION_ERROR);
     }
+
+    // Always restart number of sites and hamiltonian size.
+    mLattice.numberOfSites = originalLattice.numberOfSites;
+    mLattice.hamiltonianSize = originalLattice.hamiltonianSize;
 
     for (int i = 0; i < lateralSizes.size(); i++)
     {   
@@ -137,20 +132,19 @@ Result<void> LatticeImpl::SetLatticeSize(std::vector<uint32_t> lateralSizes)
     }
 
     mLattice.hamiltonianSize = mLattice.numberOfOrbitals * mLattice.numberOfSites;
-    mIsAnyOtherFunctionCalled = true;
 
     return Result<void>::SetError(SUCCESS);
 }
 
 Result<void> LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
 {
-    if (!mIsAddHoppingCalled)
-    {
-        LOG_ERROR << "AddHopping was not called. Cannot resize hoppings.";
-        return Result<void>::SetError(FUNCTION_CALL_ORDER_ERROR);
-    }
-
     // I still need to check for shifts != 0.
+
+    // Always restart hoppingStrength
+    for (uint32_t i = 0; i < mLattice.numberOfHoppings; ++i)
+    {
+        mLattice.hoppings[i].hoppingStrength = originalLattice.hoppings[i].hoppingStrength;
+    }
 
     mLattice.minEnergy = minEnergy;
     mLattice.maxEnergy = maxEnergy;
@@ -161,8 +155,6 @@ Result<void> LatticeImpl::SetEnergyRange(double minEnergy, double maxEnergy)
     {
         hopping.hoppingStrength /= mLattice.energyScaling;
     }
-
-    mIsAnyOtherFunctionCalled = true;
 
     return Result<void>::SetError(SUCCESS);
 }
@@ -176,14 +168,9 @@ Result<void> LatticeImpl::SetBoundaryType(BoundaryType boundaryType)
 // ----------------------------------------------------------------------------
 // Internal methods.
 
-LatticeStructure LatticeImpl::GetLattice()
+LatticeStructure& LatticeImpl::GetLattice()
 {
     return mLattice;
-}
-
-Result<void> LatticeImpl::PrintLatticeInformation()
-{
-    return Result<void>::SetError(SUCCESS);
 }
 
 // ----------------------------------------------------------------------------

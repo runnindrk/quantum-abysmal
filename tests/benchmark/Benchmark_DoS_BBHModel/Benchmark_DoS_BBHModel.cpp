@@ -30,7 +30,7 @@ protected:
     }
 };
 
-TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL) 
+TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL) 
 {
     // --------------------------------------------------------------------------------------------
     // Get context
@@ -45,28 +45,16 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     ASSERT_NE(plottingCtx, nullptr);
 
     // --------------------------------------------------------------------------------------------
-    // Set Graphene Model lattice hoppings
-
-    auto res1 = latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
-    EXPECT_EQ(res1.ErrorCode, SUCCESS);
-
-    auto res2 = latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
-    EXPECT_EQ(res2.ErrorCode, SUCCESS);
-
-    auto res3 = latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
-    EXPECT_EQ(res3.ErrorCode, SUCCESS);
-
-    // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res4 = latticeCtx->SetLatticeSize({12288, 12288});
-    EXPECT_EQ(res4.ErrorCode, SUCCESS);
+    auto res13 = latticeCtx->SetLatticeSize({8192, 8192});
+    EXPECT_EQ(res13.ErrorCode, SUCCESS);
 
-    auto res5 = latticeCtx->SetEnergyRange(-3, 3);
-    EXPECT_EQ(res5.ErrorCode, SUCCESS);
+    auto res14 = latticeCtx->SetEnergyRange(-3, 3);
+    EXPECT_EQ(res14.ErrorCode, SUCCESS);
 
-    auto res6 = latticeCtx->SetBoundaryType(PERIODIC);
-    EXPECT_EQ(res6.ErrorCode, SUCCESS);
+    auto res15 = latticeCtx->SetBoundaryType(PERIODIC);
+    EXPECT_EQ(res15.ErrorCode, SUCCESS);
 
     // --------------------------------------------------------------------------------------------
     // DoS calculation
@@ -78,20 +66,22 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL)
     ASSERT_NE(dosCtx, nullptr);
 
     // Domain Decomposition does not exist in CUDA Provider.
-    auto res7 = dosCtx->SetDomainDecomposition({2, 2});
-    EXPECT_EQ(res7.ErrorCode, NOT_SUPPORTED);
+    auto res16 = dosCtx->SetDomainDecomposition({2, 2});
+    EXPECT_EQ(res16.ErrorCode, NOT_SUPPORTED);
 
-    auto res8 = dosCtx->SetNumberOfRandomVectors(1);
-    EXPECT_EQ(res8.ErrorCode, SUCCESS);
+    auto res17 = dosCtx->SetNumberOfRandomVectors(1);
+    EXPECT_EQ(res17.ErrorCode, SUCCESS);
 
-    auto res9 = dosCtx->SetNumberOfMoments(512);
-    EXPECT_EQ(res9.ErrorCode, SUCCESS);
+    auto res18 = dosCtx->SetNumberOfMoments(512);
+    EXPECT_EQ(res18.ErrorCode, SUCCESS);
 
-    auto res10 = dosCtx->ComputeMoments();
-    EXPECT_EQ(res10.ErrorCode, SUCCESS);
+    auto res19 = dosCtx->ComputeMoments();
+    EXPECT_EQ(res19.ErrorCode, SUCCESS);
 
-    auto res11 = dosCtx->ComputeDoS(2048);
-    EXPECT_EQ(res10.ErrorCode, SUCCESS);
+    auto res20 = dosCtx->ComputeDoS(2048);
+    EXPECT_EQ(res20.ErrorCode, SUCCESS);
+
+    dosCtx->Save();
     
     // --------------------------------------------------------------------------------------------
     // Test output correctness

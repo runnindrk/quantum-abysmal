@@ -17,6 +17,7 @@
 
 #include "src/plotting/PlotDensityOfStatesImpl.hpp"
 #include "src/storage/StorageEngineImpl.hpp"
+#include "src/providers/cuda_provider/kpm/density_of_states/standard/codegen/Codegen_UnrolledKpmSparse.hpp"
 
 #include <chrono>
 #include <omp.h>
@@ -72,6 +73,7 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     LOG_INFO << "Number of Hoppings : " << (uint32_t)mLattice.numberOfHoppings;
     LOG_INFO << "Number of Random Vectors  : " << mNumRandomVectors;
     LOG_INFO << "Number of Moments  : " << mNumOfMoments;
+    LOG_INFO << "Hamiltonian Size : " << mLattice.hamiltonianSize;
 
     // ============================================================================================
     // Memory Allocation.
@@ -134,10 +136,10 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
         Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, 0);
     }
 
-    for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
+    for (int j = 0; j < mNumOfMoments / 2 - 1; j++)
     {
-        Reduce<NUM_THREADS><<<NUM_BLOCKS, NUM_THREADS>>>((i % 2 == 0) ? dA : dB, (i % 2 == 0) ? dB : dA, *dLattice, dFirstRed, dSecondRed, KpmSparse{});
-        Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, i + 1);
+        Reduce<NUM_THREADS><<<NUM_BLOCKS, NUM_THREADS>>>((j % 2 == 0) ? dA : dB, (j % 2 == 0) ? dB : dA, *dLattice, dFirstRed, dSecondRed, KpmSparse{});
+        Reduce<NUM_THREADS><<<1, NUM_THREADS>>>(dFirstRed, dSecondRed, dMoments, j + 1);
     }
 
     // Compute statistics for the moments
@@ -256,32 +258,17 @@ __device__ void DensityOfStates2dGpuStandard::KpmSparse::operator()(uint64_t tid
     int ySize = lattice.latticeSize[1];
     int y = tid / xSize;
     int x = tid % xSize;
+
+    // --------------------------------------------------------------------------------------------
+    // Full loop unrolling for performance optimization. Comes from codegen.
+
+    CODEGEN_CUDA_PROVIDER_KPM_SPARSE(lattice, a, b, x, y, threadIdx, sFirstReduceData, sSecondReduceData);
+
+    // --------------------------------------------------------------------------------------------
+    // This is the original code, which is not unrolled. It works in runtime, but is not optimal.
+
+    /*
     double temp[4] = {};
-
-    // --------------------------------------------------------------------------------------------
-    // Perfomance test of codegen for Graphene model
-
-    // temp[0] += lattice.hoppings[0].hoppingStrength * b[ARRAY_IDX(x, y, 1, 0, 1)];
-    // temp[0] += lattice.hoppings[1].hoppingStrength * b[ARRAY_IDX(x, y, 0, 1, 1)];
-    // temp[0] += lattice.hoppings[2].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];
-
-    // temp[1] += lattice.hoppings[3].hoppingStrength * b[ARRAY_IDX(x, y, -1, 0, 0)];
-    // temp[1] += lattice.hoppings[4].hoppingStrength * b[ARRAY_IDX(x, y, 0, -1, 0)];
-    // temp[1] += lattice.hoppings[5].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];
-
-    // a[ARRAY_IDX(x, y, 0, 0, 0)] = 2 * temp[0] - a[ARRAY_IDX(x, y, 0, 0, 0)];
-    // a[ARRAY_IDX(x, y, 0, 0, 1)] = 2 * temp[1] - a[ARRAY_IDX(x, y, 0, 0, 1)];
-
-    // sFirstReduceData[threadIdx.x] += b[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];
-    // sFirstReduceData[threadIdx.x] += b[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];
-
-    // sSecondReduceData[threadIdx.x] += a[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];
-    // sSecondReduceData[threadIdx.x] += a[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];
-
-    // Observed reduction of 67%! Codegen/Callback will be remarkable.
-    // This is full loop unrolling.
-
-    // --------------------------------------------------------------------------------------------
 
     for (int j = 0; j < lattice.numberOfHoppings; j++)
     {
@@ -300,4 +287,5 @@ __device__ void DensityOfStates2dGpuStandard::KpmSparse::operator()(uint64_t tid
         sFirstReduceData[threadIdx.x] += b[idx] * b[idx];
         sSecondReduceData[threadIdx.x] += a[idx] * b[idx];
     }
+    */
 };

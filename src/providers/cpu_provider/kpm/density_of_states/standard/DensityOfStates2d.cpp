@@ -20,6 +20,7 @@
 #include "src/storage/StorageEngineImpl.hpp"
 #include "src/plotting/PlotDensityOfStatesImpl.hpp"
 #include "util/Util.hpp"
+#include "src/providers/cpu_provider/kpm/density_of_states/standard/codegen/Codegen_UnrolledKpmSparse.hpp"
 
 #include <chrono>
 #include <omp.h>
@@ -146,9 +147,9 @@ Result<std::vector<double>> DensityOfStates2dCpuStandard::ComputeMoments()
         InitializeKpmVectors(a, b, m, 0);
     }
 
-    for (int i = 0; i < mNumOfMoments / 2 - 1; i++)
+    for (int j = 0; j < mNumOfMoments / 2 - 1; j++)
     {
-        ExecuteKpmVectorUpdate((i % 2 == 0) ? a : b, (i % 2 == 0) ? b : a, m, i + 1);
+        ExecuteKpmVectorUpdate((j % 2 == 0) ? a : b, (j % 2 == 0) ? b : a, m, j + 1);
     }
 
     // Compute statistics for the moments
@@ -314,32 +315,16 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b, 
         {
             for (uint64_t x = xInitIdx; x < xEndIdx; x++)
             {
-                double temp[4] = {};
-
                 // ------------------------------------------------------------------------------------
                 // Perfomance test of codegen for Graphene model
 
-                // temp[0] += mLattice.hoppings[0].hoppingStrength * b[ARRAY_IDX(x, y, 1, 0, 1)];
-                // temp[0] += mLattice.hoppings[1].hoppingStrength * b[ARRAY_IDX(x, y, 0, 1, 1)];
-                // temp[0] += mLattice.hoppings[2].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];
-
-                // temp[1] += mLattice.hoppings[3].hoppingStrength * b[ARRAY_IDX(x, y, -1, 0, 0)];
-                // temp[1] += mLattice.hoppings[4].hoppingStrength * b[ARRAY_IDX(x, y, 0, -1, 0)];
-                // temp[1] += mLattice.hoppings[5].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];
-
-                // a[ARRAY_IDX(x, y, 0, 0, 0)] = 2 * temp[0] - a[ARRAY_IDX(x, y, 0, 0, 0)];
-                // a[ARRAY_IDX(x, y, 0, 0, 1)] = 2 * temp[1] - a[ARRAY_IDX(x, y, 0, 0, 1)];
-
-                // firstMoment += b[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];
-                // firstMoment += b[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];
-
-                // secondMoment += a[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];
-                // secondMoment += a[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];
-
-                // Observed reduction of 60%! Codegen/Callback will be remarkable.
-                // This is full loop unrolling.
+                CODEGEN_CPU_PROVIDER_KPM_SPARSE(mLattice, a, b, x, y, firstMoment, secondMoment);
 
                 // --------------------------------------------------------------------------------
+                // This is the original code, which is not unrolled. It works in runtime, but is not optimal.
+                
+                /*
+                double temp[4] = {};
 
                 for (int j = 0; j < mLattice.numberOfHoppings; j++)
                 {
@@ -358,6 +343,7 @@ void DensityOfStates2dCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b, 
                     firstMoment += b[idx] * b[idx];
                     secondMoment += a[idx] * b[idx];
                 }
+                */
             }
         }
     }

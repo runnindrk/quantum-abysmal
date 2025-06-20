@@ -15,30 +15,9 @@
 
 #include "../include/public/Entrypoint.hpp"
 #include "../include/internal/Logger.hpp"
-#include "../util/TestUtils.hpp"
+#include "../../util/TestUtils.hpp"
 
 #include <gtest/gtest.h>
-
-// ================================================================================================
-// Warning 
-
-// This test will be modified to use SetUp() override and TearDown() override after the codegen update.
-// This does not work now becase LatticeImpl is a singleton and cannot be instantiated multiple times.
-
-// ================================================================================================
-// Shared variables for test vectors and contexts
-
-std::string testVectorFile;
-std::array<uint32_t, 2> testVectorLatticeSize;
-size_t testVectorNumOfMoments;
-size_t testVectorNumRandomVectors;
-std::vector<double> testVectorMomentsAverage;
-std::vector<double> testVectorMomentsVariance;
-std::vector<std::array<double, 2>> testVectorDoS;
-
-std::shared_ptr<QuantumAbysmalContext> abysmalCtx;
-std::shared_ptr<Lattice> latticeCtx;
-std::shared_ptr<Plotting> plottingCtx;
 
 // ================================================================================================
 // Test fixture for Quantum Abysmal tests
@@ -50,7 +29,7 @@ class QuantumAbysmalTest : public ::testing::Test
     // ============================================================================================
     // Set Up 
 
-    static void SetUpTestSuite()
+    void SetUp() override
     {
         // ----------------------------------------------------------------------------------------
         // Read test vector
@@ -77,16 +56,6 @@ class QuantumAbysmalTest : public ::testing::Test
         plottingCtx = abysmalCtx->GetPlotMethods();
         ASSERT_NE(plottingCtx, nullptr);
 
-        // Set Graphene Model lattice hoppings
-        auto res1 = latticeCtx->AddHopping({1, 0}, {'A', 'B'}, -1);
-        ASSERT_EQ(res1.ErrorCode, SUCCESS);
-
-        auto res2 = latticeCtx->AddHopping({0, 1}, {'A', 'B'}, -1);
-        ASSERT_EQ(res2.ErrorCode, SUCCESS);
-
-        auto res3 = latticeCtx->AddHopping({0, 0}, {'A', 'B'}, -1);
-        ASSERT_EQ(res3.ErrorCode, SUCCESS);
-
         // Set lattice properties
         auto res4 = latticeCtx->SetLatticeSize({testVectorLatticeSize[0], testVectorLatticeSize[1]});
         ASSERT_EQ(res4.ErrorCode, SUCCESS);
@@ -101,14 +70,14 @@ class QuantumAbysmalTest : public ::testing::Test
     // ============================================================================================
     // Tear Down 
 
-    static void TearDownTestSuite() 
+    void TearDown() override 
     {
     }
 
     // ============================================================================================
     // Helper function to verify computed moments against test vector
 
-    static void VerifyMoments(const std::vector<double>& computedMoments)
+    void VerifyMoments(const std::vector<double>& computedMoments)
     {
         std::vector<std::pair<size_t, double>> outOfBounds;
         for (size_t i = 0; i < computedMoments.size(); ++i) 
@@ -133,9 +102,24 @@ class QuantumAbysmalTest : public ::testing::Test
             FAIL();
         }
     }
+
+    // ============================================================================================
+    // Member variables
+
+    std::string testVectorFile;
+    std::array<uint32_t, 2> testVectorLatticeSize;
+    size_t testVectorNumOfMoments;
+    size_t testVectorNumRandomVectors;
+    std::vector<double> testVectorMomentsAverage;
+    std::vector<double> testVectorMomentsVariance;
+    std::vector<std::array<double, 2>> testVectorDoS;
+
+    std::shared_ptr<QuantumAbysmalContext> abysmalCtx;
+    std::shared_ptr<Lattice> latticeCtx;
+    std::shared_ptr<Plotting> plottingCtx;
 };
 
-// ============================================================================================
+// ================================================================================================
 // Test for Density of States (DoS) computation on Graphene model on CPU_STANDARD_IMPL
 
 TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_CPU_STANDARD_IMPL) 
@@ -164,7 +148,7 @@ TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_CPU_STANDARD_IMPL)
     VerifyMoments(res10.Value);
 }
 
-// ============================================================================================
+// ================================================================================================
 // Test for Density of States (DoS) computation on Graphene model on GPU_STANDARD_IMPL
 
 TEST_F(QuantumAbysmalTest, DoS_Graphenemodel_GPU_STANDARD_IMPL) 
