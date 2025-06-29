@@ -8,3 +8,4 @@ _lib/
 __docs/
 ._*
 data/
+generated/

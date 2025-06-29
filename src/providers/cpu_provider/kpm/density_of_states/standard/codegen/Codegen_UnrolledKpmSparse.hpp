@@ -22,47 +22,26 @@
                                                                                         \
 #define CODEGEN_CPU_PROVIDER_KPM_SPARSE(lattice, a, b, x, y, firstMoment, secondMoment) \
                                                                                         \
-    double temp[4] = {};                                                                \
+    double temp[2] = {};                                                                \
                                                                                         \
     /* Hopping terms (including Hermitian conjugates) */                                \
-    temp[0] += lattice.hoppings[0].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];       \
-    temp[1] += lattice.hoppings[1].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];       \
-    temp[2] += lattice.hoppings[2].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 3)];       \
-    temp[3] += lattice.hoppings[3].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 3)];       \
-    temp[2] += lattice.hoppings[4].hoppingStrength * b[ARRAY_IDX(x, y, 1, 0, 0)];       \
-    temp[1] += lattice.hoppings[5].hoppingStrength * b[ARRAY_IDX(x, y, 1, 0, 3)];       \
-    temp[3] += lattice.hoppings[6].hoppingStrength * b[ARRAY_IDX(x, y, 0, 1, 0)];       \
-    temp[1] += lattice.hoppings[7].hoppingStrength * b[ARRAY_IDX(x, y, 0, 1, 2)];       \
-    temp[2] += lattice.hoppings[8].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];       \
-    temp[1] += lattice.hoppings[9].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 3)];       \
-    temp[3] += lattice.hoppings[10].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];      \
-    temp[1] += lattice.hoppings[11].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 2)];      \
-    temp[3] += lattice.hoppings[12].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 2)];      \
-    temp[0] += lattice.hoppings[13].hoppingStrength * b[ARRAY_IDX(x, y, -1, 0, 2)];     \
-    temp[3] += lattice.hoppings[14].hoppingStrength * b[ARRAY_IDX(x, y, -1, 0, 1)];     \
-    temp[0] += lattice.hoppings[15].hoppingStrength * b[ARRAY_IDX(x, y, 0, -1, 3)];     \
-    temp[2] += lattice.hoppings[16].hoppingStrength * b[ARRAY_IDX(x, y, 0, -1, 1)];     \
-    temp[0] += lattice.hoppings[17].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 2)];      \
-    temp[3] += lattice.hoppings[18].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];      \
-    temp[0] += lattice.hoppings[19].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 3)];      \
-    temp[2] += lattice.hoppings[20].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];      \
+    temp[0] += lattice.hoppings[0].hoppingStrength * b[ARRAY_IDX(x, y, 1, 0, 1)];       \
+    temp[0] += lattice.hoppings[1].hoppingStrength * b[ARRAY_IDX(x, y, 0, 1, 1)];       \
+    temp[0] += lattice.hoppings[2].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 1)];       \
+    temp[1] += lattice.hoppings[3].hoppingStrength * b[ARRAY_IDX(x, y, -1, 0, 0)];      \
+    temp[1] += lattice.hoppings[4].hoppingStrength * b[ARRAY_IDX(x, y, 0, -1, 0)];      \
+    temp[1] += lattice.hoppings[5].hoppingStrength * b[ARRAY_IDX(x, y, 0, 0, 0)];       \
                                                                                         \
     /* Output update */                                                                 \
     a[ARRAY_IDX(x, y, 0, 0, 0)] = 2 * temp[0] - a[ARRAY_IDX(x, y, 0, 0, 0)];            \
     a[ARRAY_IDX(x, y, 0, 0, 1)] = 2 * temp[1] - a[ARRAY_IDX(x, y, 0, 0, 1)];            \
-    a[ARRAY_IDX(x, y, 0, 0, 2)] = 2 * temp[2] - a[ARRAY_IDX(x, y, 0, 0, 2)];            \
-    a[ARRAY_IDX(x, y, 0, 0, 3)] = 2 * temp[3] - a[ARRAY_IDX(x, y, 0, 0, 3)];            \
                                                                                         \
     /* First moment */                                                                  \
     firstMoment += b[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];           \
     firstMoment += b[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];           \
-    firstMoment += b[ARRAY_IDX(x, y, 0, 0, 2)] * b[ARRAY_IDX(x, y, 0, 0, 2)];           \
-    firstMoment += b[ARRAY_IDX(x, y, 0, 0, 3)] * b[ARRAY_IDX(x, y, 0, 0, 3)];           \
                                                                                         \
     /* Second moment */                                                                 \
     secondMoment += a[ARRAY_IDX(x, y, 0, 0, 0)] * b[ARRAY_IDX(x, y, 0, 0, 0)];          \
     secondMoment += a[ARRAY_IDX(x, y, 0, 0, 1)] * b[ARRAY_IDX(x, y, 0, 0, 1)];          \
-    secondMoment += a[ARRAY_IDX(x, y, 0, 0, 2)] * b[ARRAY_IDX(x, y, 0, 0, 2)];          \
-    secondMoment += a[ARRAY_IDX(x, y, 0, 0, 3)] * b[ARRAY_IDX(x, y, 0, 0, 3)];          \
 
 #endif // QUANTUM_ABYSMAL_SRC_CPUPROVIDER_CODEGEN_UNROLLEDKPMSPARSE_HPP

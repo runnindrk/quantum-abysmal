@@ -60,7 +60,7 @@ void RngCpuEngine::GetRandomVector(double* cpuBuffer, unsigned int bufferSize)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> dist(0.0, pow(2.0 / 3.0, 1.0 / 4.0));
+    std::normal_distribution<> dist(0.0, 1.0);
 
     for (int i = 0; i < bufferSize; i++)
     {
