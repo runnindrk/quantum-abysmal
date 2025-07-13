@@ -16,19 +16,15 @@
 #ifndef QUANTUM_ABYSMAL_SRC_KERNEL_POLYNOMIAL_METHOD_FACTORY_HPP
 #define QUANTUM_ABYSMAL_SRC_KERNEL_POLYNOMIAL_METHOD_FACTORY_HPP
 
-#include "include/public/KernelPolynomialMethod.hpp"
+#include "public/KernelPolynomialMethod.hpp"
 
-#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates1d.hpp"
-#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
-#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
+#include "cpu_provider/kpm/density_of_states/standard/DensityOfStates.hpp"
 
 #ifndef __APPLE__
-#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates1d.hpp"
-#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates2d.hpp"
-#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates3d.hpp"
+#include "cuda_provider/kpm/density_of_states/standard/DensityOfStates.hpp"
 #endif
 
-#include "src/lattice/LatticeImpl.hpp"
+#include "lattice/LatticeEngineImpl.hpp"
 
 class KernelPolynomialMethodFactory : public KernelPolynomialMethod
 {

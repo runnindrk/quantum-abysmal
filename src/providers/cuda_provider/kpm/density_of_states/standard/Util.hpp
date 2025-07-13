@@ -16,8 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_UTIL_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_UTIL_STANDARD_HPP
 
-#include "src/lattice/LatticeImpl.hpp"
-#include "src/providers/cuda_provider/math/Math.hpp"
+#include "lattice/LatticeEngineImpl.hpp"
+#include "providers/cuda_provider/math/Math.hpp"
 
 #include <cstdint>
 #include <curand_kernel.h>
@@ -28,7 +28,9 @@
 #define NUM_BLOCKS (256)
 #define NUM_THREADS (256)
 
-#define ARRAY_IDX(x, y, hx, hy, o) (numOrbitals * (Math::Mod(x + hx, xSize) + Math::Mod(y + hy, ySize) * xSize) + o)
+#define ARRAY_IDX_1D(x, hx, o) (numOrbitals * (Math::Mod(x + hx, xSize)) + o)
+#define ARRAY_IDX_2D(x, y, hx, hy, o) (numOrbitals * (Math::Mod(x + hx, xSize) + Math::Mod(y + hy, ySize) * xSize) + o)
+#define ARRAY_IDX_3D(x, y, z, hx, hy, hz, o) (numOrbitals * (Math::Mod(x + hx, xSize) + Math::Mod(y + hy, ySize) * xSize + Math::Mod(z + hz, zSize) * xSize * ySize) + o)
 
 // ================================================================================================
 // CUDA KPM reductions helper functions.

@@ -16,8 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_SRC_RNG_GPU_ENGINE_HPP
 #define QUANTUM_ABYSMAL_SRC_RNG_GPU_ENGINE_HPP
 
-#include "include/internal/Logger.hpp"
-#include "include/public/Rng.hpp"
+#include "internal/Logger.hpp"
+#include "public/Rng.hpp"
 
 #include <curand_kernel.h>
 

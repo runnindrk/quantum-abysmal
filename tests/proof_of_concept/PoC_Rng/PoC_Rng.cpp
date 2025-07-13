@@ -13,7 +13,7 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#include "../include/public/Entrypoint.hpp"
+#include "public/Entrypoint.hpp"
 #include <gtest/gtest.h>
 
 class QuantumAbysmalTest : public ::testing::Test 

@@ -16,7 +16,7 @@
 #ifndef QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
 #define QUANTUM_ABYSMAL_SRC_RNG_CPU_STANDARD_HPP
 
-#include "include/public/Rng.hpp"
+#include "public/Rng.hpp"
 #include "RngEngineImpl.hpp"
 
 class RngCpuStandard : public RandomNumberGenerator

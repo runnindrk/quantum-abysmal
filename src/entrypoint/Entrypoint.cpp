@@ -13,8 +13,8 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 //============================================================================
 
-#include "../include/public/Entrypoint.hpp"
-#include "src/entrypoint/QuantumAbysmalContextImpl.hpp"
+#include "public/Entrypoint.hpp"
+#include "QuantumAbysmalContextImpl.hpp"
 
 #include <memory>
 

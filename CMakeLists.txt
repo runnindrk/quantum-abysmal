@@ -26,5 +26,5 @@ message(STATUS "INFO_LOGGING_ENABLED: ${INFO_LOGGING_ENABLED}")
 message(STATUS "WARN_LOGGING_ENABLED: ${WARN_LOGGING_ENABLED}")
 message(STATUS "ERROR_LOGGING_ENABLED: ${ERROR_LOGGING_ENABLED}")
 
-add_subdirectory(src)
+add_subdirectory(generated)
 add_subdirectory(tests)

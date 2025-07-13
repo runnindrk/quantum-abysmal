@@ -16,7 +16,8 @@
 # =================================================================================================
 # General
 
-add_definitions(-DPROJECT_ROOT=\"${CMAKE_SOURCE_DIR}/\")
+message(STATUS "PROJECT_ROOT is set to: ${CMAKE_CURRENT_SOURCE_DIR}/")
+add_definitions(-DPROJECT_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 
 # =================================================================================================
 # Architecture agnostic build
@@ -142,6 +143,7 @@ target_compile_definitions(
 target_include_directories(Quantum-Abysmal PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${HDF5_INCLUDE_DIRS}
     ${ROOT_INCLUDE_DIRS}
 )

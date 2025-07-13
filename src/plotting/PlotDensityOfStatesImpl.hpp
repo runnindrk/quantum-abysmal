@@ -16,8 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_SRC_PLOT_DOS_HPP
 #define QUANTUM_ABYSMAL_SRC_PLOT_DOS_HPP
 
-#include "include/public/ErrorHandler.hpp"
-#include "include/internal/Logger.hpp"
+#include "public/ErrorHandler.hpp"
+#include "internal/Logger.hpp"
 
 #include <vector>
 

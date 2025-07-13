@@ -13,11 +13,10 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#include "DensityOfStates2d.hpp"
+#include "DensityOfStates.hpp"
 
-#include "src/plotting/PlotDensityOfStatesImpl.hpp"
-#include "src/storage/StorageEngineImpl.hpp"
-#include "src/providers/cuda_provider/kpm/density_of_states/standard/codegen/Codegen_UnrolledKpmSparse.hpp"
+#include "plotting/PlotDensityOfStatesImpl.hpp"
+#include "storage/StorageEngineImpl.hpp"
 
 #include <chrono>
 #include <omp.h>
@@ -25,9 +24,9 @@
 // ================================================================================================
 // Constructors
 
-DensityOfStates2dGpuStandard::DensityOfStates2dGpuStandard()
+DensityOfStatesGpuStandard::DensityOfStatesGpuStandard()
 {
-    mLattice = LatticeImpl::GetInstance().GetLattice();
+    mLattice = LatticeEngineImpl::GetInstance().GetLattice();
     numOrbitals = mLattice.numberOfOrbitals;
     xSize = mLattice.latticeSize[0];
     ySize = mLattice.latticeSize[1];
@@ -36,33 +35,33 @@ DensityOfStates2dGpuStandard::DensityOfStates2dGpuStandard()
     numberOfGhosts = numOrbitals * (2 * xSize + 2 * ySize + 4);
 }
 
-DensityOfStates2dGpuStandard::~DensityOfStates2dGpuStandard()
+DensityOfStatesGpuStandard::~DensityOfStatesGpuStandard()
 {
 }
 
 // ================================================================================================
 // Public
 
-Result<void> DensityOfStates2dGpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
+Result<void> DensityOfStatesGpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
 {
     LOG_ERROR << "Not supported for CUDA Provider.";
     return Result<void>::SetError(NOT_SUPPORTED);
 }
 
-Result<void> DensityOfStates2dGpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+Result<void> DensityOfStatesGpuStandard::SetNumberOfRandomVectors(size_t numVectors)
 {
     mNumRandomVectors = numVectors;
     return Result<void>::SetError(SUCCESS);
 }
 
-Result<void> DensityOfStates2dGpuStandard::SetNumberOfMoments(size_t order)
+Result<void> DensityOfStatesGpuStandard::SetNumberOfMoments(size_t order)
 {
     mNumOfMoments = order;
     dMomentsSize = order;
     return Result<void>::SetError(SUCCESS);
 }
 
-Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
+Result<std::vector<double>> DensityOfStatesGpuStandard::ComputeMoments()
 {
     // --------------------------------------------------------------------------------------------
     // Output info.
@@ -171,7 +170,7 @@ Result<std::vector<double>> DensityOfStates2dGpuStandard::ComputeMoments()
     return Result<std::vector<double>>::SetValue(mAverageMoments);
 }
 
-Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::ComputeDoS(uint32_t numPoints)
+Result<std::vector<std::array<double, 2>>> DensityOfStatesGpuStandard::ComputeDoS(uint32_t numPoints)
 {
     // ---------------------------------------------------------------------------------------------
     // Memory Allocation.
@@ -200,14 +199,14 @@ Result<std::vector<std::array<double, 2>>> DensityOfStates2dGpuStandard::Compute
     return Result<std::vector<std::array<double, 2>>>::SetValue(mDoS);
 }
 
-Result<void> DensityOfStates2dGpuStandard::Save()
+Result<void> DensityOfStatesGpuStandard::Save()
 {
     StorageEngine::SaveDoS(mLattice, mNumOfMoments, mNumRandomVectors, mAverageMoments, mVarianceMoments, mDoS);
 
     return Result<void>::SetError(SUCCESS);
 }
 
-Result<void> DensityOfStates2dGpuStandard::PlotDoS()
+Result<void> DensityOfStatesGpuStandard::PlotDoS()
 {
     // change to static
     PlotDensityOfStatesImpl instance;
@@ -219,73 +218,203 @@ Result<void> DensityOfStates2dGpuStandard::PlotDoS()
 // ================================================================================================
 // CUDA Device Functions
 
-__device__ void DensityOfStates2dGpuStandard::KpmSparseInit::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
+__device__ void DensityOfStatesGpuStandard::KpmSparseInit::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
                                                                         double* sFirstReduceData, double* sSecondReduceData) const
 {
-    Hopping currentHop;
     int numOrbitals = lattice.numberOfOrbitals;
+
+    {%- if dimension == 1 %}
+    int xSize = lattice.latticeSize[0];
+    int x = tid;
+
+    {%- elif dimension == 2 %}
     int xSize = lattice.latticeSize[0];
     int ySize = lattice.latticeSize[1];
     int y = tid / xSize;
     int x = tid % xSize;
 
-    for (int j = 0; j < lattice.numberOfHoppings; j++)
-    {
-        currentHop = lattice.hoppings[j];
+    {%- elif dimension == 3 %}
+    int xSize = lattice.latticeSize[0];
+    int ySize = lattice.latticeSize[1];
+    int zSize = lattice.latticeSize[2];
+    int z = tid / (xSize * ySize);
+    int y = (tid / xSize) % ySize;
+    int x = tid % xSize;
+    
+    {%- endif %}
 
-        int64_t newX = Math::Mod(x + currentHop.latticeHop[0], xSize);
-        int64_t newY = Math::Mod(y + currentHop.latticeHop[1], ySize);
-        uint64_t bIndex = numOrbitals * tid + currentHop.orbitalHop[0];
-        uint64_t aIndex = numOrbitals * (newX + newY * xSize) + currentHop.orbitalHop[1];
+    // ============================================================================================
+    // Jinja2 unrolled code generation for hoppings
+    // This is a performance optimization to avoid the overhead of a loop in the kernel.
 
-        b[bIndex] += currentHop.hoppingStrength * a[aIndex];
-    }
+    {%- if dimension == 1 %}
 
-    for (int j = 0; j < numOrbitals; j++)
-    {
-        uint64_t trueIndex = numOrbitals * (x + y * xSize) + j;
+    // --------------------------------------------------------------------------------------------
+    // Dimension 1 specific code
+    
+    // Hopping terms
+    {%- for hop in hoppings %}
+    b[ARRAY_IDX_1D(x, 0, {{ hop.orbitalHop[0] }})] += lattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * a[ARRAY_IDX_1D(x, {{ hop.latticeHop[0] }}, {{ hop.orbitalHop[1] }})];
+    {%- endfor %}
 
-        sFirstReduceData[threadIdx.x] += a[trueIndex] * a[trueIndex];
-        sSecondReduceData[threadIdx.x] += b[trueIndex] * a[trueIndex];
-    }
+    // First moment
+    {%- for i in range(num_orbitals) %}
+    sFirstReduceData[threadIdx.x] += a[ARRAY_IDX_1D(x, 0, {{ i }})] * a[ARRAY_IDX_1D(x, 0, {{ i }})];
+    {%- endfor %}
+
+    // Second moment
+    {%- for i in range(num_orbitals) %}
+    sSecondReduceData[threadIdx.x] += b[ARRAY_IDX_1D(x, 0, {{ i }})] * a[ARRAY_IDX_1D(x, 0, {{ i }})];
+    {%- endfor %}
+
+    {%- elif dimension == 2 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 2 specific code
+
+    // Hopping terms
+    {%- for hop in hoppings %}
+    b[ARRAY_IDX_2D(x, y, 0, 0, {{ hop.orbitalHop[0] }})] += lattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * a[ARRAY_IDX_2D(x, y, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.orbitalHop[1] }})];
+    {%- endfor %}
+
+    // First moment
+    {%- for i in range(num_orbitals) %}
+    sFirstReduceData[threadIdx.x] += a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    // Second moment
+    {%- for i in range(num_orbitals) %}
+    sSecondReduceData[threadIdx.x] += b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    {%- elif dimension == 3 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 3 specific code
+
+    // Hopping terms
+    {%- for hop in hoppings %}
+    b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ hop.orbitalHop[0] }})] += lattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * a[ARRAY_IDX_3D(x, y, z, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.latticeHop[2] }}, {{ hop.orbitalHop[1] }})];
+    {%- endfor %}
+
+    // First moment
+    {%- for i in range(num_orbitals) %}
+    sFirstReduceData[threadIdx.x] += a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    // Second moment
+    {%- for i in range(num_orbitals) %}
+    sSecondReduceData[threadIdx.x] += b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    {%- endif %}
 };
 
-__device__ void DensityOfStates2dGpuStandard::KpmSparse::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
+__device__ void DensityOfStatesGpuStandard::KpmSparse::operator()(uint64_t tid, double* a, double* b, LatticeStructure& lattice,
                                                                     double* sFirstReduceData, double* sSecondReduceData) const
 {
     int numOrbitals = lattice.numberOfOrbitals;
+
+    {%- if dimension == 1 %}
+    int xSize = lattice.latticeSize[0];
+    int x = tid;
+
+    {%- elif dimension == 2 %}
     int xSize = lattice.latticeSize[0];
     int ySize = lattice.latticeSize[1];
     int y = tid / xSize;
     int x = tid % xSize;
 
+    {%- elif dimension == 3 %}
+    int xSize = lattice.latticeSize[0];
+    int ySize = lattice.latticeSize[1];
+    int zSize = lattice.latticeSize[2];
+    int z = tid / (xSize * ySize);
+    int y = (tid / xSize) % ySize;
+    int x = tid % xSize;
+
+    {%- endif %}
+
+    // ============================================================================================
+    // Jinja2 unrolled code generation for hoppings
+    // This is a performance optimization to avoid the overhead of a loop in the kernel.
+
+    double temp[{{ num_orbitals }}] = {};
+
+    {%- if dimension == 1 %}
+
     // --------------------------------------------------------------------------------------------
-    // Full loop unrolling for performance optimization. Comes from codegen.
+    // Dimension 1 specific code
 
-    CODEGEN_CUDA_PROVIDER_KPM_SPARSE(lattice, a, b, x, y, threadIdx, sFirstReduceData, sSecondReduceData);
+    // Hopping terms
+    {%- for hop in hoppings %}
+    temp[{{ hop.orbitalHop[0] }}] += lattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * b[ARRAY_IDX_1D(x, {{ hop.latticeHop[0] }}, {{ hop.orbitalHop[1] }})];
+    {%- endfor %}
+
+    // Output update
+    {%- for i in range(num_orbitals) %}
+    a[ARRAY_IDX_1D(x, 0, {{ i }})] = 2 * temp[{{ i }}] - a[ARRAY_IDX_1D(x, 0, {{ i }})];
+    {%- endfor %}
+
+    // First moment
+    {%- for i in range(num_orbitals) %}
+    sFirstReduceData[threadIdx.x] += b[ARRAY_IDX_1D(x, 0, {{ i }})] * b[ARRAY_IDX_1D(x, 0, {{ i }})];
+    {%- endfor %}
+
+    // Second moment
+    {%- for i in range(num_orbitals) %}
+    sSecondReduceData[threadIdx.x] += a[ARRAY_IDX_1D(x, 0, {{ i }})] * b[ARRAY_IDX_1D(x, 0, {{ i }})];
+    {%- endfor %}
+
+    {%- elif dimension == 2 %}
 
     // --------------------------------------------------------------------------------------------
-    // This is the original code, which is not unrolled. It works in runtime, but is not optimal.
+    // Dimension 2 specific code
 
-    /*
-    double temp[4] = {};
+    // Hopping terms
+    {%- for hop in hoppings %}
+    temp[{{ hop.orbitalHop[0] }}] += lattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * b[ARRAY_IDX_2D(x, y, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.orbitalHop[1] }})];
+    {%- endfor %}
 
-    for (int j = 0; j < lattice.numberOfHoppings; j++)
-    {
-        Hopping currentHop = lattice.hoppings[j];
-        int64_t idx = ARRAY_IDX(x, y, currentHop.latticeHop[0], currentHop.latticeHop[1], currentHop.orbitalHop[1]);
+    // Output update
+    {%- for i in range(num_orbitals) %}
+    a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] = 2 * temp[{{ i }}] - a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+    {%- endfor %}
 
-        temp[currentHop.orbitalHop[0]] += currentHop.hoppingStrength * b[idx];
-    }
+    // First moment
+    {%- for i in range(num_orbitals) %}
+    sFirstReduceData[threadIdx.x] += b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+    {%- endfor %}
 
-    for (int j = 0; j < numOrbitals; j++)
-    {
-        int64_t idx = ARRAY_IDX(x, y, 0, 0, j);
+    // Second moment
+    {%- for i in range(num_orbitals) %}
+    sSecondReduceData[threadIdx.x] += a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+    {%- endfor %}
 
-        a[idx] = 2 * temp[j] - a[idx];
+    {%- elif dimension == 3 %}
 
-        sFirstReduceData[threadIdx.x] += b[idx] * b[idx];
-        sSecondReduceData[threadIdx.x] += a[idx] * b[idx];
-    }
-    */
+    // --------------------------------------------------------------------------------------------
+    // Dimension 3 specific code
+
+    // Hopping terms
+    {%- for hop in hoppings %}
+    temp[{{ hop.orbitalHop[0] }}] += lattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * b[ARRAY_IDX_3D(x, y, z, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.latticeHop[2] }}, {{ hop.orbitalHop[1] }})];
+    {%- endfor %}
+
+    // Output update
+    {%- for i in range(num_orbitals) %}
+    a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] = 2 * temp[{{ i }}] - a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    // First moment
+    {%- for i in range(num_orbitals) %}
+    sFirstReduceData[threadIdx.x] += b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    // Second moment
+    {%- for i in range(num_orbitals) %}
+    sSecondReduceData[threadIdx.x] += a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+    {%- endfor %}
+
+    {%- endif %}
 };

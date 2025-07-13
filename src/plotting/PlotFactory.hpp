@@ -16,7 +16,7 @@
 #ifndef QUANTUM_ABYSMAL_SRC_PLOTTING_FACTORY_HPP
 #define QUANTUM_ABYSMAL_SRC_PLOTTING_FACTORY_HPP
 
-#include "include/public/Plotting.hpp"
+#include "public/Plotting.hpp"
 
 class PlottingFactory : public Plotting
 {

@@ -16,47 +16,17 @@
 #ifndef QUANTUM_ABYSMAL_SRC_LATTICE_IMPL_HPP
 #define QUANTUM_ABYSMAL_SRC_LATTICE_IMPL_HPP
 
-#include "include/internal/Logger.hpp"
-#include "include/public/Lattice.hpp"
-#include "codegen/Codegen_LatticeStructure.hpp"
-#include "util/Conversions.hpp"
-
-#include <unordered_set>
-#include <array>
+#include "public/Lattice.hpp"
+#include "LatticeEngineImpl.hpp"
 
 class LatticeImpl : public Lattice
 {
     public:
 
-    // Singleton for thread safety access
-    static LatticeImpl& GetInstance();
-
-    Result<void> AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop,
-                    double hoppingStrength) override;
+    Result<void> AddHopping(std::vector<int32_t> latticeHop, std::array<char, 2> orbitalHop, double hoppingStrength) override;
     Result<void> SetLatticeSize(std::vector<uint32_t> lateralSizes) override;
     Result<void> SetEnergyRange(double minEnergy, double maxEnergy) override;
     Result<void> SetBoundaryType(BoundaryType boundaryType) override;
-
-    // ------------------------------------------------------------------------
-    // Internal methods.
-
-    LatticeStructure& GetLattice();
-
-    private:
-    
-    // ------------------------------------------------------------------------
-    // Private methods.
-
-    // ------------------------------------------------------------------------
-    // Private member variables.
-
-    std::unordered_set<char> mOrbitalsSet;
-    
-    // A copy of the original lattice structure to reset values.
-    static LatticeStructure originalLattice;
-
-    // The current lattice structure.
-    static LatticeStructure mLattice;
 };
 
 #endif

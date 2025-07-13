@@ -16,7 +16,7 @@
 #ifndef QUANTUM_ABYSMAL_SRC_RNG_FACTORY_HPP
 #define QUANTUM_ABYSMAL_SRC_RNG_FACTORY_HPP
 
-#include "include/public/RngMethod.hpp"
+#include "public/RngMethod.hpp"
 
 #include "cpu_provider/rng/RngImpl.hpp"
 #include "cuda_provider/rng/RngImpl.hpp"

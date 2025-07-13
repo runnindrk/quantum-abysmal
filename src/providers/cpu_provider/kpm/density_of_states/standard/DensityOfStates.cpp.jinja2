@@ -1,0 +1,723 @@
+// ================================================================================================
+// Copyright (c) 2024, runnindrk
+//
+// This file is part of Quantum Abysmal.
+//
+// Quantum Abysmal is free software: you can redistribute it and/or modify it
+// as needed, with the intent of making it freely available to everyone.
+//
+// This project is in its early stages and is provided without any warranties,
+// expressed or implied, including but not limited to the warranties of
+// merchantability, fitness for a particular purpose, or non-infringement.
+//
+// Use it at your own risk, and feel free to contribute as the project evolves!
+// ================================================================================================
+
+#include "DensityOfStates.hpp"
+
+#include "providers/cpu_provider/rng/RngImpl.hpp"
+#include "providers/cpu_provider/math/Math.hpp"
+#include "storage/StorageEngineImpl.hpp"
+#include "plotting/PlotDensityOfStatesImpl.hpp"
+#include "Util.hpp"
+
+#include <chrono>
+#include <omp.h>
+
+// ================================================================================================
+// Constructors
+
+DensityOfStatesCpuStandard::DensityOfStatesCpuStandard()
+{
+    mLattice = LatticeEngineImpl::GetInstance().GetLattice();
+    numOrbitals = mLattice.numberOfOrbitals;
+    xSize = mLattice.latticeSize[0];
+    ySize = mLattice.latticeSize[1];
+    zSize = mLattice.latticeSize[1];
+    xGhostedSize = xSize + 2;
+    yGhostedSize = ySize + 2;
+    zGhostedSize = zSize + 2;
+
+    {%- if dimension == 1 %}
+    numberOfGhosts = numOrbitals * (2);
+    {%- elif dimension == 2 %}
+    numberOfGhosts = numOrbitals * (2 * xSize + 2 * ySize + 4);
+    {%- elif dimension == 3 %}
+    numberOfGhosts = numOrbitals * (2 * xSize * ySize + 2 * xSize * zSize + 2 * ySize * zSize + 2 * xSize + 2 * ySize + 2 * zSize + 8);
+    {%- endif %}
+}
+
+DensityOfStatesCpuStandard::~DensityOfStatesCpuStandard()
+{
+}
+
+// ================================================================================================
+// Public
+
+Result<void> DensityOfStatesCpuStandard::SetDomainDecomposition(std::vector<uint32_t> numDomains)
+{
+    /*
+    if (numDomains.size() != 2)
+    {
+        LOG_ERROR << "Invalid dimension!";
+        return Result<void>::SetError(RUNTIME_ERROR);
+    }
+
+    if (numDomains[0] == 0 || numDomains[1] == 0)
+    {
+        LOG_ERROR << "Invalid domain decomposition!";
+        return Result<void>::SetError(RUNTIME_ERROR);
+    }
+
+    if (xSize % numDomains[0] != 0)
+    {
+        LOG_ERROR << "xSize is not a multiple of xDimension decomposition!";
+        return Result<void>::SetError(RUNTIME_ERROR);
+    }
+
+    if (ySize % numDomains[1] != 0)
+    {
+        LOG_ERROR << "ySize is not a multiple of yDimension decomposition!";
+        return Result<void>::SetError(RUNTIME_ERROR);
+    }
+    */
+
+    xDomainDecomposition = numDomains[0];
+    yDomainDecomposition = numDomains[1];
+    zDomainDecomposition = numDomains[2];
+    numThreads = xDomainDecomposition * yDomainDecomposition * zDomainDecomposition;
+
+    LOG_INFO << "Setting domain decomposition to " << xDomainDecomposition << "x" << yDomainDecomposition << "x" << zDomainDecomposition << " with " << numThreads << " threads.";
+
+    omp_set_num_threads(numThreads);
+
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStatesCpuStandard::SetNumberOfRandomVectors(size_t numVectors)
+{
+    mNumRandomVectors = numVectors;
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStatesCpuStandard::SetNumberOfMoments(size_t order)
+{
+    mNumOfMoments = order;
+    mAverageMoments.resize(mNumOfMoments, 0.0);
+    mVarianceMoments.resize(mNumOfMoments, 0.0);
+
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<std::vector<double>> DensityOfStatesCpuStandard::ComputeMoments()
+{
+    // --------------------------------------------------------------------------------------------
+    // Output info
+
+    LOG_INFO << "Computing DoS from a 2D mLattice on CPU/STANDARD!";
+    LOG_INFO << "Number of Lattice Points : " << xSize << "x" << ySize << " = " << xSize * ySize;
+    LOG_INFO << "Number of Orbitals : " << numOrbitals;
+    LOG_INFO << "Number of Hoppings : " << (uint32_t)mLattice.numberOfHoppings;
+    LOG_INFO << "Number of Random Vectors  : " << mNumRandomVectors;
+    LOG_INFO << "Number of Moments  : " << mNumOfMoments;
+
+    // ============================================================================================
+    // Memory Allocation.
+
+    uint64_t arraySize = mLattice.hamiltonianSize + numberOfGhosts;
+
+    double* a = (double*)malloc(arraySize * sizeof(double));
+    double* b = (double*)malloc(arraySize * sizeof(double));
+    double* m = (double*)malloc(mNumOfMoments * sizeof(double));
+
+    // ---------------------------------------------------------------------------------------------
+    // Memory Allocation for Statistics.
+
+    // ============================================================================================
+    // Compute
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Start of random vector loop
+    for (uint64_t i = 0; i < mNumRandomVectors; i++)
+    {
+    
+    // --------------------------------------------------------------------------------------------
+    // Zeroed out the arrays for the next iteration
+
+    memset(a, 0, arraySize * sizeof(double));
+    memset(b, 0, arraySize * sizeof(double));
+    memset(m, 0, mNumOfMoments * sizeof(double));
+
+    // --------------------------------------------------------------------------------------------
+    // Populate the random vector
+
+    RngCpuEngine::GetInstance().GetRandomVector(a, arraySize);
+
+    // --------------------------------------------------------------------------------------------
+    // Compute one average iteration of KPM.
+
+    {
+        InitializeKpmVectors(a, b, m, 0);
+    }
+
+    for (int j = 0; j < mNumOfMoments / 2 - 1; j++)
+    {
+        ExecuteKpmVectorUpdate((j % 2 == 0) ? a : b, (j % 2 == 0) ? b : a, m, j + 1);
+    }
+
+    // Compute statistics for the moments
+    {
+        Math::SatisticsAccumulator(m, mAverageMoments.data(), mVarianceMoments.data(), mNumOfMoments, i);
+    }
+
+    }
+    // End of random vector loop
+
+    // --------------------------------------------------------------------------------------------
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    LOG_INFO << "Moments computation time : " << elapsed.count() << " seconds.";
+
+    // --------------------------------------------------------------------------------------------
+    // Free memory after computation
+
+    free(a);
+    free(b);
+    free(m);
+
+    // --------------------------------------------------------------------------------------------
+
+    return Result<std::vector<double>>::SetValue(mAverageMoments);
+}
+
+Result<std::vector<std::array<double, 2>>> DensityOfStatesCpuStandard::ComputeDoS(uint32_t numPoints)
+{
+    // Resize to user desired spectral density
+    mDoS.resize(numPoints);
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // clang-format off
+    #pragma omp parallel for
+    // clang-format on
+    for (int i = 0; i < numPoints; i++)
+    {
+        double E = -0.999 + i * (2 * 0.999) / (numPoints - 1);
+
+        {
+            mDoS[i][1] += 1 * mAverageMoments[0] * Math::JacksonKernel(0, mAverageMoments.size()) * Math::ChebyshevPolynomial(0, E);
+        }
+
+        for (int j = 1; j < mAverageMoments.size(); j++)
+        {
+            mDoS[i][1] += 2 * mAverageMoments[j] * Math::JacksonKernel(j, mAverageMoments.size()) * Math::ChebyshevPolynomial(j, E);
+        }
+
+        mDoS[i][1] *= 1 / (M_PI * (sqrt(1 - E * E)));
+        
+        mDoS[i][0] *= mLattice.energyScaling;
+        mDoS[i][0] += mLattice.energyShift;
+
+        mDoS[i][1] /= mLattice.energyScaling;
+        mDoS[i][1] += mLattice.energyShift;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    LOG_INFO << "DoS computation time : " << elapsed.count() << " seconds.";
+
+    return Result<std::vector<std::array<double, 2>>>::SetValue(mDoS);
+}
+
+Result<void> DensityOfStatesCpuStandard::Save()
+{
+    StorageEngine::SaveDoS(mLattice, mNumOfMoments, mNumRandomVectors, mAverageMoments, mVarianceMoments, mDoS);
+
+    return Result<void>::SetError(SUCCESS);
+}
+
+Result<void> DensityOfStatesCpuStandard::PlotDoS()
+{
+    PlotDensityOfStatesImpl instance;
+    instance.Plot(mDoS);
+
+    return Result<void>::SetError(SUCCESS);
+}
+
+// ================================================================================================
+// Private
+
+// ------------------------------------------------------------------------------------------------
+// This is the HPC part. Careful tuning needs to explored.
+
+void DensityOfStatesCpuStandard::InitializeKpmVectors(double* a, double* b, double* m, uint32_t iteration)
+{
+    double firstMoment{0};
+    double secondMoment{0};
+
+    // --------------------------------------------------------------------------------------------
+    // Update ghosts before computation
+
+    // UpdateGhosts(a);
+    // UpdateGhosts(b);
+
+    // ============================================================================================
+    // Jinja2 unrolled code generation for hoppings
+    // This is a performance optimization to avoid the overhead of a loop in the kernel.
+    
+    {%- if dimension == 1 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 1 specific code
+
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    {
+        uint32_t threadId = omp_get_thread_num();
+        uint64_t xBlock = threadId;
+
+        uint64_t xInitIdx = xBlock * (xSize / xDomainDecomposition) + 1;
+        uint64_t xEndIdx = xInitIdx + (xSize / xDomainDecomposition);
+
+        for (uint64_t x = xInitIdx; x < xEndIdx; x++)
+        {
+            // --------------------------------------------------------------------------------
+            // Jinja2 unrolled code generation for hoppings
+            // This is a performance optimization to avoid the overhead of a loop in the kernel.
+
+            // Hopping terms
+            {%- for hop in hoppings %}
+            b[ARRAY_IDX_1D(x, 0, {{ hop.orbitalHop[0] }})] += mLattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * a[ARRAY_IDX_1D(x, {{ hop.latticeHop[0] }}, {{ hop.orbitalHop[1] }})];
+            {%- endfor %}
+
+            // First moment
+            {%- for i in range(num_orbitals) %}
+            firstMoment += a[ARRAY_IDX_1D(x, 0, {{ i }})] * a[ARRAY_IDX_1D(x, 0, {{ i }})];
+            {%- endfor %}
+
+            // Second moment
+            {%- for i in range(num_orbitals) %}
+            secondMoment += b[ARRAY_IDX_1D(x, 0, {{ i }})] * a[ARRAY_IDX_1D(x, 0, {{ i }})];
+            {%- endfor %}
+        }
+    }
+
+    {%- elif dimension == 2 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 2 specific code
+
+    // clang-format off
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    // clang-format on
+    {
+        uint32_t threadId = omp_get_thread_num();
+        uint32_t xBlock = threadId / xDomainDecomposition;
+        uint32_t yBlock = threadId % yDomainDecomposition;
+
+        uint64_t xInitIdx = xBlock * (xSize / xDomainDecomposition) + 1;
+        uint64_t xEndIdx = xInitIdx + (xSize / xDomainDecomposition);
+        uint64_t yInitIdx = yBlock * (ySize / yDomainDecomposition) + 1;
+        uint64_t yEndIdx = yInitIdx + (ySize / yDomainDecomposition);
+
+        for (uint64_t y = yInitIdx; y < yEndIdx; y++)
+        {
+            for (uint64_t x = xInitIdx; x < xEndIdx; x++)
+            {
+                // --------------------------------------------------------------------------------
+                // Jinja2 unrolled code generation for hoppings
+                // This is a performance optimization to avoid the overhead of a loop in the kernel.
+
+                // Hopping terms
+                {%- for hop in hoppings %}
+                b[ARRAY_IDX_2D(x, y, 0, 0, {{ hop.orbitalHop[0] }})] += mLattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * a[ARRAY_IDX_2D(x, y, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.orbitalHop[1] }})];
+                {%- endfor %}
+
+                // First moment
+                {%- for i in range(num_orbitals) %}
+                firstMoment += a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+                {%- endfor %}
+
+                // Second moment
+                {%- for i in range(num_orbitals) %}
+                secondMoment += b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+                {%- endfor %}
+            }
+        }
+    }
+
+    {%- elif dimension == 3 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 3 specific code
+
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    {
+        uint32_t threadId = omp_get_thread_num();
+        uint32_t xBlock = threadId % xDomainDecomposition;
+        uint32_t yBlock = (threadId / xDomainDecomposition) % yDomainDecomposition;
+        uint32_t zBlock = threadId / (xDomainDecomposition * yDomainDecomposition);
+
+        uint64_t xInitIdx = xBlock * (xSize / xDomainDecomposition) + 1;
+        uint64_t xEndIdx  = xInitIdx + (xSize / xDomainDecomposition);
+        uint64_t yInitIdx = yBlock * (ySize / yDomainDecomposition) + 1;
+        uint64_t yEndIdx  = yInitIdx + (ySize / yDomainDecomposition);
+        uint64_t zInitIdx = zBlock * (zSize / zDomainDecomposition) + 1;
+        uint64_t zEndIdx  = zInitIdx + (zSize / zDomainDecomposition);
+
+        for (uint64_t z = zInitIdx; z < zEndIdx; z++)
+        {
+            for (uint64_t y = yInitIdx; y < yEndIdx; y++)
+            {
+                for (uint64_t x = xInitIdx; x < xEndIdx; x++)
+                {
+                    // --------------------------------------------------------------------------------
+                    // Jinja2 unrolled code generation for hoppings
+                    // This is a performance optimization to avoid the overhead of a loop in the kernel.
+
+                    // Hopping terms
+                    {%- for hop in hoppings %}
+                    b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ hop.orbitalHop[0] }})] += mLattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * a[ARRAY_IDX_3D(x, y, z, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.latticeHop[2] }}, {{ hop.orbitalHop[1] }})];
+                    {%- endfor %}
+
+                    // First moment
+                    {%- for i in range(num_orbitals) %}
+                    firstMoment += a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+                    {%- endfor %}
+
+                    // Second moment
+                    {%- for i in range(num_orbitals) %}
+                    secondMoment += b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+                    {%- endfor %}
+                }
+            }
+        }
+    }
+
+    {%- endif %}
+
+    // --------------------------------------------------------------------------------------------
+    // Trick to halve the number of vector updates.
+
+    m[2 * iteration] = firstMoment / mLattice.hamiltonianSize;
+    m[2 * iteration + 1] = secondMoment / mLattice.hamiltonianSize;
+}
+
+void DensityOfStatesCpuStandard::ExecuteKpmVectorUpdate(double* a, double* b, double* m, uint32_t iteration)
+{
+    double firstMoment{0};
+    double secondMoment{0};
+
+    // --------------------------------------------------------------------------------------------
+    // Update ghosts before computation
+
+    // UpdateGhosts(a);
+    // UpdateGhosts(b);
+
+    // ============================================================================================
+    // Jinja2 unrolled code generation for hoppings and orbitals
+    // This is a performance optimization to avoid the overhead of a loop in the kernel.
+    
+    {%- if dimension == 1 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 1 specific code
+
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    {
+        uint32_t threadId = omp_get_thread_num();
+        uint64_t xBlock = threadId;
+
+        uint64_t xInitIdx = xBlock * (xSize / xDomainDecomposition) + 1;
+        uint64_t xEndIdx = xInitIdx + (xSize / xDomainDecomposition);
+
+        for (uint64_t x = xInitIdx; x < xEndIdx; x++)
+        {
+            double temp[{{ num_orbitals }}] = {};
+
+            // Hopping terms
+            {%- for hop in hoppings %}
+            temp[{{ hop.orbitalHop[0] }}] += mLattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * b[ARRAY_IDX_1D(x, {{ hop.latticeHop[0] }}, {{ hop.orbitalHop[1] }})];
+            {%- endfor %}
+
+            // Output update
+            {%- for i in range(num_orbitals) %}
+            a[ARRAY_IDX_1D(x, 0, {{ i }})] = 2 * temp[{{ i }}] - a[ARRAY_IDX_1D(x, 0, {{ i }})];
+            {%- endfor %}
+
+            // First moment
+            {%- for i in range(num_orbitals) %}
+            firstMoment += b[ARRAY_IDX_1D(x, 0, {{ i }})] * b[ARRAY_IDX_1D(x, 0, {{ i }})];
+            {%- endfor %}
+
+            // Second moment
+            {%- for i in range(num_orbitals) %}
+            secondMoment += a[ARRAY_IDX_1D(x, 0, {{ i }})] * b[ARRAY_IDX_1D(x, 0, {{ i }})];
+            {%- endfor %}
+        }
+    }
+
+    {%- elif dimension == 2 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 2 specific code
+
+    // clang-format off
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    // clang-format on
+    {
+        uint32_t threadId = omp_get_thread_num();
+        uint32_t xBlock = threadId / xDomainDecomposition;
+        uint32_t yBlock = threadId % yDomainDecomposition;
+
+        uint64_t xInitIdx = xBlock * (xSize / xDomainDecomposition) + 1;
+        uint64_t xEndIdx = xInitIdx + (xSize / xDomainDecomposition);
+        uint64_t yInitIdx = yBlock * (ySize / yDomainDecomposition) + 1;
+        uint64_t yEndIdx = yInitIdx + (ySize / yDomainDecomposition);
+
+        for (uint64_t y = yInitIdx; y < yEndIdx; y++)
+        {
+            for (uint64_t x = xInitIdx; x < xEndIdx; x++)
+            {                
+                double temp[{{ num_orbitals }}] = {};
+
+                // Hopping terms
+                {%- for hop in hoppings %}
+                temp[{{ hop.orbitalHop[0] }}] += mLattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * b[ARRAY_IDX_2D(x, y, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.orbitalHop[1] }})];
+                {%- endfor %}
+
+                // Output update
+                {%- for i in range(num_orbitals) %}
+                a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] = 2 * temp[{{ i }}] - a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+                {%- endfor %}
+
+                // First moment
+                {%- for i in range(num_orbitals) %}
+                firstMoment += b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+                {%- endfor %}
+
+                // Second moment
+                {%- for i in range(num_orbitals) %}
+                secondMoment += a[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})] * b[ARRAY_IDX_2D(x, y, 0, 0, {{ i }})];
+                {%- endfor %}
+            }
+        }
+    }
+
+    {%- elif dimension == 3 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 3 specific code
+
+    #pragma omp parallel reduction(+:firstMoment, secondMoment)
+    {
+        uint32_t threadId = omp_get_thread_num();
+        uint32_t xBlock = threadId % xDomainDecomposition;
+        uint32_t yBlock = (threadId / xDomainDecomposition) % yDomainDecomposition;
+        uint32_t zBlock = threadId / (xDomainDecomposition * yDomainDecomposition);
+
+        uint64_t xInitIdx = xBlock * (xSize / xDomainDecomposition) + 1;
+        uint64_t xEndIdx  = xInitIdx + (xSize / xDomainDecomposition);
+        uint64_t yInitIdx = yBlock * (ySize / yDomainDecomposition) + 1;
+        uint64_t yEndIdx  = yInitIdx + (ySize / yDomainDecomposition);
+        uint64_t zInitIdx = zBlock * (zSize / zDomainDecomposition) + 1;
+        uint64_t zEndIdx  = zInitIdx + (zSize / zDomainDecomposition);
+
+        for (uint64_t z = zInitIdx; z < zEndIdx; z++)
+        {
+            for (uint64_t y = yInitIdx; y < yEndIdx; y++)
+            {
+                for (uint64_t x = xInitIdx; x < xEndIdx; x++)
+                {
+                    double temp[{{ num_orbitals }}] = {};
+
+                    // Hopping terms
+                    {%- for hop in hoppings %}
+                    temp[{{ hop.orbitalHop[0] }}] += mLattice.hoppings[{{ hop.macro_idx }}].hoppingStrength * b[ARRAY_IDX_3D(x, y, z, {{ hop.latticeHop[0] }}, {{ hop.latticeHop[1] }}, {{ hop.latticeHop[2] }}, {{ hop.orbitalHop[1] }})];
+                    {%- endfor %}
+
+                    // Output update
+                    {%- for i in range(num_orbitals) %}
+                    a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] = 2 * temp[{{ i }}] - a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+                    {%- endfor %}
+
+                    // First moment
+                    {%- for i in range(num_orbitals) %}
+                    firstMoment += b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+                    {%- endfor %}
+
+                    // Second moment
+                    {%- for i in range(num_orbitals) %}
+                    secondMoment += a[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})] * b[ARRAY_IDX_3D(x, y, z, 0, 0, 0, {{ i }})];
+                    {%- endfor %}
+                }
+            }
+        }
+    }
+
+    {%- endif %}
+
+    // --------------------------------------------------------------------------------------------
+    // Trick to halve the number of vector updates.
+
+    m[2 * iteration] = 2 * (firstMoment / mLattice.hamiltonianSize) - m[0];
+    m[2 * iteration + 1] = 2 * (secondMoment / mLattice.hamiltonianSize) - m[1];
+}
+
+/*
+Fuck this code for now. 
+
+inline void DensityOfStatesCpuStandard::UpdateGhosts(double* a)
+{
+    // ============================================================================================
+    // Jinja2 unrolled code generation for hoppings and orbitals
+    // This is a performance optimization to avoid the overhead of a loop in the kernel.
+    
+    {%- if dimension == 1 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 1 specific code
+
+    // --------------------------------------------------------------------------------------------
+    // Vertexes.
+
+    {%- for j in range(num_orbitals) %}
+    a[ARRAY_IDX_1D(0, 0, {{ j }})] = a[ARRAY_IDX_1D(xSize, 0, {{ j }})];
+    a[ARRAY_IDX_1D(xSize + 1, 1, {{ j }})] = a[ARRAY_IDX_1D(1, 1, {{ j }})];
+    {%- endfor %}
+
+    {%- elif dimension == 2 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 2 specific code
+
+    // --------------------------------------------------------------------------------------------
+    // Edges.
+
+    for (int x = 1; x < xGhostedSize - 1; x++)
+    {
+        {%- for j in range(num_orbitals) %}
+        a[ARRAY_IDX_2D(x, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_2D(x, ySize, 0, 0, {{ j }})];
+        a[ARRAY_IDX_2D(x, ySize + 1, 0, 1, {{ j }})] = a[ARRAY_IDX_2D(x, 1, 0, 1, {{ j }})];
+        {%- endfor %}
+    }
+
+    for (int y = 1; y < yGhostedSize - 1; y++)
+    {
+        {%- for j in range(num_orbitals) %}
+        a[ARRAY_IDX_2D(0, y, 0, 0, {{ j }})] = a[ARRAY_IDX_2D(xSize, y, 0, 0, {{ j }})];
+        a[ARRAY_IDX_2D(xSize + 1, y, 1, 0, {{ j }})] = a[ARRAY_IDX_2D(1, y, 1, 0, {{ j }})];
+        {%- endfor %}
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Vertexes.
+
+    {%- for j in range(num_orbitals) %}
+
+    a[ARRAY_IDX_2D(0, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_2D(xSize, ySize, 0, 0, {{ j }})];
+    a[ARRAY_IDX_2D(xSize + 1, ySize + 1, 1, 1, {{ j }})] = a[ARRAY_IDX_2D(1, 1, 1, 1, {{ j }})];
+    a[ARRAY_IDX_2D(xSize + 1, 0, 1, 0, {{ j }})] = a[ARRAY_IDX_2D(1, ySize, 1, 0, {{ j }})];
+    a[ARRAY_IDX_2D(0, ySize + 1, 0, 1, {{ j }})] = a[ARRAY_IDX_2D(xSize, 1, 0, 1, {{ j }})];
+    
+    {%- endfor %}
+
+    {%- elif dimension == 3 %}
+
+    // --------------------------------------------------------------------------------------------
+    // Dimension 3 specific code
+
+    // --------------------------------------------------------------------------------------------
+    // Faces (6 faces)
+
+    // Face z = 0 and z = zSize (x-y planes)
+    for (int x = 1; x < xGhostedSize - 1; x++)
+    {
+        for (int y = 1; y < yGhostedSize - 1; y++)
+        {
+            {%- for j in range(num_orbitals) %}
+            a[ARRAY_IDX_3D(x, y, 0, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(x, y, zSize, 0, 0, 0, {{ j }})];
+            a[ARRAY_IDX_3D(x, y, zSize + 1, 0, 0, 1, {{ j }})] = a[ARRAY_IDX_3D(x, y, 1, 0, 0, 1, {{ j }})];
+            {%- endfor %}
+        }
+    }
+
+    // Face y = 0 and y = ySize (x-z planes)
+    for (int x = 1; x < xGhostedSize - 1; x++)
+    {
+        for (int z = 1; z < zGhostedSize - 1; z++)
+        {
+            {%- for j in range(num_orbitals) %}
+            a[ARRAY_IDX_3D(x, 0, z, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(x, ySize, z, 0, 0, 0, {{ j }})];
+            a[ARRAY_IDX_3D(x, ySize + 1, z, 0, 1, 0, {{ j }})] = a[ARRAY_IDX_3D(x, 1, z, 0, 1, 0, {{ j }})];
+            {%- endfor %}
+        }
+    }
+
+    // Face x = 0 and x = xSize (y-z planes)
+    for (int y = 1; y < yGhostedSize - 1; y++)
+    {
+        for (int z = 1; z < zGhostedSize - 1; z++)
+        {
+            {%- for j in range(num_orbitals) %}
+            a[ARRAY_IDX_3D(0, y, z, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(xSize, y, z, 0, 0, 0, {{ j }})];
+            a[ARRAY_IDX_3D(xSize + 1, y, z, 1, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(1, y, z, 1, 0, 0, {{ j }})];
+            {%- endfor %}
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Edges (12 edges)
+
+    // Edges parallel to x-axis at y=0 and y=ySize, z=0 and z=zSize
+    for (int x = 1; x < xGhostedSize - 1; x++)
+    {
+        {%- for j in range(num_orbitals) %}
+        a[ARRAY_IDX_3D(x, 0, 0, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(x, ySize, zSize, 0, 0, 0, {{ j }})];
+        a[ARRAY_IDX_3D(x, ySize + 1, 0, 0, 1, 0, {{ j }})] = a[ARRAY_IDX_3D(x, 1, zSize, 0, 1, 0, {{ j }})];
+        a[ARRAY_IDX_3D(x, 0, zSize + 1, 0, 0, 1, {{ j }})] = a[ARRAY_IDX_3D(x, ySize, 1, 0, 0, 1, {{ j }})];
+        a[ARRAY_IDX_3D(x, ySize + 1, zSize + 1, 0, 1, 1, {{ j }})] = a[ARRAY_IDX_3D(x, 1, 1, 0, 1, 1, {{ j }})];
+        {%- endfor %}
+    }
+
+    // Edges parallel to y-axis at x=0 and x=xSize, z=0 and z=zSize
+    for (int y = 1; y < yGhostedSize - 1; y++)
+    {
+        {%- for j in range(num_orbitals) %}
+        a[ARRAY_IDX_3D(0, y, 0, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(xSize, y, zSize, 0, 0, 0, {{ j }})];
+        a[ARRAY_IDX_3D(xSize + 1, y, 0, 1, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(1, y, zSize, 1, 0, 0, {{ j }})];
+        a[ARRAY_IDX_3D(0, y, zSize + 1, 0, 0, 1, {{ j }})] = a[ARRAY_IDX_3D(xSize, y, 1, 0, 0, 1, {{ j }})];
+        a[ARRAY_IDX_3D(xSize + 1, y, zSize + 1, 1, 0, 1, {{ j }})] = a[ARRAY_IDX_3D(1, y, 1, 1, 0, 1, {{ j }})];
+        {%- endfor %}
+    }
+
+    // Edges parallel to z-axis at x=0 and x=xSize, y=0 and y=ySize
+    for (int z = 1; z < zGhostedSize - 1; z++)
+    {
+        {%- for j in range(num_orbitals) %}
+        a[ARRAY_IDX_3D(0, 0, z, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(xSize, ySize, z, 0, 0, 0, {{ j }})];
+        a[ARRAY_IDX_3D(xSize + 1, 0, z, 1, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(1, ySize, z, 1, 0, 0, {{ j }})];
+        a[ARRAY_IDX_3D(0, ySize + 1, z, 0, 1, 0, {{ j }})] = a[ARRAY_IDX_3D(xSize, 1, z, 0, 1, 0, {{ j }})];
+        a[ARRAY_IDX_3D(xSize + 1, ySize + 1, z, 1, 1, 0, {{ j }})] = a[ARRAY_IDX_3D(1, 1, z, 1, 1, 0, {{ j }})];
+        {%- endfor %}
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Corners (8 corners)
+
+    {%- for j in range(num_orbitals) %}
+    a[ARRAY_IDX_3D(0, 0, 0, 0, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(xSize, ySize, zSize, 0, 0, 0, {{ j }})];
+    a[ARRAY_IDX_3D(xSize + 1, ySize + 1, zSize + 1, 1, 1, 1, {{ j }})] = a[ARRAY_IDX_3D(1, 1, 1, 1, 1, 1, {{ j }})];
+    a[ARRAY_IDX_3D(xSize + 1, 0, 0, 1, 0, 0, {{ j }})] = a[ARRAY_IDX_3D(1, ySize, zSize, 1, 0, 0, {{ j }})];
+    a[ARRAY_IDX_3D(0, ySize + 1, 0, 0, 1, 0, {{ j }})] = a[ARRAY_IDX_3D(xSize, 1, zSize, 0, 1, 0, {{ j }})];
+    a[ARRAY_IDX_3D(0, 0, zSize + 1, 0, 0, 1, {{ j }})] = a[ARRAY_IDX_3D(xSize, ySize, 1, 0, 0, 1, {{ j }})];
+    a[ARRAY_IDX_3D(xSize + 1, ySize + 1, 0, 1, 1, 0, {{ j }})] = a[ARRAY_IDX_3D(1, 1, zSize, 1, 1, 0, {{ j }})];
+    a[ARRAY_IDX_3D(xSize + 1, 0, zSize + 1, 1, 0, 1, {{ j }})] = a[ARRAY_IDX_3D(1, ySize, 1, 1, 0, 1, {{ j }})];
+    a[ARRAY_IDX_3D(0, ySize + 1, zSize + 1, 0, 1, 1, {{ j }})] = a[ARRAY_IDX_3D(xSize, 1, 1, 0, 1, 1, {{ j }})];
+    {%- endfor %}
+
+    {%- endif %}
+}
+
+*/

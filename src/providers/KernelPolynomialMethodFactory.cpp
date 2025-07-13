@@ -18,66 +18,26 @@
 DensityOfStates::Uptr
 KernelPolynomialMethodFactory::CreateDoSCtx(ProviderImplementation implementation)
 {
-    switch (LatticeImpl::GetInstance().GetLattice().dimension)
+    switch (implementation)
     {
-
-    case 1:
+    case CPU_STANDARD_IMPL:
     {
-        switch (implementation)
-        {
-        case CPU_STANDARD_IMPL:
-            return std::make_unique<DensityOfStates1dCpuStandard>();
-        #ifndef __APPLE__
-        case GPU_STANDARD_IMPL:
-            return std::make_unique<DensityOfStates1dGpuStandard>();
-        #endif
-        case CPU_DUMMY_IMPL:
-            return nullptr;
-        case GPU_DUMMY_IMPL:
-            return nullptr;
-        default:
-            return nullptr;
-        }
+        return std::make_unique<DensityOfStatesCpuStandard>();
     }
-
-    case 2:
+    #ifndef __APPLE__
+    case GPU_STANDARD_IMPL:
     {
-        switch (implementation)
-        {
-        case CPU_STANDARD_IMPL:
-            return std::make_unique<DensityOfStates2dCpuStandard>();
-        #ifndef __APPLE__
-        case GPU_STANDARD_IMPL:
-            return std::make_unique<DensityOfStates2dGpuStandard>();
-        #endif
-        case CPU_DUMMY_IMPL:
-            return nullptr;
-        case GPU_DUMMY_IMPL:
-            return nullptr;
-        default:
-            return nullptr;
-        }
+        return std::make_unique<DensityOfStatesGpuStandard>();
     }
-
-    case 3:
+    #endif
+    case CPU_DUMMY_IMPL:
     {
-        switch (implementation)
-        {
-        case CPU_STANDARD_IMPL:
-            return std::make_unique<DensityOfStates3dCpuStandard>();
-        #ifndef __APPLE__
-        case GPU_STANDARD_IMPL:
-            return nullptr;
-        #endif
-        case CPU_DUMMY_IMPL:
-            return nullptr;
-        case GPU_DUMMY_IMPL:
-            return nullptr;
-        default:
-            return nullptr;
-        }
+        return nullptr;
     }
-
+    case GPU_DUMMY_IMPL:
+    {
+        return nullptr;
+    }
     default:
     {
         return nullptr;

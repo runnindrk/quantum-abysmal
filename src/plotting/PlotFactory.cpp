@@ -16,7 +16,7 @@
 #include "PlotFactory.hpp"
 #include "PlotDensityOfStatesImpl.hpp"
 
-#include "include/internal/Logger.hpp"
+#include "internal/Logger.hpp"
 
 Result<void> PlottingFactory::PlotDensityOfStates(std::vector<std::array<double, 2>> DensityOfStates)
 {

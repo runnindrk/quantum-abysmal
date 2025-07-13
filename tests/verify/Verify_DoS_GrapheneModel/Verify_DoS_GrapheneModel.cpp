@@ -13,8 +13,7 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#include "../include/public/Entrypoint.hpp"
-#include "../include/internal/Logger.hpp"
+#include "public/Entrypoint.hpp"
 #include "../../util/TestUtils.hpp"
 
 #include <gtest/gtest.h>

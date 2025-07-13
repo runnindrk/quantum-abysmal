@@ -115,8 +115,6 @@ class Logger
     }
 };
 
-extern Logger LOGGER;
-
 class LogLevelStream
 {
     Logger& logger;
@@ -175,5 +173,7 @@ class LogLevelStream
         if (false)                                                                                 \
         LogLevelStream(LOGGER, Logger::ERROR, __FILE__, __LINE__)
 #endif
+
+extern Logger LOGGER;
 
 #endif

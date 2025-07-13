@@ -13,21 +13,21 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_2D_CPU_STANDARD_HPP
-#define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_2D_CPU_STANDARD_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_CPU_STANDARD_HPP
+#define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_CPU_STANDARD_HPP
 
-#include "include/public/DensityOfStates.hpp"
-#include "src/lattice/LatticeImpl.hpp"
+#include "public/DensityOfStates.hpp"
+#include "lattice/LatticeEngineImpl.hpp"
 
-class DensityOfStates2dCpuStandard : public DensityOfStates
+class DensityOfStatesCpuStandard : public DensityOfStates
 {
     // --------------------------------------------------------------------------------------------
     //
 
     public:
 
-    DensityOfStates2dCpuStandard();
-    ~DensityOfStates2dCpuStandard();
+    DensityOfStatesCpuStandard();
+    ~DensityOfStatesCpuStandard();
 
     Result<void> SetDomainDecomposition(std::vector<uint32_t> numDomains) override;
     Result<void> SetNumberOfRandomVectors(size_t numVectors) override;
@@ -61,13 +61,16 @@ class DensityOfStates2dCpuStandard : public DensityOfStates
     uint32_t numOrbitals{};
     uint32_t xSize{};
     uint32_t ySize{};
+    uint32_t zSize{};
     uint32_t xGhostedSize{};
     uint32_t yGhostedSize{};
+    uint32_t zGhostedSize{};
     uint32_t numberOfGhosts{};
 
     // Parallelization variables. 
     uint32_t xDomainDecomposition{1};
     uint32_t yDomainDecomposition{1};
+    uint32_t zDomainDecomposition{1};
     uint32_t numThreads{};
 
     // Have to think how to handle disorder. (maybe a flag on LatticeMethods)

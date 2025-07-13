@@ -16,8 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_SRC_MATH_CPU_PROVIDER_HPP
 #define QUANTUM_ABYSMAL_SRC_MATH_CPU_PROVIDER_HPP
 
-#include "include/public/ErrorHandler.hpp"
-#include "include/public/QuantumAbysmalTypes.hpp"
+#include "public/ErrorHandler.hpp"
+#include "public/QuantumAbysmalTypes.hpp"
 
 namespace Math 
 {

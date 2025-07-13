@@ -13,23 +13,21 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_2D_GPU_STANDARD_HPP
-#define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_2D_GPU_STANDARD_HPP
+#ifndef QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_STANDARD_HPP
+#define QUANTUM_ABYSMAL_SRC_DENSITY_OF_STATES_GPU_STANDARD_HPP
 
-#include "include/internal/Logger.hpp"
-#include "include/public/DensityOfStates.hpp"
-#include "src/lattice/LatticeImpl.hpp"
-#include "src/providers/cuda_provider/rng/RngEngineImpl.hpp"
-#include "util/Util.hpp"
+#include "internal/Logger.hpp"
+#include "public/DensityOfStates.hpp"
+#include "lattice/LatticeEngineImpl.hpp"
+#include "providers/cuda_provider/rng/RngEngineImpl.hpp"
+#include "Util.hpp"
 
-#include <curand_kernel.h>
-
-class DensityOfStates2dGpuStandard : public DensityOfStates
+class DensityOfStatesGpuStandard : public DensityOfStates
 {
     public:
 
-    DensityOfStates2dGpuStandard();
-    ~DensityOfStates2dGpuStandard();
+    DensityOfStatesGpuStandard();
+    ~DensityOfStatesGpuStandard();
 
     Result<void> SetDomainDecomposition(std::vector<uint32_t> numDomains) override;
     Result<void> SetNumberOfRandomVectors(size_t numVectors) override;

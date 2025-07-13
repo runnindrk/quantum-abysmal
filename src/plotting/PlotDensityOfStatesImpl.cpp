@@ -14,7 +14,6 @@
 // ================================================================================================
 
 #include "PlotDensityOfStatesImpl.hpp"
-#include "src/lattice/LatticeImpl.hpp"
 
 #include "TApplication.h"
 #include "TCanvas.h"

@@ -47,10 +47,10 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res13 = latticeCtx->SetLatticeSize({8192, 8192});
+    auto res13 = latticeCtx->SetLatticeSize({2048, 2048});
     EXPECT_EQ(res13.ErrorCode, SUCCESS);
 
-    auto res14 = latticeCtx->SetEnergyRange(-3, 3);
+    auto res14 = latticeCtx->SetEnergyRange(-4, 4);
     EXPECT_EQ(res14.ErrorCode, SUCCESS);
 
     auto res15 = latticeCtx->SetBoundaryType(PERIODIC);
@@ -62,11 +62,11 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     ASSERT_NE(kpmCtx, nullptr);
 
-    auto dosCtx = kpmCtx->CreateDoSCtx(GPU_STANDARD_IMPL);
+    auto dosCtx = kpmCtx->CreateDoSCtx(CPU_STANDARD_IMPL);
     ASSERT_NE(dosCtx, nullptr);
 
     // Domain Decomposition does not exist in CUDA Provider.
-    auto res16 = dosCtx->SetDomainDecomposition({2, 2});
+    auto res16 = dosCtx->SetDomainDecomposition({2, 2, 1});
     EXPECT_EQ(res16.ErrorCode, NOT_SUPPORTED);
 
     auto res17 = dosCtx->SetNumberOfRandomVectors(1);

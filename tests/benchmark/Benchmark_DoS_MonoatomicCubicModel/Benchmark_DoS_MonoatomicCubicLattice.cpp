@@ -13,7 +13,7 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#include "../include/public/Entrypoint.hpp"
+#include "public/Entrypoint.hpp"
 
 #include <gtest/gtest.h>
 
@@ -47,10 +47,10 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res13 = latticeCtx->SetLatticeSize({16384, 16384});
+    auto res13 = latticeCtx->SetLatticeSize({128, 128, 128});
     EXPECT_EQ(res13.ErrorCode, SUCCESS);
 
-    auto res14 = latticeCtx->SetEnergyRange(-4, 4);
+    auto res14 = latticeCtx->SetEnergyRange(-6, 6);
     EXPECT_EQ(res14.ErrorCode, SUCCESS);
 
     auto res15 = latticeCtx->SetBoundaryType(PERIODIC);
@@ -62,11 +62,11 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     auto kpmCtx = abysmalCtx->GetKpmMethods();
     ASSERT_NE(kpmCtx, nullptr);
 
-    auto dosCtx = kpmCtx->CreateDoSCtx(GPU_STANDARD_IMPL);
+    auto dosCtx = kpmCtx->CreateDoSCtx(CPU_STANDARD_IMPL);
     ASSERT_NE(dosCtx, nullptr);
 
     // Domain Decomposition does not exist in CUDA Provider.
-    auto res16 = dosCtx->SetDomainDecomposition({2, 2});
+    auto res16 = dosCtx->SetDomainDecomposition({2, 2, 1});
     EXPECT_EQ(res16.ErrorCode, NOT_SUPPORTED);
 
     auto res17 = dosCtx->SetNumberOfRandomVectors(1);

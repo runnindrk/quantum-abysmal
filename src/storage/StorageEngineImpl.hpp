@@ -16,8 +16,8 @@
 #ifndef QUANTUM_ABYSMAL_SRC_STORAGE_ENGINE_HPP
 #define QUANTUM_ABYSMAL_SRC_STORAGE_ENGINE_HPP
 
-#include "include/internal/Logger.hpp"
-#include "src/lattice/LatticeImpl.hpp"
+#include "internal/Logger.hpp"
+#include "lattice/LatticeEngineImpl.hpp"
 
 class StorageEngine
 {

@@ -13,13 +13,13 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#include "../src/entrypoint/QuantumAbysmalContextImpl.hpp"
-#include "../src/lattice/LatticeImpl.hpp"
-#include "../src/providers/KernelPolynomialMethodFactory.hpp"
-#include "../src/providers/LinearAlgebraFactory.hpp"
-#include "../src/providers/RngFactory.hpp"
-#include "../src/plotting/PlotFactory.hpp"
-// #include "../src/storage/StorageImpl.hpp"
+#include "../entrypoint/QuantumAbysmalContextImpl.hpp"
+#include "../lattice/LatticeImpl.hpp"
+#include "../providers/KernelPolynomialMethodFactory.hpp"
+#include "../providers/LinearAlgebraFactory.hpp"
+#include "../providers/RngFactory.hpp"
+#include "../plotting/PlotFactory.hpp"
+// #include "../storage/StorageImpl.hpp"
 
 Lattice::Uptr QuantumAbysmalContextImpl::GetLatticeMethods()
 {

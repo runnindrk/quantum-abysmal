@@ -13,7 +13,7 @@
 // Use it at your own risk, and feel free to contribute as the project evolves!
 // ================================================================================================
 
-#include "../include/public/Entrypoint.hpp"
+#include "public/Entrypoint.hpp"
 
 #include <gtest/gtest.h>
 
@@ -45,19 +45,12 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     ASSERT_NE(plottingCtx, nullptr);
 
     // --------------------------------------------------------------------------------------------
-    // Set Graphene Model lattice hoppings
-    
-    // Delta hoppings
-    auto res1 = latticeCtx->AddHopping({1}, {'A', 'A'}, -1);
-    EXPECT_EQ(res1.ErrorCode, SUCCESS);
-
-    // --------------------------------------------------------------------------------------------
     // Set lattice properties
 
-    auto res2 = latticeCtx->SetLatticeSize({2048, 2048});
+    auto res2 = latticeCtx->SetLatticeSize({1 << 28});
     EXPECT_EQ(res2.ErrorCode, SUCCESS);
 
-    auto res3 = latticeCtx->SetEnergyRange(-3, 3);
+    auto res3 = latticeCtx->SetEnergyRange(-2, 2);
     EXPECT_EQ(res3.ErrorCode, SUCCESS);
 
     auto res4 = latticeCtx->SetBoundaryType(PERIODIC);
@@ -73,7 +66,7 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
     ASSERT_NE(dosCtx, nullptr);
 
     // Domain Decomposition does not exist in CUDA Provider.
-    auto res5 = dosCtx->SetDomainDecomposition({2, 2});
+    auto res5 = dosCtx->SetDomainDecomposition({4, 1, 1});
     EXPECT_EQ(res5.ErrorCode, NOT_SUPPORTED);
 
     auto res6 = dosCtx->SetNumberOfRandomVectors(1);
@@ -87,4 +80,11 @@ TEST_F(QuantumAbysmalTest, DoS_BBHModel_GPU_STANDARD_IMPL)
 
     auto res9 = dosCtx->ComputeDoS(2048);
     EXPECT_EQ(res9.ErrorCode, SUCCESS);
+
+    dosCtx->Save();
+    
+    // --------------------------------------------------------------------------------------------
+    // Test output correctness
+
+    
 }
